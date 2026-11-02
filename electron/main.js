@@ -2,6 +2,9 @@ const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// păstrăm folderul de date vechi („Trikker”), ca proiectele locale să rămână după schimbarea numelui
+app.setPath('userData', path.join(app.getPath('appData'), 'Trikker'));
+
 // o singură fereastră: dacă deschizi aplicația a doua oară, o aduce în față pe prima
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 
@@ -10,7 +13,7 @@ function createWindow() {
   Menu.setApplicationMenu(null);                       // fără bara de meniu
   win = new BrowserWindow({
     width: 1400, height: 900, minWidth: 900, minHeight: 600,
-    backgroundColor: '#ffffff', autoHideMenuBar: true,
+    title: 'VerTech', backgroundColor: '#ffffff', autoHideMenuBar: true,
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, 'preload.js') }
   });
@@ -28,7 +31,7 @@ app.on('window-all-closed', () => app.quit());
 ipcMain.handle('print-pdf', async (event) => {
   const wc = event.sender;
   const data = await wc.printToPDF({ preferCSSPageSize: true, printBackground: true });
-  const f = path.join(app.getPath('temp'), 'Trikker-' + Date.now() + '.pdf');
+  const f = path.join(app.getPath('temp'), 'VerTech-' + Date.now() + '.pdf');
   fs.writeFileSync(f, data);
   const err = await shell.openPath(f);
   if (err) throw new Error(err);

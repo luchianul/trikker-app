@@ -7,10 +7,10 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Proiect electric">
+<meta name="apple-mobile-web-app-title" content="VerTech">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#2c3e50">
-<title>Proiect electric – Unifilar și plan</title>
+<title>VerTech – Unifilar și plan</title>
 <style>
 :root { --sidebar: 300px; --accent: #2980b9; }
 * { box-sizing: border-box; }
@@ -530,7 +530,7 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
 <body>
 
 <div id="home">
-  <div id="htop"><b class="hlogo">⚡ Proiect electric</b><span class="htab">Proiecte</span><span id="hcloud" style="font-size:12px;color:#27ae60;margin-left:10px"></span><span style="flex:1"></span><button onclick="cloudDlg()" title="Sincronizare cu Drive">☁ Sincronizare</button>
+  <div id="htop"><b class="hlogo">⚡ VerTech</b><span class="htab">Proiecte</span><span id="hcloud" style="font-size:12px;color:#27ae60;margin-left:10px"></span><span style="flex:1"></span><button onclick="cloudDlg()" title="Sincronizare cu Drive">☁ Sincronizare</button>
     <button id="bgrid" class="vb on" onclick="setView(false)" title="Cartonașe">▦</button><button id="blist" class="vb" onclick="setView(true)" title="Listă">☰</button>
     <button id="hback" onclick="hideHome()">↩ Înapoi la desen</button></div>
   <div id="hwrap"><div id="hgrid"></div></div>
@@ -1395,7 +1395,7 @@ function saveBlobAs(blob, name) {                      // în aplicația Android
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 if (window.trikkerElectron) window.print = () => window.trikkerElectron.printPdf().then(() => { printReady = false; const pa = document.getElementById('pa'); if (pa) pa.innerHTML = ''; }).catch(e => alert('PDF: ' + ((e && e.message) || e)));   // Windows: PDF cu previzualizare
-if (NATIVE && Capacitor.Plugins && Capacitor.Plugins.PrintPlugin) window.print = () => Capacitor.Plugins.PrintPlugin.print({ name:'Trikker' }).catch(e => alert('Tipărire: ' + ((e && e.message) || e)));
+if (NATIVE && Capacitor.Plugins && Capacitor.Plugins.PrintPlugin) window.print = () => Capacitor.Plugins.PrintPlugin.print({ name:'VerTech' }).catch(e => alert('Tipărire: ' + ((e && e.message) || e)));
 function exportPNG() {
   hideLinks = true; redraw(); hideLinks = false;      // PNG curat, fără linii de legătură
   const t = document.createElement('canvas'); t.width = cv.width; t.height = cv.height;
@@ -2583,7 +2583,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 02.11 17:46)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 02.11 18:16)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2633,7 +2633,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 02.11 17:46';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 02.11 18:16';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
