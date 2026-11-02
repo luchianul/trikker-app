@@ -1,0 +1,14 @@
+TRIKKER - aplicatie instalabila (Windows .exe si Android .apk)
+
+Ce contine acest folder:
+  app/trikker.html     = aplicatia ta (ASTA o inlocuiesti cand ai o versiune noua)
+  electron/            = invelisul pentru Windows
+  android-src/         = piese pentru Android (tiparire, iconita, cheie)
+  android-keystore/    = cheia de semnare (NU o sterge: cu ea noul .apk se instaleaza peste cel vechi)
+  build/ resources/    = iconita
+  .github/workflows/   = reteta dupa care GitHub construieste singur .apk si .exe
+
+Cum actualizezi aplicatia mai tarziu:
+  1. Pe GitHub intri in folderul "app", apesi pe trikker.html -> creionul/Upload -> pui fisierul nou (acelasi nume: trikker.html)
+  2. GitHub construieste singur ambele aplicatii (cam 10 minute)
+  3. In pagina principala a depozitului, la dreapta, "Releases" -> cea mai noua versiune -> descarci Trikker.apk si Trikker-Setup.exe

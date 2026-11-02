@@ -1,0 +1,7 @@
+{
+  "appId": "com.diazelectricite.trikker",
+  "appName": "Trikker",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "server": { "androidScheme": "https" }
+}
