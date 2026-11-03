@@ -28,6 +28,8 @@ jobs:
         run: |
           mkdir -p www
           cp app/trikker.html www/index.html
+          sed -i "s/const APP_BUILD = 0;/const APP_BUILD = ${{ github.run_number }};/" www/index.html
+          grep -c "const APP_BUILD = ${{ github.run_number }};" www/index.html
           npm install --no-audit --no-fund --ignore-scripts
           npx cap add android
           pip install pillow
@@ -57,6 +59,8 @@ jobs:
         run: |
           mkdir -p www
           cp app/trikker.html www/index.html
+          sed -i "s/const APP_BUILD = 0;/const APP_BUILD = ${{ github.run_number }};/" www/index.html
+          grep -c "const APP_BUILD = ${{ github.run_number }};" www/index.html
           npm install --no-audit --no-fund
           npx electron-builder --win --x64 --publish never
           cp dist/*Setup*.exe Trikker-Setup.exe
