@@ -889,6 +889,7 @@ function symText(c, it) {
 }
 const STRUCT = ['door', 'window', 'stair', 'stair_r'];
 let SS = 1;                                  // mărimea simbolurilor din plan (1 = 100%)
+let BT = null;                               // arborele tablourilor importat din Trikker: { kids:[ {c:'A'} | {d:'diff'|'feeder'|'sect', b:{kids:[…]}} ] }
 const SSV = [1, .8, .65, .5, .4];
 function ssText() { const b = document.getElementById('ssbtn'); if (b) b.textContent = 'Simboluri: ' + Math.round(SS * 100) + '%'; }
 function cycleSymScale() { SS = SSV[(Math.max(0, SSV.findIndex(v => Math.abs(v - SS) < .01)) + 1) % SSV.length]; ssText(); redraw(); save(); }
@@ -1303,17 +1304,20 @@ function buildRows(dev, edges) {
   groups.sort((p, r) => p.first - r.first);
   return groups.map(g => g.m.slice().sort((p, r) => (CAT[r.k] === 'w') - (CAT[p.k] === 'w')));   // întrerupătoarele primele
 }
-function generate() {
+function generate(auto) {
   const grp = {}, edges = {};
   ALLP().forEach(i => { if (i.t === 'sym' && CAT[i.k]) { const id = (i.id || '?').trim() || '?'; const g = grp[id] = grp[id] || { l:0, f:0, m:0, w:0, s:0, dev:[] }; g[CAT[i.k]] += qtyOf(i); g.dev.push(i); } });
   ALLP().forEach(l => { if (l.t === 'link') { (edges[l.from] = edges[l.from] || []).push(l.to); (edges[l.to] = edges[l.to] || []).push(l.from); } });
   Object.keys(circCfg).forEach(k => { if (circCfg[k] && circCfg[k].spare && !grp[k]) grp[k] = { l:0, f:0, m:0, w:0, s:0, dev:[], spare:true }; });   // rezerve (disjunctoare libere)
   const ids = Object.keys(grp).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0));   // A…Z, AA, AB… (nu AA înaintea lui B)
-  if (!ids.length) { alert('Pune întâi prize, lămpi sau întrerupătoare în planul casei (pagina 2, oricare nivel).'); return; }
-  if (grp['?'] && !confirm(grp['?'].dev.length + ' simboluri nu au circuit (apar ca „?”). Folosește 🔗 Leagă / Circuit ca să le dai un circuit. Continui oricum?')) return;
-  if (pages[1].length && !pages[1].some(i => i.gk) && !confirm('Pagina 1 conține un desen făcut manual. Unifilarul generat se adaugă peste el. Continui?')) return;
+  if (!ids.length) { if (!auto) alert('Pune întâi prize, lămpi sau întrerupătoare în planul casei (pagina 2, oricare nivel).'); return; }
+  if (grp['?'] && !auto && !confirm(grp['?'].dev.length + ' simboluri nu au circuit (apar ca „?”). Folosește 🔗 Leagă / Circuit ca să le dai un circuit. Continui oricum?')) return;
+  if (!auto && pages[1].length && !pages[1].some(i => i.gk) && !confirm('Pagina 1 conține un desen făcut manual. Unifilarul generat se adaugă peste el. Continui?')) return;
   const rowsN = {}; ids.forEach(id => { rowsN[id] = buildRows(grp[id].dev, edges).length; });
-  const B = Math.max(690, ...ids.map(id => (((circCfg[id] || {}).grp || '').trim() ? 130 : 0) + 210 + (rowsN[id] - 1) * 30));   // multe rânduri => tabloul coboară, nimic nu iese din pagină
+  const OFFD = { diff:130, sect:110, feeder:210 }, offOf = {};                                     // cât urcă o sub-bară față de cea de sub ea
+  const walkBT = (kids, base) => (kids || []).forEach(el => { if (el.c && !el.d) offOf[el.c] = base; else if (el.d) { if (el.c) offOf[el.c] = base; walkBT(el.b && el.b.kids, base + (OFFD[el.d] || 130)); } });
+  if (BT) walkBT(BT.kids, 0);
+  const B = Math.max(690, ...ids.map(id => (BT && offOf[id] !== undefined ? offOf[id] : (((circCfg[id] || {}).grp || '').trim() ? 130 : 0)) + 210 + (rowsN[id] - 1) * 30));   // multe rânduri => tabloul coboară, nimic nu iese din pagină
   const H = Math.PI/2, x0 = 110, y0 = B - 170, ML = 70;   // tulpina circuitului (bară → primul rând) = 160; textul disjunctorului începe deasupra simbolului
   const lay = r => { let c = 16; return r.map(d => { const k = elOf(d), ep = SOCKU.includes(k) ? [14, 10 + (k === 'e_sock3' ? 12 : 15)*(arcs(d)-1)] : (EP[k] || [14,14]), nq = imgSock(k, d) ? qtyOf(d) : 1, ext2 = ep[1] + (nq - 1) * (nq > 1 ? imgPitch(k) : 0), px = c + ep[0]; c = px + ext2 + 12; return { d, k, px, w:ext2, nq }; }); };
   const items = presetItems(40, B + 40), bus = items.find(i => i.k === 'u_bus'), sum = [];
@@ -1324,18 +1328,8 @@ function generate() {
   ids.filter(id => !grpOf(id)).forEach(id => order.push({ id }));
   gn.forEach(n => ids.filter(id => grpOf(id) === n).forEach((id, j, a) => order.push({ id, gn:n, first:j === 0, last:j === a.length - 1 })));
   let gbus = null, gstart = 0;
-  const occ = [];                                   // intervale pe axa x ocupate de circuite / grupuri generate
-  order.forEach(o => {
-    const c0 = cx, id = o.id, Bc = o.gn ? B - GOFF : B, y0 = Bc - 170;
-    if (o.first) {                                   // capul etajului: diferențial 30 mA pe bara principală + sub-bară
-      const gx = cx, gt = o.gn, ga = (gc[gt] && gc[gt].app) || GDEF; gstart = gx;
-      items.push({ t:'sym', k:'u_diff_g', x:gx, y:B, a:0, L:ML, to:20, tp:26, txt:ga.replace(/\s*\+\s*/g, '|'), gk:'G|' + gt + '|dif' });
-      items.push({ t:'line', k:'u_wire', x1:gx, y1:B-ML, x2:gx, y2:Bc, gk:'G|' + gt + '|w' });
-      items.push({ t:'text', x:gx - 8 - 9 * gt.length, y:B - 36, txt:gt, sz:16, gk:'G|' + gt + '|t' });
-      gbus = { t:'line', k:'u_bus', x1:gx, y1:Bc, x2:gx + 100, y2:Bc, gk:'G|' + gt + '|bus' };
-      items.push(gbus);
-      cx = gx + 110;
-    }
+  const drawCircuit = (id, cx, Bc, gnTag) => {
+    const y0 = Bc - 170;
     const MERGE = k => CAT[k] === 'l' || k === 'sw_dk' || k === 'ar_12' || k === 'ar_15';
     const mergeRow = r => { const out = [], ix = {}; r.forEach(d => { if (!MERGE(d.k)) { out.push(d); return; } if (ix[d.k] === undefined) { ix[d.k] = out.length; out.push(Object.assign({}, d, { _n: d.q || 1 })); } else out[ix[d.k]]._n += (d.q || 1); }); return out; };
     const g = grp[id], sock = g.s > 0 && g.s >= g.l + g.f, raw = buildRows(g.dev, edges), rows = raw.map(mergeRow), lblRows = raw.map(r => [...new Set(r.map(d => d.lbl).filter(Boolean))].join(' ')), cfg = circCfg[id] || {};
@@ -1361,11 +1355,56 @@ items.push({ t:'sym', k:'u_mcb', x:cx, y:Bc, a:0, L:ML, to:20, tp:26, id, gk:id+
     if (g.f) L.push(g.f + ' ventilat.');
     if (g.m) L.push(g.m + ' aparat/motor');
     if (g.w) L.push(g.w + ' într.');
-    sum.push((o.gn ? o.gn + '/' : '') + id + ': ' + (rows.length ? L.join(', ') + ' pe ' + rows.length + (rows.length === 1 ? ' rând' : ' rânduri') : 'rezervă'));
+    sum.push((gnTag ? gnTag + '/' : '') + id + ': ' + (rows.length ? L.join(', ') + ' pe ' + rows.length + (rows.length === 1 ? ' rând' : ' rânduri') : 'rezervă'));
+    return ext;
+  };
+
+  const occ = [];                                   // intervale pe axa x ocupate de circuite / grupuri generate
+  if (BT) {                                          // unifilar refăcut după arborele din Trikker: bare pe mai multe niveluri
+    const inTree = new Set(), collect = k => (k || []).forEach(el => { if (el.c) inTree.add(el.c); if (el.b) collect(el.b.kids); }); collect(BT.kids);
+    const rootKids = (BT.kids || []).concat(ids.filter(id => !inTree.has(id)).map(id => ({ c:id })));
+    const place = (kids, busY, busLine, path, gnCur, root) => kids.forEach((el, idx) => {
+      const pth = path + '.' + idx, c0 = cx;
+      if (el.d) {
+        const gx = cx, subY = busY - (OFFD[el.d] || 130), cfg = circCfg[el.c] || {};
+        if (el.d === 'diff') {
+          items.push({ t:'sym', k:'u_diff_g', x:gx, y:busY, a:0, L:ML, to:20, tp:26, txt:(el.app || GDEF).replace(/\s*\+\s*/g, '|'), gk:'T|' + pth + '|dif' });
+          if (el.g) items.push({ t:'text', x:gx - 8 - 9 * el.g.length, y:busY - 36, txt:el.g, sz:16, gk:'T|' + pth + '|t' });
+          items.push({ t:'line', k:'u_wire', x1:gx, y1:busY - ML, x2:gx, y2:subY, gk:'T|' + pth + '|w' });
+        } else if (el.d === 'sect') {
+          items.push({ t:'sym', k:'u_mcb', x:gx, y:busY, a:0, L:ML, to:20, tp:26, id:(el.lbl && el.lbl.length <= 6) ? el.lbl : 'SECT.', gk:'T|' + pth + '|mcb', txt:(el.app || '').replace(/\s*\+\s*/g, '|') });
+          items.push({ t:'line', k:'u_wire', x1:gx, y1:busY - ML, x2:gx, y2:subY, gk:'T|' + pth + '|w' });
+        } else {                                          // alimentare de subtablou: disjunctor + cablu cu nume
+          items.push({ t:'sym', k:'u_mcb', x:gx, y:busY, a:0, L:ML, to:20, tp:26, id:el.c, gk:el.c + '|mcb', txt:(cfg.app || '').replace(/\s*\+\s*/g, '|') });
+          items.push({ t:'line', k:'u_wire', x1:gx, y1:busY - ML, x2:gx, y2:subY, txt:cfg.cab || '', pl:cfg.pl || '', side:'r', gk:el.c + '|w' });
+          sum.push(el.c + ': alimentare subtablou');
+        }
+        const sub = { t:'line', k:'u_bus', x1:gx, y1:subY, x2:gx + 100, y2:subY, gk:'T|' + pth + '|bus' }; items.push(sub);
+        cx = gx + 110; place((el.b && el.b.kids) || [], subY, sub, pth, el.g || gnCur, false); cx += 30;
+        busLine.x2 = Math.max(busLine.x2, cx - 20); if (root) occ.push([gx - 45, cx - 15]);
+      } else if (el.c && grp[el.c]) {
+        const ext = drawCircuit(el.c, cx, busY, gnCur); cx += ext + 50; busLine.x2 = Math.max(busLine.x2, cx - 20); if (root) occ.push([c0 - 45, c0 + ext + 15]);
+      }
+    });
+    place(rootKids, B, bus, 'r', '', true);
+  } else {
+  order.forEach(o => {
+    const c0 = cx, id = o.id, Bc = o.gn ? B - GOFF : B, y0 = Bc - 170;
+    if (o.first) {                                   // capul etajului: diferențial 30 mA pe bara principală + sub-bară
+      const gx = cx, gt = o.gn, ga = (gc[gt] && gc[gt].app) || GDEF; gstart = gx;
+      items.push({ t:'sym', k:'u_diff_g', x:gx, y:B, a:0, L:ML, to:20, tp:26, txt:ga.replace(/\s*\+\s*/g, '|'), gk:'G|' + gt + '|dif' });
+      items.push({ t:'line', k:'u_wire', x1:gx, y1:B-ML, x2:gx, y2:Bc, gk:'G|' + gt + '|w' });
+      items.push({ t:'text', x:gx - 8 - 9 * gt.length, y:B - 36, txt:gt, sz:16, gk:'G|' + gt + '|t' });
+      gbus = { t:'line', k:'u_bus', x1:gx, y1:Bc, x2:gx + 100, y2:Bc, gk:'G|' + gt + '|bus' };
+      items.push(gbus);
+      cx = gx + 110;
+    }
+    const ext = drawCircuit(id, cx, Bc, o.gn);
     cx += ext + 50;
     if (!o.gn) occ.push([c0 - 45, c0 + ext + 15]);
     if (o.gn) { gbus.x2 = cx - 20; if (o.last) { cx += 30; occ.push([gstart - 45, gbus.x2 + 15]); } }
   });
+  }
   bus.x2 = Math.max(bus.x2, cx - 20);
   const oldBy = {}; pages[1].forEach(o => { if (o.gk) oldBy[o.gk] = o; });
   const del = new Set(pages.del || []);
@@ -1464,7 +1503,7 @@ async function checkUpdate(manual) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const j = await r.json(), n = parseInt(String(j.tag_name || '').replace(/\D+/g, ''), 10) || 0;
     if (n <= APP_BUILD) { if (manual) alert('Ai cea mai nouă versiune (' + APP_BUILD + ').'); return; }
-    const want = NATIVE ? 'Trikker.apk' : 'Trikker-Setup.exe', a = (j.assets || []).find(x => x.name === want);
+    const a = (j.assets || []).find(x => NATIVE ? /\.apk$/i.test(x.name) : x.name === 'Trikker-Setup.exe');
     if (!a || a.browser_download_url.indexOf('https://github.com/' + UPD_REPO + '/') !== 0) { if (manual) alert('Versiunea nouă nu are încă fișierul pentru acest dispozitiv.'); return; }
     showUpdate(n, a.browser_download_url);
   } catch (e) { if (manual) alert('Nu pot verifica acum. Ai internet?'); }
@@ -2009,7 +2048,7 @@ window.addEventListener('beforeprint', () => { if (!printReady) buildPrint(); })
 window.addEventListener('afterprint', () => { printReady = false; document.getElementById('pa').innerHTML = ''; });
 
 /* ---------- Salvare automată în browser ---------- */
-const snap = () => JSON.stringify({ 1:pages[1], del:pages.del || [], plans, lvl, ss:SS, so:startOpts, cp:cabPlace, cc:circCfg, gc:gc, lib:usedLib() });
+const snap = () => JSON.stringify({ 1:pages[1], del:pages.del || [], plans, lvl, ss:SS, bt:BT, so:startOpts, cp:cabPlace, cc:circCfg, gc:gc, lib:usedLib() });
 
 /* ---------- Proiecte multiple (fiecare casă are planul ei) + galeria de proiecte ---------- */
 let current = '', projList = [], cloudD = {}, cloudPending = '';   // cloudPending = proiect care există doar în Drive și încă se descarcă: nu are voie să fie salvat/trimis gol
@@ -2037,11 +2076,11 @@ function makeThumb() {                      // miniatura proiectului (din ce e a
   } catch (_) {}
 }
 function save() { if (bulkBackup) bulkBackup.touched = true; if (!current || current === cloudPending) return; lsSet(lsKey(current), snap()); lsSet('proiect_data:' + current, new Date().toISOString()); thumbSoon(); cloudSave(); }
-function resetState() { SS = 1; pages[1] = []; pages.del = []; plans = [{ name:'Parter', items:[] }]; lvl = 0; startOpts = { brk:true, meter:true, sect:false, diff:true }; cabPlace = ''; circCfg = {}; gc = {}; linkFrom = null; start = null; }
+function resetState() { SS = 1; BT = null; pages[1] = []; pages.del = []; plans = [{ name:'Parter', items:[] }]; lvl = 0; startOpts = { brk:true, meter:true, sect:false, diff:true }; cabPlace = ''; circCfg = {}; gc = {}; linkFrom = null; start = null; }
 function applyData(d) {
   if (!d || !d[1]) return;
   if (d.lib) { Object.keys(d.lib).forEach(id => { if (!lib[id]) { lib[id] = d.lib[id]; regSym(id); } }); libSave(); libTools(); }
-  SS = d.ss || 1; ssText(); pages[1] = d[1]; pages.del = d.del || []; if (d.so) startOpts = d.so; if (d.cp !== undefined) cabPlace = d.cp; circCfg = d.cc || {}; gc = d.gc || {}; delete circCfg['undefined'];   // curăță circuitul „undefined” rămas din eroarea cu butoanele de grup
+  SS = d.ss || 1; BT = d.bt || null; ssText(); pages[1] = d[1]; pages.del = d.del || []; if (d.so) startOpts = d.so; if (d.cp !== undefined) cabPlace = d.cp; circCfg = d.cc || {}; gc = d.gc || {}; delete circCfg['undefined'];   // curăță circuitul „undefined” rămas din eroarea cu butoanele de grup
   if (d.plans && d.plans.length) { plans = d.plans; lvl = Math.min(d.lvl || 0, plans.length - 1); }
   else if (d[2]) plans = [{ name:'Parter', items:d[2] }];
   const all = [pages[1]].concat(plans.map(p => p.items));
@@ -2305,7 +2344,7 @@ function trikToData(txt) {
   const tipOf = br => String(br.getAttribute('VerliesstroomschakelaarType') || 'Type A').replace(/^Type/i, 'tip');
   const kaOf = br => { const kr = String(br.getAttribute('Kortsluitstroom') || ''); return /kA/i.test(kr) ? num(kr) : (num(kr) >= 100 ? num(kr) / 1000 : num(kr)) || 3; };      // „3kA” sau „3000”
   const lblOf = e => notesOf(e).join(' ');
-  so.t = {};
+  so.t = {}; const BTO = { kids:[] };
   const circuit = (br, grp, feeder) => {
     const L = kidsOf(br).filter(x => x.nodeName === 'Leiding'), L0 = L[0], vl = (br.getAttribute('VasteLetter') || '').trim();
     const id = (vl && /^[A-Z]{1,3}\d*$/.test(vl) && !cc[vl]) ? vl : autoLetter(), A = br.getAttribute('NominaleStroomsterkte') || '16', ma = br.getAttribute('VerliesStroomsterkte');
@@ -2316,23 +2355,33 @@ function trikToData(txt) {
     else L.forEach(l => { circOf[l.getAttribute('Id')] = id; mark(l, id, null); });
     rep.circuits++; return id;
   };
-  const walk = (el, grp) => kidsOf(el).forEach(c => {
+  const walk = (el, grp, bd) => kidsOf(el).forEach(c => {
     const t = c.nodeName;
     if (t === 'AutomatischeSchakelaar') {
-      const ma = c.getAttribute('VerliesStroomsterkte'), Ls = kidsOf(c).filter(x => x.nodeName === 'Leiding'), hasL = Ls.length > 0;
-      if (hasL) { const feeder = Ls.some(l => l.getElementsByTagName('Verdeelbord').length > 0); circuit(c, grp, feeder); if (feeder) Ls.forEach(l => walk(l, grp)); }     // alimentare de subtablou: circuitele din el se caută mai departe
-      else if (!ma && kidsOf(c).every(x => x.nodeName === 'Nota')) { circuit(c, grp); cc[Object.keys(cc).pop()].spare = true; rep.spares = (rep.spares || 0) + 1; }      // rezervă: disjunctor fără nimic pe el
-      else if (ma && num(ma) <= 30 && seenBoard) { const g = 'D' + (++nG); gc[g] = { app:polesOf(c) + ' - ' + (c.getAttribute('NominaleStroomsterkte') || '40') + 'A|Δ' + ma + 'mA - ' + tipOf(c) + '|' + brandOf(c) }; rep.groups++; walk(c, g); }
+      const ma = c.getAttribute('VerliesStroomsterkte'), Ls = kidsOf(c).filter(x => x.nodeName === 'Leiding'), hasL = Ls.length > 0, A = c.getAttribute('NominaleStroomsterkte') || '40';
+      if (hasL) {
+        const feeder = Ls.some(l => l.getElementsByTagName('Verdeelbord').length > 0), id = circuit(c, grp, feeder);
+        if (feeder) { const sub = { kids:[] }; if (bd) bd.push({ d:'feeder', c:id, b:sub }); Ls.forEach(l => walk(l, grp, sub.kids)); }     // alimentare de subtablou: circuitele din el se caută mai departe
+        else if (bd) bd.push({ c:id });
+      }
+      else if (!ma && kidsOf(c).every(x => x.nodeName === 'Nota')) { const id = circuit(c, grp); cc[id].spare = true; rep.spares = (rep.spares || 0) + 1; if (bd) bd.push({ c:id }); }      // rezervă: disjunctor fără nimic pe el
+      else if (ma && num(ma) <= 30 && seenBoard) { const g = 'D' + (++nG), app = polesOf(c) + ' - ' + A + 'A|Δ' + ma + 'mA - ' + tipOf(c) + '|' + brandOf(c), sub = { kids:[] }; gc[g] = { app }; rep.groups++; if (bd) bd.push({ d:'diff', g, app, b:sub }); walk(c, g, sub.kids); }
+      else if (seenBoard && bd) {                          // în interiorul unui tablou: secționer sau alt diferențial → bară nouă
+        const sub = { kids:[] };
+        if (ma) bd.push({ d:'diff', g:'', app:polesOf(c) + ' - ' + A + 'A|Δ' + ma + 'mA - ' + tipOf(c) + '|' + brandOf(c), b:sub });
+        else bd.push({ d:'sect', lbl:(c.getAttribute('VasteLetter') || '').trim(), app:kaOf(c) + 'kA|' + polesOf(c) + ' - ' + (c.getAttribute('Uitschakelcurve') || 'C') + ' ' + A + 'A|' + brandOf(c), b:sub });
+        walk(c, grp, sub.kids);
+      }
       else {
         if (!seenBoard) { if (ma) { so.diff = true; so.t.diff = tipOf(c).replace('tip', 'Type') + ' - Δ' + ma + 'mA|' + polesOf(c) + ' - ' + (c.getAttribute('NominaleStroomsterkte') || '40') + 'A|' + brandOf(c); } else { so.brk = true; so.t.brk = polesOf(c) + ' - ' + (c.getAttribute('NominaleStroomsterkte') || '25') + 'A|' + brandOf(c); } }
-        walk(c, grp);
+        walk(c, grp, bd);
       }
-    } else if (t === 'Teller') { so.meter = true; const l = lblOf(c); if (l) so.t.meter = l; walk(c, grp); }
-    else if (t === 'Verdeelbord') { seenBoard = true; walk(c, grp); }
+    } else if (t === 'Teller') { so.meter = true; const l = lblOf(c); if (l) so.t.meter = l; walk(c, grp, bd); }
+    else if (t === 'Verdeelbord') { if (!seenBoard) { seenBoard = true; walk(c, grp, BTO.kids); } else walk(c, grp, bd); }
     else if (t === 'Aardingsstrip') { const a = c.getElementsByTagName('Nota')[0]; if (a && !so.t.ground) so.t.ground = (a.getAttribute('Tekst') || '').replace(/\s*\n\s*/g, '|').trim(); }
-    else if (t === 'Leiding' || t === 'StartNode') { if (t === 'Leiding' && !seenBoard) { if (so.t.cab === undefined) so.t.cab = cabOf(c); else if (so.meter && so.t.cab2 === undefined) so.t.cab2 = cabOf(c); } walk(c, grp); }
+    else if (t === 'Leiding' || t === 'StartNode') { if (t === 'Leiding' && !seenBoard) { if (so.t.cab === undefined) so.t.cab = cabOf(c); else if (so.meter && so.t.cab2 === undefined) so.t.cab2 = cabOf(c); } walk(c, grp, bd); }
   });
-  [...(root ? root.children : [])].forEach(sn => walk(sn, ''));
+  [...(root ? root.children : [])].forEach(sn => walk(sn, '', null));
   // ---- planul: scară și poziții ----
   const pgs = [...doc.getElementsByTagName('GrondplanPage')], xs = [], ys = [];
   const pt = (e, n) => { const p = e.getElementsByTagName(n)[0]; return p ? [num(p.getAttribute('X')), num(p.getAttribute('Y'))] : null; };
@@ -2390,7 +2439,7 @@ function trikToData(txt) {
   const placed = new Set(Object.keys(uidOf));
   Object.keys(byId).forEach(i => { if (['Contactdoos', 'Schakelaar', 'Lichtpunt', 'Toestel', 'Drukknop', 'Bewegingsdetector'].includes(byId[i].nodeName) && !placed.has(i)) rep.unplaced++; });
   if (!plans.length) plans.push({ name:'Parter', items:[] });
-  return { data:{ 1:[], del:[], plans, lvl:0, ss:.65, cc, gc, so, cp:'' }, rep };   // planurile Trikker au simboluri mici: pornim cu 65%
+  return { data:{ 1:[], del:[], plans, lvl:0, ss:.65, bt:BTO, cc, gc, so, cp:'' }, rep };   // planurile Trikker au simboluri mici: pornim cu 65%
 }
 function importTrik() {
   const i = document.createElement('input'); i.type = 'file'; if (!NATIVE) i.accept = '.trik,.xml,text/xml,application/xml';
@@ -2399,9 +2448,11 @@ function importTrik() {
     r.onload = () => {
       try {
         const o = trikToData(String(r.result)), nm = uniqueName(f.name.replace(/\.(trik|xml)$/i, '') || 'Proiect Trikker'), dat = JSON.stringify(o.data);
-        lsSet(lsKey(nm), dat); lsSet('proiect_data:' + nm, new Date().toISOString()); projList.push(nm); saveList(); cloudPut(nm, dat); renderHome();
-        const x = o.rep; alert('Importat din Trikker: ' + x.walls + ' pereți, ' + x.doors + ' uși, ' + x.windows + ' ferestre, ' + x.stairs + ' scări, ' + x.syms + ' simboluri, ' + x.texts + ' texte, ' + x.circuits + ' circuite' + (x.groups ? ', ' + x.groups + ' grupuri 30 mA' : '') + '.' +
-          (x.unplaced ? '\n⚠ ' + x.unplaced + ' aparate din schemă nu au poziție pe plan în Trikker, deci nu apar în plan (pune-le pe plan ca să intre în unifilar).' : '') + '\nDeschide proiectul și apasă „Generează” ca să refaci unifilarul.');
+        lsSet(lsKey(nm), dat); lsSet('proiect_data:' + nm, new Date().toISOString()); projList.push(nm); saveList(); renderHome();
+        let ok = false; try { if (switchProject(nm) !== false) { hideHome(); switchPage(2); generate(true); ok = true; } } catch (_) {}          // unifilarul se refă automat din fișier
+        if (!ok) cloudPut(nm, dat);
+        const x = o.rep; alert((ok ? 'Unifilarul a fost refăcut automat din fișier.\n' : '') + 'Importat din Trikker: ' + x.walls + ' pereți, ' + x.doors + ' uși, ' + x.windows + ' ferestre, ' + x.stairs + ' scări, ' + x.syms + ' simboluri, ' + x.texts + ' texte, ' + x.circuits + ' circuite' + (x.groups ? ', ' + x.groups + ' grupuri 30 mA' : '') + '.' +
+          (x.unplaced ? '\n⚠ ' + x.unplaced + ' aparate din schemă nu au poziție pe plan în Trikker, deci nu apar în plan (pune-le pe plan ca să intre în unifilar).' : '') + '');
       } catch (e) { alert('Nu am putut citi fișierul .trik: ' + e.message); }
     };
     r.readAsText(f);
@@ -2751,7 +2802,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:44)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:58)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2801,7 +2852,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:44';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:58';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
