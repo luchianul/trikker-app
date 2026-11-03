@@ -1480,7 +1480,11 @@ function showUpdateBox(title, msg, yesText, onYes, noText) {
   d.querySelector('#updyes').onclick = () => { d.remove(); onYes(); };
 }
 function showUpdate(n, url) {              // Android: descarcă fișierul .apk; apoi atingi notificarea și „Instalează”
-  showUpdateBox('Versiune nouă disponibilă', 'Ai versiunea ' + APP_BUILD + ', a apărut versiunea ' + n + '.<br>Vrei să actualizezi acum?<br><small>Proiectele tale rămân. După ce se descarcă fișierul, deschide-l și apasă „Instalează”.</small>', 'Da, actualizează', () => openExternalUrl(url));
+  showUpdateBox('Versiune nouă disponibilă', 'Ai versiunea ' + APP_BUILD + ', a apărut versiunea ' + n + '.<br>Vrei să actualizezi acum?<br><small>Proiectele tale rămân. După ce se descarcă fișierul, deschide-l și apasă „Instalează”.</small>', 'Da, actualizează', () => {
+    const U = NATIVE && Capacitor.Plugins && Capacitor.Plugins.UpdatePlugin;
+    if (!U) { openExternalUrl(url); return; }
+    U.download({ url, name: 'VerTech-' + n + '.apk' }).then(() => alert('Descărcarea a început.\nCând se termină, atinge notificarea „VerTech-' + n + '.apk” (sus) și apasă Instalează.\nProiectele tale rămân.')).catch(() => openExternalUrl(url));
+  });
 }
 let manualUpd = false;
 if (window.trikkerElectron && window.trikkerElectron.onUpdate) window.trikkerElectron.onUpdate(d => {      // Windows: se descarcă singur în fundal

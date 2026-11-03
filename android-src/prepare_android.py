@@ -3,7 +3,7 @@ import os, shutil
 from PIL import Image, ImageDraw
 
 pkg = 'android/app/src/main/java/com/diazelectricite/trikker'
-for f in ('PrintPlugin.java', 'MainActivity.java'):
+for f in ('PrintPlugin.java', 'UpdatePlugin.java', 'MainActivity.java'):
     shutil.copy('android-src/' + f, pkg + '/' + f)
 
 res = 'android/app/src/main/res'
