@@ -1,0 +1,3055 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <script>
+  (function(){
+    var t=null; try{ t=localStorage.getItem('pontaj-tema'); }catch(e){}
+    if(t!=='dark'&&t!=='light') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+  </script>
+  <title>Pontaj Gabi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pontaj Gabi">
+  <meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0a0e19" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <meta name="application-name" content="Pontaj Gabi">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="HandheldFriendly" content="true">
+  <meta name="format-detection" content="telephone=no">
+
+  <link rel="stylesheet" href="lib/bootstrap.min.css">
+  <link rel="stylesheet" href="lib/bootstrap-icons.css">
+  <!-- Inter (variabil) servit de pe jsDelivr -->
+  <link rel="stylesheet" href="lib/inter.css">
+  <script src="lib/sweetalert2.all.min.js"></script>
+  <script src="lib/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="lib/animate.min.css"/>
+  <style>
+/* ==========================================================
+   PONTAJ GABI — DESIGN SYSTEM
+   Mobil: aplicație nativă · Desktop (≥992px): SaaS dashboard
+   ========================================================== */
+:root {
+  color-scheme: light;
+
+  /* Accent */
+  --primary: #4338ca;
+  --primary-600: #4f46e5;
+  --primary-soft: rgba(67, 56, 202, 0.08);
+  --primary-soft-strong: rgba(67, 56, 202, 0.14);
+
+  /* Statusuri */
+  --cash: #0f766e;
+  --cash-soft: rgba(15, 118, 110, 0.09);
+  --accent: #0369a1;
+  --accent-soft: rgba(3, 105, 161, 0.09);
+  --orange: #b45309;
+  --orange-soft: rgba(180, 83, 9, 0.09);
+  --purple: #6d28d9;
+  --purple-soft: rgba(109, 40, 217, 0.09);
+  --blue: #1d4ed8;
+  --blue-soft: rgba(29, 78, 216, 0.08);
+  --danger: #b91c1c;
+  --danger-soft: rgba(185, 28, 28, 0.08);
+  --warning: #b45309;
+  --warning-soft: rgba(180, 83, 9, 0.09);
+
+  /* Neutre */
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --line: rgba(15, 23, 42, 0.09);
+  --line-soft: rgba(15, 23, 42, 0.06);
+
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f8f9fc;
+  --card: #ffffff;
+  --input-bg: #fafbfe;
+  --header-bg: rgba(246, 247, 251, 0.88);
+  --nav-bg: rgba(255, 255, 255, 0.94);
+  --chip-bg: #0f172a;
+  --chip-fg: #e2e8f0;
+  --skel-a: #eceff5;
+  --skel-b: #f7f8fb;
+  --chart-hi: #4338ca;
+  --chart-lo: #c7d2fe;
+  --blur: blur(16px);
+
+  /* Spațiere */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+
+  /* Raze */
+  --r-lg: 16px;
+  --r-md: 12px;
+  --r-sm: 10px;
+  --r-xs: 8px;
+
+  /* Umbre */
+  --shadow-xs: 0 1px 2px rgba(15,23,42,.05);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+  --shadow-md: 0 6px 16px rgba(15,23,42,.08);
+  --shadow-lg: 0 16px 40px rgba(15,23,42,.14);
+
+  /* Layout */
+  --sidebar-w: 240px;
+  --topbar-h: 64px;
+  --nav-h: 60px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Bootstrap */
+  --bs-primary: #4338ca;
+  --bs-primary-rgb: 67, 56, 202;
+  --bs-body-font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+    --primary: #6b73f0;
+    --primary-600: #7c83f5;
+    --primary-soft: rgba(124, 131, 245, 0.13);
+    --primary-soft-strong: rgba(124, 131, 245, 0.22);
+    --cash: #12a594;
+    --cash-soft: rgba(18, 165, 148, 0.14);
+    --accent: #2b9fd8;
+    --accent-soft: rgba(43, 159, 216, 0.14);
+    --orange: #f0a43a;
+    --orange-soft: rgba(240, 164, 58, 0.14);
+    --purple: #a78bfa;
+    --purple-soft: rgba(167, 139, 250, 0.14);
+    --blue: #6aa2fa;
+    --blue-soft: rgba(106, 162, 250, 0.14);
+    --danger: #ef6b6b;
+    --danger-soft: rgba(239, 107, 107, 0.13);
+    --warning: #f0a43a;
+    --warning-soft: rgba(240, 164, 58, 0.14);
+
+    --ink: #e8ecf7;
+    --ink-soft: #a3aec5;
+    --text-main: #e8ecf7;
+    --text-muted: #8b96ad;
+    --line: rgba(255, 255, 255, 0.09);
+    --line-soft: rgba(255, 255, 255, 0.06);
+
+    --bg: #0a0e19;
+    --surface: #121829;
+    --surface-2: #0f1424;
+    --card: #121829;
+    --input-bg: #0d1220;
+    --header-bg: rgba(10, 14, 25, 0.88);
+    --nav-bg: rgba(18, 24, 41, 0.94);
+    --chip-bg: #232c45;
+    --chip-fg: #cbd5f5;
+    --skel-a: #1a2138;
+    --skel-b: #232c45;
+    --chart-hi: #818cf8;
+    --chart-lo: #2c3557;
+
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.35);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+    --shadow-md: 0 8px 20px rgba(0,0,0,.45);
+    --shadow-lg: 0 18px 44px rgba(0,0,0,.6);
+}
+:root[data-theme="dark"] .btn-close { filter: invert(1) grayscale(1); }
+:root[data-theme="dark"] .swal2-popup { background: var(--surface) !important; color: var(--text-main) !important; }
+:root[data-theme="dark"] .swal2-html-container { color: var(--ink-soft) !important; }
+
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0; padding: 0;
+}
+.theme-toggle:active { background: var(--primary-soft); }
+
+/* ---------- Bază ---------- */
+html { -webkit-text-size-adjust: 100%; }
+* { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+input, textarea, select { -webkit-touch-callout: default; }
+
+body {
+  background: var(--bg);
+  font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv11', 'ss03';
+  -webkit-font-smoothing: antialiased;
+  color: var(--text-main);
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  letter-spacing: -0.005em;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 104px);
+}
+
+.fw-900 { font-weight: 800; }
+.fw-800 { font-weight: 700; }
+.text-muted { color: var(--text-muted) !important; }
+
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+button, [role="button"], .nav-item, .side-item, .home-action-card { cursor: pointer; }
+
+.swal2-popup { border-radius: var(--r-lg) !important; font-family: inherit !important; padding: 1.5rem !important; }
+.swal2-title { font-weight: 700 !important; font-size: 1.1rem !important; color: var(--ink) !important; }
+.swal2-confirm { border-radius: var(--r-sm) !important; font-weight: 600 !important; padding: 12px 24px !important; box-shadow: none !important; }
+.swal2-cancel { border-radius: var(--r-sm) !important; font-weight: 600 !important; }
+
+.view-section { display: none; }
+.view-section.active { display: block; animation: viewIn .18s ease-out; }
+@keyframes viewIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Butoane și câmpuri ---------- */
+.btn-primary {
+  --bs-btn-bg: var(--primary); --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-bg: var(--primary-600); --bs-btn-hover-border-color: var(--primary-600);
+  --bs-btn-active-bg: var(--primary-600); --bs-btn-active-border-color: var(--primary-600);
+  --bs-btn-disabled-bg: var(--primary); --bs-btn-disabled-border-color: var(--primary);
+  border-radius: var(--r-sm); font-weight: 600; min-height: 48px; box-shadow: none;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--primary); --bs-btn-border-color: var(--primary-soft-strong);
+  --bs-btn-hover-bg: var(--primary); --bs-btn-hover-border-color: var(--primary); --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: var(--primary); --bs-btn-active-border-color: var(--primary); --bs-btn-active-color: #fff;
+  border-radius: var(--r-sm); font-weight: 600; min-height: 44px;
+}
+.btn-outline-danger {
+  --bs-btn-color: var(--danger); --bs-btn-border-color: var(--line);
+  --bs-btn-hover-bg: var(--danger); --bs-btn-hover-border-color: var(--danger);
+  min-width: 48px;
+}
+
+.form-control, .form-select {
+  border-radius: var(--r-sm); border: 1px solid var(--line); background-color: var(--input-bg); color: var(--text-main);
+  font-family: inherit; padding: 10px 13px; font-size: 0.92rem; min-height: 44px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); background-color: var(--surface); color: var(--text-main);
+}
+.form-control::placeholder { color: var(--text-muted); opacity: .8; }
+.input-group-text { background: var(--surface-2); border: 1px solid var(--line); color: var(--text-muted); border-radius: var(--r-sm); }
+input[type="date"], input[type="time"] { min-width: 0; max-width: 100%; }
+
+@media (max-width: 991.98px) {
+  input, select, textarea, .form-control, .form-select, .inp { font-size: 16px !important; }
+}
+
+.lbl { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; }
+
+/* ==========================================================
+   SHELL: sidebar + topbar (doar desktop)
+   ========================================================== */
+.sidebar, .topbar { display: none; }
+.main-col { min-width: 0; }
+.content { width: 100%; }
+
+/* ---------- Header mobil ---------- */
+.app-header {
+  position: sticky; top: 0; z-index: 1000;
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  background: var(--header-bg);
+  padding: calc(8px + var(--safe-top)) 16px 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.app-header h1 { font-size: 19px; font-weight: 700; margin: 0; letter-spacing: -0.02em; color: var(--ink); }
+.header-back {
+  width: 44px; height: 44px; margin-left: -8px; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink); flex-shrink: 0; font-size: 18px;
+}
+.header-back:active { background: var(--primary-soft); }
+.year-chip {
+  position: relative; height: 34px; padding: 0 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+  font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;
+}
+.year-chip::after { content: ''; position: absolute; inset: -6px -2px; }
+.year-chip::before { content: '\F282'; font-family: 'bootstrap-icons'; font-size: 10px; order: 2; }
+
+.search-wrapper { margin-top: 10px; }
+#searchBar {
+  border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--surface);
+  padding: 10px 14px; box-shadow: var(--shadow-xs);
+}
+
+.an-pulsat { display: none !important; }
+
+.an-pulsat {
+  display: inline-block; color: var(--primary); background: var(--primary-soft);
+  font-weight: 600; font-size: 0.62em; margin-left: 8px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--primary-soft-strong); vertical-align: middle;
+}
+
+/* ---------- Titluri de pagină ---------- */
+.page-head { padding: 18px 16px 4px; }
+.page-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: var(--ink); }
+.page-head p { margin: 2px 0 0; font-size: 13.5px; color: var(--text-muted); }
+
+/* ---------- KPI mici (Statistici / Facturi / Deductibil) ---------- */
+.kpi-row { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 10px; padding: 0 16px; margin: 14px 0 16px; }
+.kpi-3 { --cols: 3; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 12px 14px; box-shadow: var(--shadow-xs); min-width: 0; }
+.kpi-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 2px; }
+.kpi-value { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kpi-3 .kpi-value { font-size: 16px; }
+.tone-danger { color: var(--danger); } .tone-cash { color: var(--cash); } .tone-accent { color: var(--accent); } .tone-primary { color: var(--primary); }
+
+/* ---------- Carduri ---------- */
+.pro-card {
+  background: var(--card); border-radius: var(--r-md); padding: 14px 16px;
+  margin: 0 16px 12px; border: 1px solid var(--line); box-shadow: var(--shadow-xs);
+  position: relative; transition: box-shadow .15s ease, border-color .15s ease, background-color .15s ease;
+}
+.pro-card.card-cash { border-color: rgba(15,118,110,.35); background: linear-gradient(180deg, var(--cash-soft), var(--card) 70%); }
+.badge-cash { background: var(--cash); color: #fff; font-weight: 600; font-size: 10.5px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.badge-norm { display: none; }
+
+.stat-card {
+  background: var(--surface); border-radius: var(--r-md); padding: 16px; margin: 0 16px 12px;
+  border: 1px solid var(--line); box-shadow: var(--shadow-xs); position: relative;
+}
+#lista-stats .btn { min-height: 44px; }
+
+.hours-tag { background: var(--chip-bg); color: var(--chip-fg); font-weight: 600; font-size: 13px; border-radius: var(--r-xs); padding: 7px 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.card-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; color: var(--ink); display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.card-subtitle { font-size: 13px; font-weight: 500; color: var(--primary); margin-bottom: 10px; overflow-wrap: anywhere; }
+.j-data { font-weight: 400; font-size: 14px; color: var(--ink-soft); }
+.j-zi { font-weight: 600; }
+.j-head { padding-right: 96px; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+.info-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-soft); font-weight: 500; min-width: 0; font-variant-numeric: tabular-nums; }
+.info-item i { color: var(--primary); font-size: 14px; }
+
+.card-actions { position: absolute; top: 6px; right: 6px; display: flex; gap: 2px; }
+.btn-action {
+  background: transparent; border-radius: var(--r-sm); width: 44px; height: 44px;
+  border: none; display: flex; align-items: center; justify-content: center; font-size: 15px;
+  transition: background-color .15s ease;
+}
+.btn-edit { color: var(--primary); }
+.btn-delete { color: var(--danger); }
+.btn-edit:hover, .btn-edit:active { background: var(--primary-soft); }
+.btn-delete:hover, .btn-delete:active { background: var(--danger-soft); }
+
+.week-separator {
+  margin: 18px 20px 8px; font-size: 12.5px; font-weight: 600; color: var(--text-muted);
+  display: flex; align-items: center; gap: 10px;
+}
+.week-separator::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+.jurnal-thead { display: none; }
+
+/* stări goale */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+.empty-state i { font-size: 34px; opacity: .45; display: block; margin-bottom: 10px; }
+.empty-title { font-weight: 600; color: var(--ink-soft); font-size: 15px; }
+.empty-sub { font-size: 13.5px; margin-top: 2px; }
+#lista-bruta:empty::before { content: 'Nicio zi în jurnal'; display: block; text-align: center; padding: 48px 24px 4px; font-weight: 600; font-size: 15px; color: var(--ink-soft); }
+#lista-bruta:empty::after { content: 'Adaugă prima zi cu butonul + de mai jos.'; display: block; text-align: center; padding: 0 24px 48px; font-size: 13.5px; color: var(--text-muted); }
+
+/* skeleton */
+.skel-card { margin: 0 16px 12px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); display: flex; flex-direction: column; gap: 10px; }
+.skel-line { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--skel-a), var(--skel-b), var(--skel-a)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+.w40 { width: 40%; } .w60 { width: 60%; } .w80 { width: 80%; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ---------- Formulare inline (Facturi / Deductibil) ---------- */
+.btn-block-primary {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 0 16px 16px; width: calc(100% - 32px); min-height: 48px; padding: 0 16px;
+  background: var(--primary); color: #fff; border: none; border-radius: var(--r-sm);
+  font-weight: 600; font-size: 0.92rem; box-shadow: var(--shadow-xs); transition: background-color .15s ease;
+}
+.btn-block-primary:hover { background: var(--primary-600); }
+.form-panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); margin: 0 16px 16px; padding: 16px; box-shadow: var(--shadow-sm); }
+.form-panel-title { font-weight: 600; font-size: 15px; margin-bottom: 12px; color: var(--text-main); }
+.inp {
+  width: 100%; min-height: 44px; padding: 10px 13px; border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-family: inherit; font-size: 0.92rem; background: var(--input-bg); color: var(--text-main); margin-bottom: 12px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.inp:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-row2 .inp { margin-bottom: 0; }
+@media (max-width: 399px) { .form-row2 { grid-template-columns: 1fr; } }
+.btn-submit {
+  width: 100%; min-height: 48px; border: none; border-radius: var(--r-sm); color: #fff; font-weight: 600; font-size: 0.92rem;
+  font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-submit.cash { background: var(--cash); } .btn-submit.primary { background: var(--primary); margin-top: 12px; }
+.list-label { font-size: 12.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+#sapt-checkbox-list { background: var(--input-bg) !important; border-color: var(--line) !important; }
+#sapt-checkbox-list > div { min-height: 44px; border-bottom-color: var(--line-soft) !important; }
+#sapt-checkbox-list input { width: 22px !important; height: 22px !important; }
+#facturi-container button[onclick^="stergeFactura"], #lista-deduceri button[onclick^="stergeDeducere"] {
+  min-width: 44px; min-height: 44px; border-radius: var(--r-sm);
+}
+#facturi-container button[onclick^="stergeFactura"]:hover, #lista-deduceri button[onclick^="stergeDeducere"]:hover { background: var(--danger-soft) !important; }
+#facturi-container button[onclick^="achitaFacturaIntegral"], #facturi-container button[onclick^="cereAvans"] { min-height: 44px; }
+
+.factura-card { background: var(--surface); border-radius: var(--r-md); padding: 16px; border: 1px solid var(--line); box-shadow: var(--shadow-xs); }
+.badge-factura-restant, .badge-factura-incasat, .badge-factura-partial, .badge-factura-cash {
+  font-size: 10.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+}
+.badge-factura-restant { background: var(--danger-soft); color: var(--danger); border: 1px solid rgba(185,28,28,0.18); }
+.badge-factura-incasat { background: var(--cash-soft); color: var(--cash); border: 1px solid rgba(15,118,110,0.2); }
+.badge-factura-partial { background: var(--warning-soft); color: var(--warning); border: 1px solid rgba(180,83,9,0.2); }
+.badge-factura-cash { background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(3,105,161,0.2); }
+.pro-card.factura-restant { border-left: 3px solid var(--danger); }
+.pro-card.factura-incasat { border-left: 3px solid var(--cash); }
+.pro-card.factura-partial { border-left: 3px solid var(--warning); }
+.pro-card.factura-cash { border-left: 3px solid var(--accent); }
+.sapt-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap; }
+.sapt-row:last-of-type { border-bottom: none; }
+.sapt-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 7px; flex-shrink: 0; }
+
+/* ==========================================================
+   NAVIGARE MOBIL (bottom nav)
+   ========================================================== */
+.app-nav {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 1001;
+  height: calc(var(--nav-h) + var(--safe-bottom)); padding: 0 4px var(--safe-bottom);
+  display: flex; background: var(--nav-bg);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid var(--line);
+}
+.nav-item {
+  position: relative; flex: 1 1 0; min-width: 0; height: var(--nav-h);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  color: var(--text-muted); font-size: 10.5px; font-weight: 600; line-height: 1; white-space: nowrap;
+  text-decoration: none; transition: color .15s ease;
+}
+.nav-item i { font-size: 20px; display: block; line-height: 1; }
+.nav-item::before { content: ''; position: absolute; top: 0; width: 28px; height: 3px; border-radius: 0 0 3px 3px; background: var(--primary); opacity: 0; transition: opacity .15s ease; }
+.nav-item.active { color: var(--primary); }
+.nav-item.active::before { opacity: 1; }
+.nav-item:active { background: var(--primary-soft); }
+
+/* ---------- Speed dial ---------- */
+.speed-dial-container {
+  position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); right: 16px; z-index: 999;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 0;
+}
+.speed-dial-backdrop { position: fixed; inset: 0; z-index: 997; background: rgba(15,23,42,0); display: none; }
+.speed-dial-container.open ~ .speed-dial-backdrop, .speed-dial-backdrop.show { display: block; }
+.speed-dial-actions {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 12px; margin-bottom: 14px;
+  opacity: 0; transform: translateY(10px) scale(0.95); pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+}
+.speed-dial-container.open .speed-dial-actions { opacity: 1; transform: none; pointer-events: auto; }
+.speed-dial-item { display: flex; align-items: center; gap: 10px; }
+.speed-dial-label { background: var(--chip-bg); color: var(--chip-fg); font-size: 12.5px; font-weight: 600; padding: 8px 12px; border-radius: var(--r-xs); white-space: nowrap; box-shadow: var(--shadow-sm); }
+.speed-dial-btn { width: 48px; height: 48px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 19px; color: #fff; box-shadow: var(--shadow-md); flex-shrink: 0; }
+.speed-dial-btn:active { transform: scale(.92); }
+.sd-add { background: var(--cash); } .sd-backup { background: var(--chip-bg); } .sd-link { background: var(--accent); }
+.fab-main {
+  width: 56px; height: 56px; background: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: #fff; box-shadow: var(--shadow-md); border: none; transition: transform .2s ease, background-color .2s ease;
+}
+.fab-main:active { transform: scale(.92); }
+.speed-dial-container.open .fab-main { transform: rotate(45deg); background: var(--danger); }
+
+/* ---------- Banner PWA ---------- */
+#pwa-banner {
+  position: fixed; bottom: 0; left: 0; right: 0; background: var(--chip-bg); color: #fff;
+  padding: 14px 16px; padding-bottom: calc(14px + var(--safe-bottom)); z-index: 10000;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.25); transform: translateY(100%); transition: transform .35s cubic-bezier(.4,0,.2,1);
+}
+#pwa-banner.show { transform: translateY(0); }
+#pwa-banner .banner-text { font-size: 12.5px; font-weight: 500; flex: 1; line-height: 1.4; color: #cbd5f5; }
+#pwa-banner .banner-text strong { color: #fff; display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+#pwa-banner .btn-install { background: #fff; color: #0f172a; border: none; border-radius: var(--r-sm); min-height: 44px; padding: 0 18px; font-weight: 600; font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+#pwa-banner .btn-close-banner { background: none; border: none; color: #94a3b8; font-size: 20px; min-width: 44px; min-height: 44px; line-height: 1; }
+
+.clock-digit { position: absolute; width: 100%; height: 100%; text-align: center; padding: 12px; box-sizing: border-box; font-weight: 700; font-size: .95rem; color: #94a3b8; }
+#hero-section.exit-anim { opacity: 0; pointer-events: none; transform: scale(1.03); }
+
+/* ==========================================================
+   HOME
+   ========================================================== */
+#view-home { padding-top: calc(16px + var(--safe-top)); }
+.home-greeting { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 20px 16px; }
+.home-greeting-sub { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.home-greeting-name { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-top: 1px; color: var(--ink); }
+.home-greeting-right { display: flex; align-items: center; gap: 10px; }
+
+.home-avatar {
+  width: 44px; height: 44px; border-radius: 50%; background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 17px;
+  flex-shrink: 0; position: relative; z-index: 10; overflow: visible;
+}
+.home-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  #home-avatar { animation: avatarHello 4s ease-in-out infinite; transform-origin: center bottom; }
+  #home-avatar::after {
+    content: "SALUT! 👋"; position: absolute; right: calc(100% + 12px); bottom: calc(100% - 15px);
+    padding: 8px 14px; background: var(--surface); color: var(--primary); border-radius: 16px;
+    font-size: 13px; font-weight: 700; white-space: nowrap; box-shadow: var(--shadow-md); border: 1px solid var(--line);
+    opacity: 0; transform: translateY(8px) scale(.7) rotate(-6deg); transform-origin: bottom right; pointer-events: none;
+    animation: helloBanner 4s ease-in-out infinite;
+  }
+}
+@keyframes avatarHello {
+  0%, 8% { transform: translateY(0) rotate(0); } 12% { transform: translateY(-9px) rotate(-2deg); }
+  16% { transform: translateY(0) rotate(0); } 24% { transform: translateY(-10px) rotate(2deg); }
+  28% { transform: translateY(0) rotate(0); } 36% { transform: translateY(-15px) rotate(-3deg); }
+  41%, 100% { transform: translateY(0) rotate(0); }
+}
+@keyframes helloBanner {
+  0%, 43% { opacity: 0; transform: translateY(8px) scale(.7) rotate(-6deg); }
+  47% { opacity: 1; transform: translateY(0) scale(1.05) rotate(-2deg); }
+  51%, 65% { opacity: 1; transform: translateY(0) scale(1) rotate(-3deg); }
+  70%, 100% { opacity: 0; transform: translateY(5px) scale(.8) rotate(0); }
+}
+
+.home-week-card {
+  position: relative; overflow: hidden; background: linear-gradient(155deg, #131b33 0%, #1c2745 55%, #222f57 100%);
+  margin: 0 16px 16px; border-radius: var(--r-lg); padding: 20px; box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.06);
+}
+.hwc-scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; border-radius: var(--r-lg); pointer-events: none; }
+.hwc-scene.day { background: linear-gradient(160deg, #5fb8f0 0%, #3a9fe3 45%, #2384cf 100%); }
+.hwc-scene.day::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 88% 10%, rgba(255,236,180,.35), transparent 55%); }
+.hwc-scene.night { background: linear-gradient(155deg, #0a1122 0%, #101a33 55%, #171f3d 100%); }
+.hwc-scene.night::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 88% 10%, rgba(129,140,248,.14), transparent 55%); }
+.hwc-scene .hwc-sky-day, .hwc-scene .hwc-sky-night { position: absolute; inset: 0; display: none; }
+.hwc-scene.day .hwc-sky-day { display: block; }
+.hwc-scene.night .hwc-sky-night { display: block; }
+.hwc-sun, .hwc-moon, .hwc-cloud, .hwc-star { position: absolute; }
+.hwc-sun { top: 16px; left: 150px; font-size: 22px; color: #ffdf7a; filter: drop-shadow(0 0 12px rgba(255,223,122,.6)); }
+.hwc-cloud { color: rgba(255,255,255,.85); font-size: 17px; }
+.c1 { top: 20px; left: 24px; font-size: 19px; } .c2 { top: 46px; left: 110px; font-size: 13px; opacity: .6; } .c3 { top: 72px; left: 200px; font-size: 15px; }
+.hwc-moon { top: 16px; left: 150px; font-size: 20px; color: #c7d2fe; filter: drop-shadow(0 0 10px rgba(199,210,254,.5)); }
+.hwc-star { width: 3px; height: 3px; background: #e2e8ff; border-radius: 50%; opacity: .6; }
+.s1 { top: 22px; left: 40px; } .s2 { top: 44px; left: 88px; } .s3 { top: 30px; left: 195px; } .s4 { top: 64px; left: 240px; } .s5 { top: 54px; left: 22px; } .s6 { top: 16px; left: 250px; }
+@media (prefers-reduced-motion: no-preference) {
+  .hwc-sun { animation: sunPulse 4s ease-in-out infinite; }
+  .hwc-moon { animation: moonGlow 5s ease-in-out infinite; }
+  .hwc-cloud { animation: cloudDrift linear infinite; }
+  .c1 { left: -40px; animation-duration: 24s; } .c2 { left: -80px; animation-duration: 18s; animation-delay: -6s; } .c3 { left: -60px; animation-duration: 28s; animation-delay: -12s; }
+  .hwc-star { animation: starTwinkle 2.6s ease-in-out infinite; }
+  .s2 { animation-delay: .4s; } .s3 { animation-delay: .8s; } .s4 { animation-delay: 1.2s; } .s5 { animation-delay: 1.6s; } .s6 { animation-delay: 2s; }
+}
+@keyframes sunPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+@keyframes moonGlow { 0%, 100% { opacity: 1; } 50% { opacity: .65; } }
+@keyframes cloudDrift { from { transform: translateX(0); } to { transform: translateX(300px); } }
+@keyframes starTwinkle { 0%, 100% { opacity: .15; transform: scale(.8); } 50% { opacity: .9; transform: scale(1.3); } }
+
+.hwc-label { position: relative; z-index: 2; font-size: 12px; font-weight: 600; color: #a5b4e0; margin-bottom: 16px; }
+.hwc-grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; row-gap: 16px; }
+.hwc-sub { font-size: 11.5px; color: #8891b3; font-weight: 500; margin-bottom: 3px; }
+.hwc-val { font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #f8fafc; font-variant-numeric: tabular-nums; }
+.hwc-small { font-size: 13.5px; }
+.home-week-card:has(.hwc-scene.day) .hwc-label, .home-week-card:has(.hwc-scene.day) .hwc-sub { color: rgba(255,255,255,.8); }
+.calendar-badge {
+  position: absolute; z-index: 3; top: 16px; right: 16px; background: rgba(255,255,255,.08); backdrop-filter: blur(6px);
+  border-radius: var(--r-sm); width: 52px; border: 1px solid rgba(255,255,255,.12); overflow: hidden; text-align: center;
+}
+.calendar-day { font-size: 18px; font-weight: 700; color: #f8fafc; padding: 7px 0 1px; }
+.calendar-month { font-size: 9px; font-weight: 600; letter-spacing: .5px; color: #f8fafc; padding: 4px 0; border-top: 1px solid rgba(255,255,255,.1); }
+
+.home-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; margin-bottom: 20px; }
+.home-action-card {
+  background: var(--surface); border-radius: var(--r-md); padding: 14px; box-shadow: var(--shadow-xs); border: 1px solid var(--line);
+  min-height: 44px; transition: background-color .15s ease, border-color .15s ease;
+}
+.home-action-card:active { background: var(--surface-2); }
+.haa-icon { width: 38px; height: 38px; border-radius: var(--r-xs); display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 10px; }
+.haa-title { font-weight: 600; font-size: 14px; color: var(--ink); }
+.haa-sub { font-size: 12px; color: var(--text-muted); }
+
+.home-section-label { padding: 0 20px; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+.home-month-card { background: var(--surface); margin: 0 16px 18px; border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow-xs); border: 1px solid var(--line); }
+#home-motivational { font-weight: 500; font-size: 13px; color: var(--text-muted); }
+#home-year-chart svg { height: auto !important; }
+[fill="#4338ca"] { fill: var(--chart-hi); }
+[fill="#c7d2fe"] { fill: var(--chart-lo); }
+.home-charts { display: block; }
+.kpi-strip { display: none; }
+
+/* ==========================================================
+   MODAL: bottom sheet pe mobil
+   ========================================================== */
+.modal-content { background: var(--surface); color: var(--text-main); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); }
+#addModal .modal-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--line-soft); align-items: center; }
+#addModal .modal-title { font-size: 1.1rem; font-weight: 700; margin: 0; }
+#addModal .modal-body { padding: 16px 20px; }
+#addModal .modal-footer { padding: 12px 20px calc(12px + var(--safe-bottom)); border-top: 1px solid var(--line-soft); background: var(--surface); }
+#addModal .btn-close { width: 44px; height: 44px; box-sizing: border-box; padding: 0; background-size: 14px auto; margin: -6px -10px -6px 0; }
+#addModal form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; }
+#addModal .fg { min-width: 0; }
+#addModal .fg-full { grid-column: 1 / -1; }
+#container-adrese .rand-adresa { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px; margin-bottom: 8px; }
+#container-adrese .btn-sterge-rand { min-width: 48px; }
+.cash-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.cash-toggle label { flex: 1; font-weight: 600; font-size: 14px; color: var(--text-main); min-height: 48px; display: flex; align-items: center; margin: 0; cursor: pointer; }
+.cash-toggle .form-check-input { width: 2.75em; height: 1.5em; margin: 0; cursor: pointer; }
+.cash-toggle .form-check-input:checked { background-color: var(--cash); border-color: var(--cash); }
+
+@media (max-width: 767.98px) {
+  #addModal .modal-dialog { margin: 0; max-width: none; width: 100%; height: 100%; min-height: 0; align-items: flex-end; }
+  #addModal .modal-content { width: 100%; max-height: 92vh; max-height: 92dvh; border-radius: 20px 20px 0 0; border-bottom: none; }
+  .modal.fade#addModal .modal-dialog { transform: translateY(100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+  .modal.show#addModal .modal-dialog { transform: none; }
+  #addModal .modal-header { position: relative; padding-top: 22px; }
+  #addModal .modal-header::before { content: ''; position: absolute; top: 8px; left: 50%; width: 40px; height: 4px; margin-left: -20px; border-radius: 4px; background: var(--line); }
+}
+
+/* ==========================================================
+   TABLETĂ 768–991
+   ========================================================== */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  #addModal { --bs-modal-width: 560px; }
+  #addModal form { grid-template-columns: 1fr 1fr; }
+  .home-actions-grid { grid-template-columns: repeat(4, 1fr); }
+  .home-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 4px; }
+  .home-chart-col .home-month-card { height: calc(100% - 26px); }
+  .kpi-row { --cols: 2; }
+  .kpi-3 { --cols: 3; }
+  #lista-bruta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 16px; align-items: start; }
+  #lista-bruta .pro-card { margin: 0; }
+  #lista-bruta .week-separator { grid-column: 1 / -1; margin: 10px 0 0; }
+  #lista-bruta:empty::before, #lista-bruta:empty::after { grid-column: 1 / -1; }
+  #lista-stats, #lista-santiere, #lista-deduceri, #facturi-container {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 0 16px; align-items: start;
+  }
+  #lista-stats > *, #lista-santiere > *, #lista-deduceri > *, #facturi-container > * { margin: 0 !important; }
+  #lista-stats > .empty-state, #lista-santiere > .empty-state, #lista-deduceri > .empty-state, #facturi-container > .empty-state { grid-column: 1 / -1; }
+  .form-panel { max-width: 640px; }
+  .skel-card { margin: 0; }
+}
+
+/* ==========================================================
+   PC / SaaS ≥ 992
+   ========================================================== */
+@media (min-width: 992px) {
+  body { padding-bottom: 0; }
+  #app-header, .app-nav, #fabBtn, .speed-dial-backdrop { display: none !important; }
+  #pwa-banner { left: var(--sidebar-w); }
+
+  /* Sidebar */
+  .sidebar {
+    display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; width: var(--sidebar-w);
+    background: var(--surface); border-right: 1px solid var(--line); padding: 16px 12px; z-index: 1010;
+  }
+  .side-brand { display: flex; align-items: center; gap: 10px; padding: 6px 10px 20px; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; color: var(--ink); }
+  .side-logo { width: 32px; height: 32px; border-radius: 9px; background: var(--primary); color: #fff; display: grid; place-items: center; font-size: 16px; }
+  .side-nav { display: flex; flex-direction: column; gap: 2px; }
+  .side-item {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 12px; border: 0; background: transparent;
+    border-radius: var(--r-xs); color: var(--ink-soft); font: inherit; font-size: 14px; font-weight: 500; text-align: left;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .side-item i { font-size: 17px; width: 20px; text-align: center; }
+  .side-item:hover { background: var(--primary-soft); color: var(--ink); }
+  .side-item.active { background: var(--primary-soft-strong); color: var(--primary); font-weight: 600; }
+  .side-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+  .side-user { display: flex; align-items: center; gap: 10px; padding: 0 4px; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .side-user small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; }
+  .side-avatar { position: relative; width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 600; overflow: hidden; flex-shrink: 0; }
+  .side-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  .main-col { margin-left: var(--sidebar-w); }
+
+  /* Topbar */
+  .topbar {
+    display: block; position: sticky; top: 0; z-index: 1000; height: var(--topbar-h);
+    background: var(--header-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    border-bottom: 1px solid var(--line); padding: 0 32px;
+  }
+  .topbar-inner { display: flex; align-items: center; gap: 12px; height: 100%; max-width: 1280px; margin: 0 auto; }
+  .topbar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: var(--ink); white-space: nowrap; }
+  .topbar-spacer { flex: 1; }
+  .topbar-search { position: relative; width: 280px; display: flex; align-items: center; }
+  .topbar-search i { position: absolute; left: 12px; color: var(--text-muted); pointer-events: none; font-size: 14px; }
+  .topbar-search input { width: 100%; height: 38px; min-height: 0; padding: 0 12px 0 34px; font-size: 14px; }
+  .tb-select { height: 38px; min-height: 0; width: auto; padding: 0 30px 0 12px; font-size: 14px; font-weight: 500; }
+  .tb-btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--r-sm);
+    font: inherit; font-size: 14px; font-weight: 600; border: 1px solid var(--line); transition: background-color .15s ease, border-color .15s ease;
+  }
+  .tb-ghost { background: var(--surface); color: var(--ink); }
+  .tb-ghost:hover { background: var(--surface-2); border-color: var(--primary-soft-strong); }
+  .tb-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .tb-primary:hover { background: var(--primary-600); }
+
+  /* Conținut + grilă de 12 coloane */
+  .content { max-width: 1312px; margin: 0 auto; padding: 24px 32px 56px; }
+  .view-section.active { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px 20px; align-content: start; }
+  .view-section.active > * { grid-column: 1 / -1; min-width: 0; margin: 0; }
+  #view-home { padding-top: 0; }
+  .page-head { padding: 0; }
+  .page-head h2 { display: none; }
+  .page-head p { font-size: 14px; margin: 0; }
+
+  .kpi-row { padding: 0; --cols: 2; max-width: 560px; }
+  .kpi-3 { --cols: 3; max-width: 760px; }
+  .kpi { padding: 16px 18px; }
+  .kpi-value { font-size: 22px; }
+  .kpi-3 .kpi-value { font-size: 20px; }
+
+  .btn-block-primary { width: auto; justify-self: start; padding: 0 20px; }
+  .form-panel { max-width: 640px; justify-self: start; width: 100%; }
+
+  /* Home */
+  .home-greeting { padding: 0; }
+  .home-greeting-name { font-size: 26px; }
+  .home-greeting-right { display: none; }
+  .home-week-card, .home-actions-grid { display: none !important; }
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 18px 20px; box-shadow: var(--shadow-xs); transition: border-color .15s ease, box-shadow .15s ease; }
+  .kpi-card:hover { border-color: var(--primary-soft-strong); box-shadow: var(--shadow-sm); }
+  .kpi-top { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .kpi-icon { width: 32px; height: 32px; border-radius: var(--r-xs); display: grid; place-items: center; font-size: 15px; color: var(--c); background: var(--cs); }
+  .kpi-name { font-size: 13.5px; font-weight: 500; color: var(--text-muted); }
+  .kpi-num { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi-sub { margin-top: 6px; font-size: 12.5px; color: var(--text-muted); min-height: 18px; }
+  .home-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .home-section-label { padding: 0; font-size: 14px; color: var(--ink-soft); margin-bottom: 10px; }
+  .home-month-card { margin: 0; padding: 22px; height: calc(100% - 28px); }
+  #home-sparkline svg { height: 130px !important; }
+
+  /* Listă simplă → grile de carduri */
+  #lista-stats, #lista-santiere, #lista-deduceri, #facturi-container { display: grid; gap: 16px; padding: 0; align-items: start; }
+  #lista-stats, #lista-santiere, #lista-deduceri { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #facturi-container { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #lista-stats > *, #lista-santiere > *, #lista-deduceri > *, #facturi-container > * { margin: 0 !important; }
+  #lista-stats > .empty-state, #lista-santiere > .empty-state, #lista-deduceri > .empty-state, #facturi-container > .empty-state { grid-column: 1 / -1; }
+  .skel-card { margin: 0; }
+  .pro-card, .stat-card { transition: box-shadow .15s ease, border-color .15s ease, background-color .15s ease; }
+  #lista-santiere .pro-card:hover, #lista-stats .stat-card:hover, #lista-deduceri .pro-card:hover, #facturi-container .pro-card:hover { box-shadow: var(--shadow-sm); border-color: var(--primary-soft-strong); }
+  .home-month-card.net-card { max-width: 560px; }
+
+  /* ---- Jurnal = TABEL ---- */
+  #view-pontaje { --jcols: 88px 104px 44px minmax(120px, 1fr) 52px 96px 76px; }
+  .jurnal-table { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-xs); overflow: clip; }
+  .jurnal-thead {
+    display: grid; grid-template-columns: var(--jcols); column-gap: 8px; align-items: center; height: 40px; padding: 0 12px;
+    position: sticky; top: var(--topbar-h); z-index: 5; background: var(--surface-2); border-bottom: 1px solid var(--line);
+    font-size: 12.5px; font-weight: 600; color: var(--text-muted);
+  }
+  .jurnal-thead .h-data { grid-column: 1; } .jurnal-thead .h-zi { display: none; }
+  .jurnal-thead .h-data::after { content: ' / zi'; }
+  .jurnal-thead .h-int { grid-column: 2; } .jurnal-thead .h-ore { grid-column: 3; } .jurnal-thead .h-loc { grid-column: 4; }
+  .jurnal-thead .h-km { grid-column: 5; } .jurnal-thead .h-pers { grid-column: 6; } .jurnal-thead .h-status { display: none; }
+  .jurnal-thead .h-act { grid-column: 7; text-align: right; }
+
+  #lista-bruta { display: block; }
+  #lista-bruta .pro-card {
+    display: grid; grid-template-columns: var(--jcols); grid-template-rows: auto auto; column-gap: 8px; row-gap: 0; align-items: center;
+    margin: 0; padding: 8px 12px; min-height: 56px; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0;
+    box-shadow: none; background: transparent; transition: background-color .12s ease;
+  }
+  #lista-bruta .pro-card.card-cash { background: var(--cash-soft); box-shadow: inset 3px 0 0 var(--cash); }
+  #lista-bruta .pro-card:hover { background: var(--primary-soft); }
+  #lista-bruta .pro-card > .j-head, #lista-bruta .pro-card > .j-head > .j-main, #lista-bruta .card-title, #lista-bruta .info-grid { display: contents !important; }
+  #lista-bruta .pro-card > * { min-width: 0; }
+  #lista-bruta .j-zi { grid-column: 1; grid-row: 1; align-self: end; font-size: 13.5px; line-height: 1.25; }
+  #lista-bruta .j-data { grid-column: 1; grid-row: 2; align-self: start; font-size: 12.5px; line-height: 1.25; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  #lista-bruta .j-interval { grid-column: 2; grid-row: 1 / span 2; }
+  #lista-bruta .j-ore { grid-column: 3; grid-row: 1 / span 2; font-weight: 600; color: var(--ink); }
+  #lista-bruta .j-loc { grid-column: 4; grid-row: 1 / span 2; margin: 0; font-size: 13px; color: var(--ink); font-weight: 500; overflow-wrap: anywhere; }
+  #lista-bruta .j-km { grid-column: 5; grid-row: 1 / span 2; }
+  #lista-bruta .j-pers { grid-column: 6; grid-row: 1 / span 2; }
+  #lista-bruta .j-status { display: none; }
+  #lista-bruta .info-item { padding: 0; font-size: 13px; }
+  #lista-bruta .info-item i { display: none; }
+  #lista-bruta .j-pers, #lista-bruta .j-interval { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  #lista-bruta .card-actions { position: static; grid-column: 7; grid-row: 1 / span 2; justify-self: end; gap: 2px; }
+  #lista-bruta .btn-action { width: 32px; height: 32px; font-size: 13px; border-radius: var(--r-xs); }
+  #lista-bruta .week-separator {
+    margin: 0; padding: 7px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line-soft);
+    font-size: 12px; font-weight: 600; color: var(--text-muted);
+  }
+  #lista-bruta .week-separator::after { display: none; }
+  #lista-bruta .skel-card { flex-direction: row; align-items: center; margin: 0; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; padding: 18px 12px; gap: 16px; background: transparent; }
+  #lista-bruta .skel-card .skel-line { flex: 1; width: auto; }
+  #lista-bruta:empty::before { padding-top: 56px; }
+  #lista-bruta:empty::after { padding-bottom: 56px; }
+
+  @media (hover: hover) {
+    #lista-bruta .card-actions { opacity: 0; transition: opacity .12s ease; }
+    #lista-bruta .pro-card:hover .card-actions, #lista-bruta .pro-card:focus-within .card-actions { opacity: 1; }
+  }
+
+  /* Modal desktop */
+  #addModal { --bs-modal-width: 640px; }
+  #addModal form { grid-template-columns: 1fr 1fr; gap: 16px 20px; }
+  #addModal .modal-body { padding: 20px 24px; }
+  #addModal .modal-header, #addModal .modal-footer { padding-left: 24px; padding-right: 24px; }
+  #addModal .modal-footer .btn { width: auto; min-width: 180px; margin-left: auto; }
+}
+
+.nav-badge { position: absolute; top: 4px; left: 55%; background: #EF4444; color: #fff; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; border-radius: 9px; display: none; align-items: center; justify-content: center; padding: 0 5px; line-height: 1; }
+.side-item { position: relative; }
+.side-item .nav-badge { position: static; margin-left: auto; }
+.suivi-frame { width: 100%; height: calc(100vh - 150px); min-height: 480px; border: 0; border-radius: var(--r-md); background: var(--surface); }
+@media (min-width: 992px) { .suivi-frame { height: calc(100vh - 130px); } }
+
+/* Tabel complet pe ecrane late */
+@media (min-width: 1360px) {
+  #view-pontaje { --jcols: 100px 84px 120px 56px minmax(180px, 1fr) 64px 130px 92px 80px; }
+  .jurnal-thead .h-data::after { content: none; }
+  .jurnal-thead .h-zi { display: block; grid-column: 2; }
+  .jurnal-thead .h-int { grid-column: 3; } .jurnal-thead .h-ore { grid-column: 4; } .jurnal-thead .h-loc { grid-column: 5; }
+  .jurnal-thead .h-km { grid-column: 6; } .jurnal-thead .h-pers { grid-column: 7; }
+  .jurnal-thead .h-status { display: block; grid-column: 8; } .jurnal-thead .h-act { grid-column: 9; }
+
+  #lista-bruta .pro-card { grid-template-rows: auto; }
+  #lista-bruta .j-data, #lista-bruta .j-zi { grid-row: 1; align-self: center; font-size: 13.5px; line-height: 1.3; }
+  #lista-bruta .j-data { grid-column: 1; color: var(--ink-soft); }
+  #lista-bruta .j-zi { grid-column: 2; }
+  #lista-bruta .j-interval { grid-column: 3; grid-row: 1; }
+  #lista-bruta .j-ore { grid-column: 4; grid-row: 1; }
+  #lista-bruta .j-loc { grid-column: 5; grid-row: 1; }
+  #lista-bruta .j-km { grid-column: 6; grid-row: 1; }
+  #lista-bruta .j-pers { grid-column: 7; grid-row: 1; }
+  #lista-bruta .j-status { display: inline-flex; grid-column: 8; grid-row: 1; justify-self: start; }
+  #lista-bruta .badge-norm { display: inline-flex; background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--line); font-weight: 500; font-size: 11.5px; padding: 3px 9px; border-radius: 999px; }
+  #lista-bruta .card-actions { grid-column: 9; grid-row: 1; }
+}
+
+/* ==========================================================
+   MOTION REDUS
+   ========================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .skel-line { animation: none; }
+}
+  </style>
+</head>
+<body>
+
+<!-- ✅ BANNER INSTALARE PWA -->
+<div id="pwa-banner">
+  <div class="banner-text">
+    <strong>Instalează aplicația</strong>
+    Adaugă pe ecranul principal pentru experiență completă
+  </div>
+  <button class="btn-install" id="btn-pwa-install">Instalează</button>
+  <button class="btn-close-banner" onclick="inchideBanner()" aria-label="Închide">✕</button>
+</div>
+
+<!-- HERO / SPLASH SCREEN -->
+<div id="hero-section" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0b1220; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.6s ease, transform 0.6s ease;">
+  <div id="clock-container" style="position:relative; width:132px; height:132px; border-radius:32px; background:linear-gradient(155deg,#151f38,#0f172a); box-shadow:0 20px 50px rgba(0,0,0,0.45); display:flex; justify-content:center; align-items:center; opacity:1;">
+    <i class="bi bi-stopwatch" style="font-size:52px; color:#818cf8;"></i>
+    <div id="clock-face" style="position:absolute; width:100%; height:100%; visibility:hidden;"></div>
+    <div id="hr-hand" style="position:absolute; bottom:50%; left:50%; visibility:hidden;"></div>
+    <div id="min-hand" style="position:absolute; bottom:50%; left:50%; visibility:hidden;"></div>
+    <div id="sec-hand" style="position:absolute; bottom:50%; left:50%; visibility:hidden;"></div>
+  </div>
+  <div style="text-align:center; margin-top:32px;">
+    <h2 style="color:white; letter-spacing:1px; font-size:1.35rem; margin-bottom:6px; font-family:'Inter Variable','Inter',sans-serif; font-weight:700;">Pontaj Gabi</h2>
+    <div id="display-date" style="color:#818cf8; font-size:0.8rem; letter-spacing:1px; margin-bottom:34px; opacity:0.85; font-weight:600;">-- IANUARIE --</div>
+    <button onclick="intraInAplicatie()" class="btn-glow-start" style="padding:14px 56px; font-family:'Inter Variable','Inter',sans-serif; color:#0b1220; border:none; background:#818cf8; cursor:pointer; font-weight:600; letter-spacing:0.5px; border-radius:14px; font-size:0.85rem;">Intră în aplicație</button>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR (desktop) ============ -->
+  <aside class="sidebar" aria-label="Navigare principală">
+    <div class="side-brand"><span class="side-logo"><i class="bi bi-stopwatch"></i></span> Pontaj Gabi</div>
+    <nav class="side-nav">
+      <button type="button" class="side-item active" id="side-home" data-tab="home" onclick="navigateFromHome('home')"><i class="bi bi-house-door-fill"></i> Acasă</button>
+      <button type="button" class="side-item" id="side-pontaje" data-tab="pontaje" onclick="navigateFromHome('pontaje')"><i class="bi bi-journal-text"></i> Jurnal</button>
+      <button type="button" class="side-item" id="side-santiere" data-tab="santiere" onclick="navigateFromHome('santiere')"><i class="bi bi-building-gear"></i> Șantiere</button>
+      <button type="button" class="side-item" id="side-stats" data-tab="stats" onclick="navigateFromHome('stats')"><i class="bi bi-bar-chart-fill"></i> Statistici</button>
+      <button type="button" class="side-item" id="side-facturi" data-tab="facturi" onclick="navigateFromHome('facturi')"><i class="bi bi-receipt"></i> Facturi</button>
+      <button type="button" class="side-item" id="side-deductibil" data-tab="deductibil" onclick="navigateFromHome('deductibil')"><i class="bi bi-percent"></i> Deductibil</button>
+            <button type="button" class="side-item" id="side-suivi" data-tab="suivi" onclick="navigateFromHome('suivi')"><i class="bi bi-clipboard-check"></i> Suivi<span class="nav-badge" data-badge="suivi"></span></button>
+    </nav>
+    <div class="side-foot">
+      <div class="side-user">
+        <span class="side-avatar">G<img id="side-avatar-img" alt="Profil" style="display:none;"></span>
+        <span>Gabi<small>Cont personal</small></span>
+      </div>
+      <label class="visually-hidden" for="anSelectorSide">An</label>
+      <select id="anSelectorSide" class="form-select an-desk" onchange="setAn(this.value)"></select>
+    </div>
+  </aside>
+
+  <div class="main-col">
+
+    <!-- ============ TOPBAR (desktop) ============ -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <h1 id="topbar-title">Acasă</h1>
+        <div class="topbar-spacer"></div>
+        <div class="topbar-search" id="topbarSearch" style="display:none;">
+          <i class="bi bi-search"></i>
+          <input type="search" id="searchBarDesk" class="form-control" placeholder="Caută..." aria-label="Caută" oninput="syncSearch(this.value)">
+        </div>
+        <select id="anSelectorTop" class="form-select tb-select an-desk" aria-label="An" onchange="setAn(this.value)"></select>
+        <button type="button" class="tb-btn tb-ghost" data-theme-toggle onclick="toggleTema()" aria-label="Schimbă tema"><i class="bi bi-moon-fill"></i></button>
+        <button type="button" class="tb-btn tb-ghost" onclick="execBackup()"><i class="bi bi-cloud-arrow-down"></i> Backup</button>
+        <button type="button" class="tb-btn tb-ghost" onclick="deschideLink()"><i class="bi bi-box-arrow-up-right"></i> Scaneaza</button>
+        <button type="button" class="tb-btn tb-primary" onclick="deschideAdaugare()"><i class="bi bi-plus-lg"></i> Adaugă zi</button>
+      </div>
+    </header>
+
+    <!-- HEADER MOBIL (ascuns pe Home) -->
+    <div class="app-header" id="app-header" style="display:none;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <div id="btn-back-home" class="header-back" onclick="goHome()" role="button" tabindex="0" aria-label="Înapoi la Acasă"><i class="bi bi-arrow-left"></i></div>
+          <h1 id="pageTitle" style="display:flex; align-items:center; gap:8px; margin:0;">Jurnal Pontaj</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="theme-toggle" data-theme-toggle onclick="toggleTema()" aria-label="Schimbă tema"><i class="bi bi-moon-fill"></i></button>
+          <button type="button" class="year-chip" onclick="alegeAnulCuStil()" aria-label="Alege anul">2026</button>
+          <div class="home-avatar" onclick="alegeAnulCuStil()" style="cursor:pointer; width:36px; height:36px; font-size:14px;" role="button" tabindex="0" aria-label="Profil și an">G
+            <img id="header-avatar-img" alt="Profil" style="display:none;">
+          </div>
+        </div>
+      </div>
+      <select id="anSelector" class="d-none">
+        <option value="2025">2025</option>
+        <option value="2026" selected>2026</option>
+        <option value="2027">2027</option>
+      </select>
+      <div class="search-wrapper" id="searchWrapper" style="display:none;">
+        <input type="text" id="searchBar" class="form-control" placeholder="Caută..." onkeyup="filtreazaDate()">
+      </div>
+    </div>
+
+    <div class="content">
+
+<!-- TAB: HOME -->
+<div id="view-home" class="view-section active">
+  <div class="home-greeting">
+    <div>
+      <div class="home-greeting-sub" id="home-salut">Bună ziua,</div>
+      <div class="home-greeting-name" id="home-nume">Gabi!</div>
+    </div>
+    <div class="home-greeting-right">
+      <button type="button" class="theme-toggle" data-theme-toggle onclick="toggleTema()" aria-label="Schimbă tema"><i class="bi bi-moon-fill"></i></button>
+      <button type="button" class="year-chip" onclick="alegeAnulCuStil()" aria-label="Alege anul">2026</button>
+      <div class="home-avatar" id="home-avatar" onclick="alegeAnulCuStil()" role="button" tabindex="0" aria-label="Profil și an">G
+        <img id="avatar-img" alt="Profil" style="display:none;">
+      </div>
+    </div>
+  </div>
+
+  <div class="home-week-card">
+    <div class="hwc-scene" id="hwc-scene">
+      <div class="hwc-sky-day">
+        <div class="hwc-sun"><i class="bi bi-brightness-high-fill"></i></div>
+        <div class="hwc-cloud c1"><i class="bi bi-cloud-fill"></i></div>
+        <div class="hwc-cloud c2"><i class="bi bi-cloud-fill"></i></div>
+        <div class="hwc-cloud c3"><i class="bi bi-cloud-fill"></i></div>
+      </div>
+      <div class="hwc-sky-night">
+        <div class="hwc-moon"><i class="bi bi-moon-stars-fill"></i></div>
+        <div class="hwc-star s1"></div><div class="hwc-star s2"></div><div class="hwc-star s3"></div>
+        <div class="hwc-star s4"></div><div class="hwc-star s5"></div><div class="hwc-star s6"></div>
+      </div>
+    </div>
+    <div class="calendar-badge">
+      <div class="calendar-day" id="widget-day">14</div>
+      <div class="calendar-month" id="widget-month">AUGUST</div>
+    </div>
+
+    <div class="hwc-label" id="home-week-label">SĂPTĂMÂNA -- · ----</div>
+    <div class="hwc-grid">
+      <div>
+        <div class="hwc-sub">Ore lucrate</div>
+        <div class="hwc-val" id="home-ore-sapt">0h 0m</div>
+      </div>
+      <div>
+        <div class="hwc-sub">Încasări</div>
+        <div class="hwc-val" style="color:#6ee7d8" id="home-incasari-sapt">0 €</div>
+      </div>
+      <div>
+        <div class="hwc-sub">Interval</div>
+        <div class="hwc-val hwc-small" id="home-interval">-</div>
+      </div>
+      <div>
+        <div class="hwc-sub">Facturi neplătite</div>
+        <div class="hwc-val hwc-small" style="color:#fca5a5" id="home-facturi-neplatite">0 €</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOU: KPI-uri pentru desktop (copiate din elementele existente de syncKpi) -->
+  <div class="kpi-strip" aria-label="Indicatori principali">
+    <div class="kpi-card">
+      <div class="kpi-top"><span class="kpi-icon" style="--c:var(--primary);--cs:var(--primary-soft)"><i class="bi bi-clock-history"></i></span><span class="kpi-name">Ore săptămâna aceasta</span></div>
+      <div class="kpi-num" id="kpi-ore-sapt">0h 0m</div>
+      <div class="kpi-sub" id="kpi-interval">-</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top"><span class="kpi-icon" style="--c:var(--cash);--cs:var(--cash-soft)"><i class="bi bi-cash-coin"></i></span><span class="kpi-name">Încasări săptămâna aceasta</span></div>
+      <div class="kpi-num" id="kpi-incasari-sapt" style="color:var(--cash)">0 €</div>
+      <div class="kpi-sub">Fără plățile cash</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top"><span class="kpi-icon" style="--c:var(--danger);--cs:var(--danger-soft)"><i class="bi bi-receipt"></i></span><span class="kpi-name">Facturi neplătite</span></div>
+      <div class="kpi-num" id="kpi-facturi" style="color:var(--danger)">0 €</div>
+      <div class="kpi-sub">Rest de încasat</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top"><span class="kpi-icon" style="--c:var(--accent);--cs:var(--accent-soft)"><i class="bi bi-calendar3"></i></span><span class="kpi-name">Ore luna aceasta</span></div>
+      <div class="kpi-num" id="kpi-ore-luna">0h 0m</div>
+      <div class="kpi-sub">Încasări: <span id="kpi-incasari-luna">0 €</span></div>
+    </div>
+  </div>
+
+  <div class="home-actions-grid">
+    <div class="home-action-card" role="button" tabindex="0" onclick="navigateFromHome('pontaje')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <div class="haa-icon" style="background:var(--cash-soft); color:var(--cash);"><i class="bi bi-journal-text"></i></div>
+      <div class="haa-title">Jurnal</div>
+      <div class="haa-sub">Pontaj zilnic</div>
+    </div>
+    <div class="home-action-card" role="button" tabindex="0" onclick="navigateFromHome('santiere')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <div class="haa-icon" style="background:var(--blue-soft); color:var(--blue);"><i class="bi bi-building-gear"></i></div>
+      <div class="haa-title">Șantiere</div>
+      <div class="haa-sub">Locații și clienți</div>
+    </div>
+    <div class="home-action-card" role="button" tabindex="0" onclick="navigateFromHome('stats')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <div class="haa-icon" style="background:var(--purple-soft); color:var(--purple);"><i class="bi bi-bar-chart-fill"></i></div>
+      <div class="haa-title">Statistici</div>
+      <div class="haa-sub">Rapoarte</div>
+    </div>
+    <div class="home-action-card" role="button" tabindex="0" onclick="navigateFromHome('facturi')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+      <div class="haa-icon" style="background:var(--orange-soft); color:var(--orange);"><i class="bi bi-receipt"></i></div>
+      <div class="haa-title">Facturi</div>
+      <div class="haa-sub">Emitere și listă</div>
+    </div>
+  </div>
+
+  <div class="home-charts">
+    <div class="home-chart-col">
+      <div class="home-section-label">Luna aceasta</div>
+      <div class="home-month-card">
+        <div class="d-flex justify-content-between mb-2">
+          <div>
+            <div class="hwc-sub" style="color:var(--text-muted)">Ore lucrate</div>
+            <div class="hwc-val" style="color:var(--ink)" id="home-ore-luna">0h 0m</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="hwc-sub" style="color:var(--text-muted)">Încasări</div>
+            <div class="hwc-val" style="color:var(--cash)" id="home-incasari-luna">0 €</div>
+          </div>
+        </div>
+        <div id="home-sparkline"></div>
+        <div class="text-center mt-3" id="home-motivational">Ai o zi productivă.</div>
+      </div>
+    </div>
+    <div class="home-chart-col">
+      <div class="home-section-label">Evoluție anuală</div>
+      <div class="home-month-card" id="home-year-card">
+        <div class="d-flex justify-content-between mb-2">
+          <div>
+            <div class="hwc-sub" style="color:var(--text-muted)">Total ore An</div>
+            <div class="hwc-val" style="color:var(--ink)" id="home-ore-an">0h 0m</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="hwc-sub" style="color:var(--text-muted)">Total încasări</div>
+            <div class="hwc-val" style="color:var(--cash)" id="home-incasari-an">0 €</div>
+          </div>
+        </div>
+        <div id="home-year-chart"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: JURNAL -->
+<div id="view-pontaje" class="view-section">
+  <div class="jurnal-table">
+    <div class="jurnal-thead" aria-hidden="true">
+      <span class="h-data">Data</span><span class="h-zi">Zi</span><span class="h-int">Interval</span><span class="h-ore">Ore</span>
+      <span class="h-loc">Locații</span><span class="h-km">Km</span><span class="h-pers">Persoane</span><span class="h-status">Status</span><span class="h-act">Acțiuni</span>
+    </div>
+    <div id="lista-bruta"><div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-line w80"></div></div><div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-line w80"></div></div><div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-line w80"></div></div></div>
+  </div>
+</div>
+
+<!-- TAB: STATISTICI -->
+<div id="view-stats" class="view-section">
+  <div class="page-head">
+    <h2>Statistici</h2>
+    <p>Bilanțul plăților tale pe săptămâni</p>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">De încasat</div><div id="total-de-incasat" class="kpi-value tone-danger">0.00 €</div></div>
+    <div class="kpi"><div class="kpi-label">Încasat</div><div id="total-incasat" class="kpi-value tone-cash">0.00 €</div></div>
+  </div>
+  <div id="lista-stats"><div class="skel-card"><div class="skel-line w40"></div><div class="skel-line w60"></div><div class="skel-line w80"></div></div><div class="skel-card"><div class="skel-line w40"></div><div class="skel-line w60"></div><div class="skel-line w80"></div></div></div>
+</div>
+
+<!-- TAB: SANTIERE -->
+<div id="view-santiere" class="view-section">
+  <div class="page-head">
+    <h2>Șantiere</h2>
+    <p>Locațiile tale active</p>
+  </div>
+  <div id="lista-santiere"><div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div></div><div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div></div></div>
+</div>
+
+<!-- TAB: FACTURI -->
+<div id="view-facturi" class="view-section">
+  <div class="page-head">
+    <h2>Facturi</h2>
+    <p>Grupează săptămânile în facturi</p>
+  </div>
+
+  <div class="kpi-row kpi-3">
+    <div class="kpi"><div class="kpi-label">Restant</div><div id="fact-total-restant" class="kpi-value tone-danger">0 €</div></div>
+    <div class="kpi"><div class="kpi-label">Încasat</div><div id="fact-total-incasat" class="kpi-value tone-cash">0 €</div></div>
+    <div class="kpi"><div class="kpi-label">Cash</div><div id="fact-total-cash" class="kpi-value tone-accent">0 €</div></div>
+  </div>
+
+  <button type="button" class="btn-block-primary" onclick="toggleFormFactura()">
+    <i class="bi bi-plus-circle"></i> Creare factură nouă
+  </button>
+
+  <div id="form-factura" class="form-panel" style="display:none;">
+    <div class="form-panel-title">Factură nouă</div>
+    <input type="text" id="input-num-factura" class="inp" placeholder="Nume factură (ex: Factura 1)">
+    <div class="list-label">Selectează săptămânile</div>
+    <div id="sapt-checkbox-list" style="border-radius:var(--r-sm); padding:10px; margin-bottom:12px; max-height:220px; overflow-y:auto; border:1px solid var(--line);"></div>
+    <div id="preview-total-factura" style="font-size:0.9rem; color:var(--primary); font-weight:600; margin-bottom:12px; min-height:20px;"></div>
+    <button type="button" class="btn-submit cash" onclick="salveazaFactura()">
+      <i class="bi bi-check-lg"></i> Salvează factura
+    </button>
+  </div>
+
+  <div id="facturi-container"></div>
+</div>
+
+<!-- TAB: DEDUCTIBIL -->
+<div id="view-deductibil" class="view-section">
+  <div class="page-head">
+    <h2>Deductibilitate</h2>
+    <p>Cheltuieli și deduceri din venit</p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Total facturat</div><div id="deduct-total-facturat" class="kpi-value tone-primary">0.00 €</div></div>
+    <div class="kpi"><div class="kpi-label">Total deduceri</div><div id="deduct-total-deduceri" class="kpi-value tone-danger">0.00 €</div></div>
+  </div>
+
+  <button type="button" class="btn-block-primary" onclick="toggleFormDeducere()">
+    <i class="bi bi-plus-circle"></i> Adaugă deducere
+  </button>
+
+  <div id="form-deducere" class="form-panel" style="display:none;">
+    <div class="form-panel-title">Deducere nouă</div>
+    <input type="text" id="input-desc-deducere" class="inp" placeholder="Descriere (ex: Transport, Combustibil)">
+    <div class="form-row2">
+      <div>
+        <label class="lbl" for="input-suma-deducere">Suma (€)</label>
+        <input type="number" id="input-suma-deducere" class="inp" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
+      </div>
+      <div>
+        <label class="lbl" for="input-data-deducere">Data</label>
+        <input type="date" id="input-data-deducere" class="inp">
+      </div>
+    </div>
+    <button type="button" class="btn-submit primary" onclick="salveazaDeducere()">
+      <i class="bi bi-check-lg"></i> Salvează deducerea
+    </button>
+  </div>
+
+  <div id="lista-deduceri"><div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div></div><div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div></div></div>
+
+  <div class="home-month-card net-card" style="margin:16px;">
+    <div class="d-flex justify-content-between mb-2">
+      <div>
+        <div class="hwc-sub" style="color:var(--text-muted)">Total facturat</div>
+        <div class="hwc-val" style="color:var(--primary)" id="deduct-net-facturat">0.00 €</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="hwc-sub" style="color:var(--text-muted)">Net (după deduceri)</div>
+        <div class="hwc-val" style="color:var(--cash)" id="deduct-net-final">0.00 €</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: SUIVI (aplicația VerTech) -->
+<div id="view-suivi" class="view-section">
+  <iframe id="suivi-frame" class="suivi-frame"
+    data-src="https://script.google.com/macros/s/AKfycbzmllvljiDAE50xaaLQJDxY94ef63_Ru0HjCtX2kv_GZmcLR_g7lR_r2nWjk-F0PRc83A/exec?p=gabi"></iframe>
+</div>
+
+    </div><!-- /content -->
+  </div><!-- /main-col -->
+</div><!-- /app-shell -->
+
+<!-- SPEED DIAL FAB (Adaugă zi + Backup PDF) — mobil/tabletă -->
+<div class="speed-dial-backdrop" id="speedDialBackdrop" onclick="toggleSpeedDial(false)"></div>
+<div class="speed-dial-container" id="fabBtn" style="display:none;">
+  <div class="speed-dial-actions" id="speedDialActions">
+      <div class="speed-dial-item">
+      <span class="speed-dial-label">Scaneaza Bonuri</span>
+      <button class="speed-dial-btn sd-link" onclick="deschideLink(); toggleSpeedDial(false);" title="Deschide link" aria-label="Deschide link">
+        <i class="bi bi-box-arrow-up-right"></i>
+      </button>
+    </div>
+    <div class="speed-dial-item">
+      <span class="speed-dial-label">Backup PDF</span>
+      <button class="speed-dial-btn sd-backup" onclick="execBackup(); toggleSpeedDial(false);" title="Backup Jurnal" aria-label="Backup PDF">
+        <i class="bi bi-cloud-arrow-down"></i>
+      </button>
+    </div>
+    <div class="speed-dial-item">
+      <span class="speed-dial-label">Adaugă zi</span>
+      <button class="speed-dial-btn sd-add" onclick="deschideAdaugare(); toggleSpeedDial(false);" title="Adaugă zi" aria-label="Adaugă zi">
+        <i class="bi bi-journal-plus"></i>
+      </button>
+    </div>
+  </div>
+  <button class="fab-main" id="fabMainBtn" onclick="toggleSpeedDial()" aria-label="Acțiuni rapide">
+    <i class="bi bi-plus-lg" id="fabMainIcon"></i>
+  </button>
+</div>
+
+<!-- NAV (mobil / tabletă) -->
+<nav class="app-nav" aria-label="Navigare principală">
+  <a href="javascript:void(0)" class="nav-item active" id="nav-home" onclick="switchTab('home', this)">
+    <i class="bi bi-house-door-fill"></i> Acasă
+  </a>
+  <a href="javascript:void(0)" class="nav-item" id="nav-pontaje" onclick="switchTab('pontaje', this)">
+    <i class="bi bi-journal-text"></i> Jurnal
+  </a>
+  <a href="javascript:void(0)" class="nav-item" id="nav-santiere" onclick="switchTab('santiere', this)">
+    <i class="bi bi-building-gear"></i> Șantiere
+  </a>
+  <a href="javascript:void(0)" class="nav-item" id="nav-stats" onclick="switchTab('stats', this)">
+    <i class="bi bi-bar-chart-fill"></i> Statistici
+  </a>
+  <a href="javascript:void(0)" class="nav-item" id="nav-facturi" onclick="switchTab('facturi', this)">
+    <i class="bi bi-receipt"></i> Facturi
+  </a>
+  <a href="javascript:void(0)" class="nav-item" id="nav-deductibil" onclick="switchTab('deductibil', this)">
+    <i class="bi bi-percent"></i> Deductibil
+  </a>
+    <a href="javascript:void(0)" class="nav-item" id="nav-suivi" onclick="switchTab('suivi', this)">
+    <i class="bi bi-clipboard-check"></i> Suivi<span class="nav-badge" data-badge="suivi"></span>
+  </a>
+</nav>
+
+<!-- MODAL ADAUGARE/EDITARE -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="modalTitle" class="modal-title">Adaugă Zi</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Închide"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="fMain" onsubmit="return false;">
+          <div class="fg">
+            <label class="lbl" for="nume">Cine a fost?</label>
+            <select id="nume" class="form-select">
+              <option value="Gabi">Gabi</option>
+              <option value="Ionut">Ionuț</option>
+              <option value="Gabi si Ionut">Gabi și Ionuț</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="data">Data</label>
+            <input type="date" id="data" class="form-control" required>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="intrare">Intrare</label>
+            <input type="time" id="intrare" class="form-control">
+          </div>
+          <div class="fg">
+            <label class="lbl" for="iesire">Ieșire</label>
+            <input type="time" id="iesire" class="form-control">
+          </div>
+
+          <div class="fg fg-full">
+            <label class="lbl">Locații</label>
+            <div id="container-adrese"></div>
+            <button class="btn btn-outline-primary btn-sm w-100" type="button" onclick="adaugaRandAdresa()">
+              <i class="bi bi-plus-lg"></i> Adaugă altă locație
+            </button>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="km">Kilometri</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-speedometer2"></i></span>
+              <input type="number" id="km" class="form-control" placeholder="0" inputmode="decimal">
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="isCash">Tip plată</label>
+            <div class="cash-toggle form-check form-switch">
+              <label for="isCash">CASH</label>
+              <input class="form-check-input" type="checkbox" id="isCash">
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="lbl" for="tH">Tarif €/H</label>
+            <input type="number" id="tH" class="form-control" value="30" inputmode="decimal">
+          </div>
+          <div class="fg">
+            <label class="lbl" for="tK">Tarif €/KM</label>
+            <input type="number" id="tK" class="form-control" value="0.45" step="0.01" inputmode="decimal">
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btnS" onclick="execSalveaza()" class="btn btn-primary w-100">Salvează</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="lib/bootstrap.bundle.min.js"></script>
+<script src="px-api.js"></script>
+<script>
+
+
+// ============================================================
+// VARIABILE GLOBALE
+// ============================================================
+var facturi = [];
+var statusSaptamani = {};
+var globalWeeks = {};
+var globalStats = {};
+var modalObj;
+var currentEditIdx = null;
+var globalData = [];
+var renderedCount = 0;
+var chunkSize = 15;
+var isRendering = false;
+var totalDeIncasatBrut = 0;
+
+var deferredPrompt = null;
+
+// NOU: skeleton pentru încărcarea Jurnalului (înlocuiește spinnerul)
+var SKELETON_LISTA = '';
+for (var _sk = 0; _sk < 3; _sk++) {
+  SKELETON_LISTA += '<div class="skel-card"><div class="skel-line w60"></div><div class="skel-line w40"></div><div class="skel-line w80"></div></div>';
+}
+
+// NOU: markup pentru stări goale
+function emptyStateHTML(icon, titlu, sub) {
+  return '<div class="empty-state"><i class="bi ' + icon + '"></i><div class="empty-title">' + titlu + '</div><div class="empty-sub">' + sub + '</div></div>';
+}
+
+// ============================================================
+// NOU: SHELL DESKTOP (sidebar, topbar, KPI, căutare)
+// ============================================================
+function syncShell(tab) {
+  var sel = document.getElementById('anSelector');
+  if (sel) {
+    document.querySelectorAll('.an-desk').forEach(function (d) {
+      if (d.options.length !== sel.options.length) d.innerHTML = sel.innerHTML;
+      d.value = sel.value;
+    });
+    document.querySelectorAll('.year-chip').forEach(function (c) { c.textContent = sel.value; });
+  }
+  if (!tab) return;
+
+  var titluri = { home: 'Acasă', pontaje: 'Jurnal pontaj', santiere: 'Șantiere', stats: 'Statistici', facturi: 'Facturi', deductibil: 'Deductibil' , suivi: 'Suivi chantiers' };
+  var t = document.getElementById('topbar-title');
+  if (t) t.textContent = titluri[tab] || 'Acasă';
+
+  document.querySelectorAll('.side-item').forEach(function (b) {
+    var on = b.getAttribute('data-tab') === tab;
+    b.classList.toggle('active', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+
+  var ds = document.getElementById('searchBarDesk');
+  if (ds) ds.value = '';
+  var wrap = document.getElementById('topbarSearch');
+  if (wrap) wrap.style.display = (tab === 'pontaje' || tab === 'santiere') ? '' : 'none';
+}
+
+function syncSearch(v) {
+  var sb = document.getElementById('searchBar');
+  if (sb) sb.value = v;
+  filtreazaDate();
+}
+
+function syncKpi() {
+  var map = {
+    'kpi-ore-sapt': 'home-ore-sapt',
+    'kpi-incasari-sapt': 'home-incasari-sapt',
+    'kpi-interval': 'home-interval',
+    'kpi-facturi': 'home-facturi-neplatite',
+    'kpi-ore-luna': 'home-ore-luna',
+    'kpi-incasari-luna': 'home-incasari-luna'
+  };
+  Object.keys(map).forEach(function (k) {
+    var a = document.getElementById(k), b = document.getElementById(map[k]);
+    if (a && b) a.textContent = b.textContent;
+  });
+}
+
+// NOU: HTML-ul unui card din Jurnal (folosit la randare și la căutare)
+function buildCardJurnalHTML(r, cash) {
+  return '<div class="card-actions">' +
+      '<button type="button" class="btn-action btn-edit" aria-label="Editează" title="Editează" onclick="pregatesteEdit(\'' + r[11] + '\')"><i class="bi bi-pencil-fill"></i></button>' +
+      '<button type="button" class="btn-action btn-delete" aria-label="Șterge" title="Șterge" onclick="confirmSterge(\'' + r[11] + '\', \'' + r[1] + '\', ' + r[5] + ', ' + r[6] + ')"><i class="bi bi-trash3-fill"></i></button>' +
+    '</div>' +
+    '<div class="d-flex justify-content-between align-items-start mb-2 j-head">' +
+      '<div class="j-main">' +
+        '<div class="card-title"><span class="j-zi">' + r[0] + '</span> <span class="j-data">' + fmtData(r[1]) + '</span> ' +
+          (cash ? '<span class="badge-cash j-status"><i class="bi bi-cash-stack"></i> CASH</span>' : '<span class="badge-norm j-status">Standard</span>') + '</div>' +
+        '<div class="card-subtitle j-loc">' + (r[4] || 'Fără locație') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="info-grid">' +
+      '<div class="info-item j-interval"><i class="bi bi-clock-history"></i> ' + r[2] + ' - ' + r[3] + '</div>' +
+      '<div class="info-item j-ore"><i class="bi bi-hourglass-split"></i> <b>' + r[5] + 'h</b></div>' +
+      '<div class="info-item j-pers"><i class="bi bi-person-badge"></i> ' + r[7] + '</div>' +
+      '<div class="info-item j-km"><i class="bi bi-car-front"></i> ' + (r[6] || 0) + ' km</div>' +
+    '</div>';
+}
+
+// ============================================================
+// TEMĂ (light / dark)
+// ============================================================
+function aplicaTema(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('[data-theme-toggle] i').forEach(function (i) {
+    i.className = (t === 'dark') ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+  });
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+    m.setAttribute('content', t === 'dark' ? '#0a0e19' : '#f6f7fb');
+  });
+}
+
+function toggleTema() {
+  var curent = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  var nou = curent === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('pontaj-tema', nou); } catch (e) {}
+  aplicaTema(nou);
+}
+
+// ============================================================
+// PWA
+// ============================================================
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!localStorage.getItem('pwa-banner-closed')) {
+    setTimeout(function () {
+      var banner = document.getElementById('pwa-banner');
+      if (banner) banner.classList.add('show');
+    }, 3000);
+  }
+});
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function () {});
+
+document.getElementById('btn-pwa-install').addEventListener('click', function () {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () { deferredPrompt = null; inchideBanner(); });
+  } else {
+    Swal.fire({
+      title: 'Cum instalezi',
+      html: `
+        <div style="text-align:left; font-size:14px; line-height:1.8;">
+          <b>Android Chrome:</b><br>
+          1. Apasă ⋮ (meniu sus-dreapta)<br>
+          2. "Adaugă pe ecranul principal"<br>
+          3. Confirmă cu "Adaugă"<br><br>
+          <b>iPhone Safari:</b><br>
+          1. Apasă <i class="bi bi-box-arrow-up"></i> (share jos)<br>
+          2. "Adaugă pe ecranul Home"<br>
+          3. Confirmă cu "Adaugă"
+        </div>`,
+      confirmButtonText: 'Am înțeles!',
+      confirmButtonColor: 'var(--primary)',
+      customClass: { popup: 'rounded-4' }
+    });
+    inchideBanner();
+  }
+});
+
+function inchideBanner() {
+  var banner = document.getElementById('pwa-banner');
+  if (banner) { banner.classList.remove('show'); try { localStorage.setItem('pwa-banner-closed', '1'); } catch (e) {} }
+}
+
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+  try { localStorage.setItem('pwa-banner-closed', '1'); } catch (e) {}
+}
+
+// ============================================================
+// SPEED DIAL FAB
+// ============================================================
+function deschideLink() {
+  window.open('https://script.google.com/macros/s/AKfycbwnLjwIC1a2Iym-hzbpBUIfJqeLGr8w6lQZ89tvfvWic5rgIEgHbefKhFNxcZvCGFeg/exec', '_blank');
+}
+
+function toggleSpeedDial(force) {
+  var container = document.getElementById('fabBtn');
+  if (!container) return;
+  var isOpen = container.classList.contains('open');
+  var newState = (typeof force === 'boolean') ? force : !isOpen;
+  container.classList.toggle('open', newState);
+  var backdrop = document.getElementById('speedDialBackdrop');
+  if (backdrop) backdrop.classList.toggle('show', newState);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = function () {
+  aplicaTema(document.documentElement.getAttribute('data-theme') || 'light');
+  modalObj = new bootstrap.Modal(document.getElementById('addModal'));
+  document.getElementById('hero-section').style.display = 'none';
+  genereazaAni();
+    checkSuiviBadge();
+  setInterval(checkSuiviBadge, 60000);
+  loadData();
+  actualizeazaWidgetCalendar();
+  actualizeazaSceneWidget();
+
+google.script.run
+  .withSuccessHandler(function(url) {
+    if (url) {
+      // Home
+      document.getElementById('avatar-img').src = url;
+      document.getElementById('avatar-img').style.display = 'block';
+
+      // Header
+      document.getElementById('header-avatar-img').src = url;
+      document.getElementById('header-avatar-img').style.display = 'block';
+
+      // NOU: sidebar desktop
+      var sideImg = document.getElementById('side-avatar-img');
+      if (sideImg) { sideImg.src = url; sideImg.style.display = 'block'; }
+    }
+  })
+  .getAvatarUrl();
+
+  window.addEventListener('scroll', function () {
+    if (isRendering || renderedCount >= globalData.length) return;
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 600) renderNextChunk();
+  }, { passive: true });
+};
+
+// ============================================================
+// LOAD DATA
+// ============================================================
+function loadData() {
+  syncShell(); // NOU
+  var an = document.getElementById('anSelector').value;
+  var activeTab = document.querySelector('.nav-item.active').id.replace('nav-', '');
+  if (activeTab === 'pontaje') {
+    document.getElementById('pageTitle').innerHTML = 'Jurnal Pontaj <span class="an-pulsat">' + an + '</span>';
+  }
+
+  var lista = document.getElementById('lista-bruta');
+  lista.innerHTML = SKELETON_LISTA; // NOU: skeleton în loc de spinner
+
+  google.script.run
+    .withSuccessHandler(function (data) {
+      console.log('✅ AppData primit:', data);
+      globalData = data.istoric;
+
+      globalWeeks = {};
+      globalData.forEach(function (r) {
+        var w = getWeek(r[1]);
+        if (!globalWeeks[w]) globalWeeks[w] = { h: 0, cash: 0 };
+        globalWeeks[w].h += parseFloat(r[5]) || 0;
+        globalWeeks[w].cash += (parseFloat(r[5]) || 0) * 30;
+      });
+
+      statusSaptamani = {};
+      if (data.statistici) {
+        data.statistici.forEach(function (s) {
+          var cheie = String(s[6]) + "_" + String(s[7]);
+          var suma = parseFloat(s[5]) || 0;
+          var status = s[8];
+          if (status && status.toString().toLowerCase().includes("platit")) statusSaptamani[cheie] = "Platit";
+          else if (suma <= 0) statusSaptamani[cheie] = "CASH";
+          else statusSaptamani[cheie] = "RESTANT";
+        });
+      }
+
+            globalStats = {};
+      if (data.statistici) {
+        data.statistici.forEach(function (s) {
+          globalStats[String(s[6])] = {
+            h: parseFloat(s[1]) || 0,
+            km: parseFloat(s[2]) || 0,
+            suma: parseFloat(s[5]) || 0,
+            cashVal: (parseFloat(s[3]) || 0) + (parseFloat(s[4]) || 0)
+          };
+        });
+        renderStats(data.statistici);
+      }
+
+      renderedCount = 0;
+      lista.innerHTML = '';
+      renderNextChunk();
+
+      if (data.santiere) renderSantiere(data.santiere);
+
+      updateHomeStats(an);
+      incarcaFacturi();
+      console.log('🔄 Incarcand deduceri...');
+      incarcaDeduceri();
+      console.log('✅ Deduceri incarcate');
+    })
+    .getAppData(an);
+}
+
+window.addEventListener('px-synced', function () {
+  if (typeof loadData === 'function' && !document.querySelector('.modal.show, .swal2-container') && document.getElementById('anSelector')) { try { loadData(); } catch (e) {} }
+});
+
+// ============================================================
+// GETWEEK
+// ============================================================
+function fmtData(s) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s)); return m ? m[3] + '/' + m[2] + '/' + m[1] : s; }
+
+function getWeek(dStr) {
+  var d = new Date(dStr);
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function getMondayOfISOWeek(w, y) {
+  var simple = new Date(y, 0, 1 + (w - 1) * 7);
+  var dow = simple.getDay();
+  var monday = new Date(simple);
+  if (dow <= 4) monday.setDate(simple.getDate() - dow + 1);
+  else monday.setDate(simple.getDate() + 8 - dow);
+  return monday;
+}
+
+// ============================================================
+// JURNAL - RENDER CHUNK
+// ============================================================
+function renderNextChunk() {
+  if (isRendering) return;
+  isRendering = true;
+
+  var container = document.getElementById('lista-bruta');
+  var fragment = document.createDocumentFragment();
+  var nextItems = globalData.slice(renderedCount, renderedCount + chunkSize);
+
+  var lastW = renderedCount > 0 ? getWeek(globalData[renderedCount - 1][1]) : null;
+
+  nextItems.forEach(function (r) {
+    var currW = getWeek(r[1]);
+    if (lastW !== currW) {
+      var sep = document.createElement('div');
+      sep.className = 'week-separator';
+      sep.innerText = 'Săptămâna ' + currW;
+      fragment.appendChild(sep);
+      lastW = currW;
+    }
+
+    var valCash = String(r[8]).toLowerCase().trim();
+    var cash = (valCash === "true" || valCash === "adevărat" || valCash === "adevarat");
+
+    var card = document.createElement('div');
+    card.className = 'pro-card ' + (cash ? 'card-cash' : '');
+    card.innerHTML = buildCardJurnalHTML(r, cash); // NOU: același conținut, cu clase în plus
+    fragment.appendChild(card);
+  });
+
+  container.appendChild(fragment);
+  renderedCount += chunkSize;
+  isRendering = false;
+}
+
+// ============================================================
+// STATISTICI
+// ============================================================
+function renderStats(statsArray) {
+  var h2 = '';
+  var statsContainer = document.getElementById('lista-stats');
+  var anSelectat = document.getElementById('anSelector').value;
+  var sumaDeIncasat = 0;
+  var sumaIncasat = 0;
+
+  if (statsArray && statsArray.length > 0) {
+    statsArray.forEach(function (s) {
+      var valoareSuma = s[5] ? parseFloat(s[5]) : 0;
+      var sapt = s[6] || "?";
+      var ore = s[1] || "0";
+      var km = s[2] || "0";
+      var statusPlata = s[8];
+
+      var estePlatitManual = statusPlata === "Platit";
+      var esteVerde = estePlatitManual || valoareSuma <= 0;
+
+      if (estePlatitManual) sumaIncasat += valoareSuma;
+      else sumaDeIncasat += (valoareSuma > 0 ? valoareSuma : 0);
+
+      var culoareGlow = esteVerde ? "rgba(15, 118, 110, 0.14)" : "rgba(185, 28, 28, 0.14)";
+      var culoareTextSuma = esteVerde ? "var(--cash)" : "var(--danger)";
+      var stilBorder = esteVerde ? "1px solid rgba(15,118,110,0.35)" : "1px solid var(--line)";
+
+      h2 += '<div class="stat-card" style="border: ' + stilBorder + '; border-left: 3px solid ' + (esteVerde ? 'var(--cash)' : 'var(--danger)') + ';">' +
+        '<div class="d-flex justify-content-between align-items-start mb-3">' +
+          '<div>' +
+            '<div class="stat-subtitle" style="font-size:12.5px;color:var(--text-muted);font-weight:600;">Săptămâna ' + sapt + '</div>' +
+            '<div style="font-size: 1.35rem; color: ' + culoareTextSuma + '; font-weight: 700; letter-spacing: -0.02em;">' +
+              ((valoareSuma <= 0 && !estePlatitManual) ?
+  'PLĂTIT CASH<br><span style="font-size:0.72rem; font-weight:700; color:var(--accent);">' + (parseFloat(s[3]) || 0).toFixed(2) + ' €</span>'
+  : valoareSuma.toFixed(2) + ' €') +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            (!esteVerde ?
+              '<button class="btn btn-sm" onclick="confirmaPlata(\'' + sapt + '\', \'' + anSelectat + '\')" style="background: var(--danger); color: white; border-radius: var(--r-xs); padding: 8px 14px; font-weight: 600; font-size: 12px;"><i class="bi bi-cash"></i> ÎNCASEAZĂ</button>' :
+              '<span class="badge-cash" style="background: var(--cash);"><i class="bi bi-check-circle-fill"></i> ' + (estePlatitManual ? 'INCASAT' : 'CASH') + '</span>'
+            ) +
+          '</div>' +
+        '</div>' +
+        '<div class="d-flex justify-content-between pt-2" style="border-top: 1px solid var(--line-soft); font-size: 12.5px;">' +
+          '<span style="color: var(--primary); font-weight: 600;"><i class="bi bi-clock-history"></i> <span style="color: var(--text-main);">' + ore + ' h</span></span>' +
+          '<span style="color: var(--cash); font-weight: 600;"><i class="bi bi-truck"></i> <span style="color: var(--text-main);">' + km + ' km</span></span>' +
+        '</div>' +
+      '</div>';
+    });
+  } else {
+    h2 = emptyStateHTML('bi-bar-chart', 'Nicio săptămână de afișat', 'Statisticile apar după ce adaugi zile în jurnal.'); // NOU
+  }
+
+var elIncasat = document.getElementById('total-incasat');
+if (elIncasat) elIncasat.innerText = calculeazaTotalFacturiIncasate().toFixed(2) + " €";
+  totalDeIncasatBrut = sumaDeIncasat;
+  actualizaDeIncasat();
+
+  statsContainer.innerHTML = h2;
+}
+
+// ============================================================
+// SANTIERE
+// ============================================================
+function renderSantiere(santiereArray) {
+  var container = document.getElementById('lista-santiere');
+  var html = '';
+
+  if (santiereArray && santiereArray.length > 0) {
+    var ultimeleActivitati = {};
+
+    globalData.forEach(function (r) {
+      var locatieJurnal = String(r[4]).toLowerCase();
+      var dataInregistrare = new Date(r[1]);
+
+      santiereArray.forEach(function (s) {
+        var numeSantier = String(s[0]).toLowerCase();
+        if (locatieJurnal.includes(numeSantier)) {
+          if (!ultimeleActivitati[numeSantier] || dataInregistrare > ultimeleActivitati[numeSantier]) {
+            ultimeleActivitati[numeSantier] = dataInregistrare;
+          }
+        }
+      });
+    });
+
+    var santiereSortate = [...santiereArray].sort(function (a, b) {
+      var dataA = ultimeleActivitati[String(a[0]).toLowerCase()] || new Date(0);
+      var dataB = ultimeleActivitati[String(b[0]).toLowerCase()] || new Date(0);
+      return dataB - dataA;
+    });
+
+    santiereSortate.forEach(function (s) {
+      html += '<div class="pro-card" style="border-radius: var(--r-md); margin-bottom: 12px;">' +
+        '<div class="d-flex justify-content-between align-items-center gap-2">' +
+          '<div class="d-flex align-items-center gap-3" style="min-width:0;">' +
+            '<div style="width:38px;height:38px;flex-shrink:0;border-radius:var(--r-xs);background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:16px;"><i class="bi bi-building"></i></div>' +
+            '<div style="min-width:0;">' +
+              '<div class="card-title" style="font-size: 15px;">' + s[0] + '</div>' +
+              '<div class="text-muted small fw-bold">An: ' + s[2] + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="hours-tag">' +
+            '<i class="bi bi-stopwatch-fill"></i> ' + parseFloat(s[1]).toFixed(2) + ' h' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+  } else {
+    html = emptyStateHTML('bi-building', 'Niciun șantier încă', 'Șantierele apar după ce adaugi zile în jurnal.'); // NOU
+  }
+  container.innerHTML = html;
+}
+
+// ============================================================
+// FACTURI
+// ============================================================
+function incarcaFacturi() {
+  google.script.run.withSuccessHandler(function (data) {
+    facturi = data || [];
+    actualizaDeIncasat();
+    updateHomeFacturi();
+    var tabFacturi = document.getElementById('view-facturi');
+    if (tabFacturi && tabFacturi.classList.contains('active')) renderFacturi();
+  }).getFacturiGS();
+}
+
+function toggleFormFactura() {
+  var form = document.getElementById('form-factura');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') buildCheckboxList();
+}
+
+function buildCheckboxList() {
+  var an = document.getElementById('anSelector').value;
+  var sortedWeeks = Object.keys(globalStats).sort(function (a, b) { return b - a; });
+  var usedWeeks = new Set();
+  facturi.forEach(function (f) { f.saptamani.forEach(function (s) { usedWeeks.add(String(s)); }); });
+
+  var html = '';
+  sortedWeeks.forEach(function (w) {
+    var ws = globalStats[w] || { h: 0, suma: 0 };
+    var used = usedWeeks.has(String(w));
+    var cheie = w + "_" + an;
+    var status = statusSaptamani[cheie] || "RESTANT";
+    var statusLabel = status === "Platit" ? '✓ Încasat' : status === "CASH" ? '⚡ Cash' : '⏳ Restant';
+    var statusColor = status === "Platit" ? 'var(--cash)' : status === "CASH" ? 'var(--accent)' : 'var(--danger)';
+    var indisponibil = used || status === 'CASH';
+
+    html += '<div style="display:flex;align-items:center;padding:8px 4px;border-bottom:0.5px solid #f0f0f0;">' +
+      '<input type="checkbox" id="chk_' + w + '" value="' + w + '" ' + (indisponibil ? 'disabled' : '') + ' onchange="updatePreviewFactura()" style="width:18px;height:18px;accent-color:var(--primary);margin-right:10px;">' +
+      '<label for="chk_' + w + '" style="flex:1;font-size:0.85rem;font-weight:600;color:' + (indisponibil ? '#aaa' : 'var(--text-main)') + ';">' +
+        'Săpt. ' + w + ' ' + (used ? '<span style="color:#ef4444;font-size:0.75rem;">(deja folosit)</span>' : '') +
+        '<span style="font-size:0.75rem;color:' + statusColor + ';margin-left:4px;">' + statusLabel + '</span>' +
+      '</label>' +
+      '<span style="font-size:0.8rem;color:var(--text-muted);">' + ws.h.toFixed(1) + 'h = ' + ws.suma.toFixed(0) + '€</span>' +
+    '</div>';
+  });
+
+  document.getElementById('sapt-checkbox-list').innerHTML = html || '<div style="color:var(--text-muted);font-size:0.8rem;padding:8px;">Nicio săptămână disponibilă</div>';
+  updatePreviewFactura();
+}
+
+function updatePreviewFactura() {
+  var checked = [...document.querySelectorAll('#sapt-checkbox-list input:checked')].map(function (c) { return c.value; });
+  if (checked.length === 0) { document.getElementById('preview-total-factura').innerText = ''; return; }
+  var totalH = 0, totalC = 0;
+  checked.forEach(function (w) {
+    var ws = globalStats[w] || { h: 0, suma: 0 };
+    totalH += ws.h; totalC += ws.suma;
+  });
+  document.getElementById('preview-total-factura').innerText = 'Total: ' + totalH.toFixed(1) + 'h = ' + totalC.toFixed(2) + '€';
+}
+
+function salveazaFactura() {
+  var nom = document.getElementById('input-num-factura').value.trim();
+  var checked = [...document.querySelectorAll('#sapt-checkbox-list input:checked')].map(function (c) { return c.value; });
+
+  if (!nom) { Swal.fire({ icon: 'warning', title: 'Adaugă un nume!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }); return; }
+  if (checked.length === 0) { Swal.fire({ icon: 'warning', title: 'Selectează cel puțin o săptămână!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 }); return; }
+
+  var totalH = 0, totalC = 0;
+  checked.forEach(function (w) {
+    var ws = globalStats[w] || { h: 0, suma: 0 };
+    totalH += ws.h; totalC += ws.suma;
+  });
+
+  var factura = { id: Date.now(), nom: nom, saptamani: checked, totalH: totalH, totalC: totalC };
+
+  google.script.run.withSuccessHandler(function () {
+    facturi.push(factura);
+    document.getElementById('form-factura').style.display = 'none';
+    document.getElementById('input-num-factura').value = '';
+    renderFacturi();
+    updateHomeFacturi();
+    Swal.fire({ icon: 'success', title: 'Factură salvată!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+  }).salveazaFacturaGS(factura);
+}
+
+function stergeFactura(id) {
+  Swal.fire({
+    title: 'Ștergi factura?', icon: 'warning', showCancelButton: true,
+    confirmButtonColor: 'var(--danger)', confirmButtonText: 'Da, șterge!', cancelButtonText: 'Anulează'
+  }).then(function (result) {
+    if (result.isConfirmed) {
+      google.script.run.withSuccessHandler(function () {
+        facturi = facturi.filter(function (f) { return f.id !== id; });
+        renderFacturi();
+        updateHomeFacturi();
+      }).stergeFacturaGS(id);
+    }
+  });
+}
+
+function renderFacturi() {
+  var container = document.getElementById('facturi-container');
+  var an = document.getElementById('anSelector').value;
+
+  if (facturi.length === 0) {
+    container.innerHTML = emptyStateHTML('bi-receipt', 'Nicio factură încă', 'Creează prima factură din săptămânile lucrate.'); // NOU
+    updateSumarFacturi(0, 0, 0);
+    return;
+  }
+
+  var totalRestant = 0, totalIncasat = 0, totalCash = 0;
+  var html = '';
+
+  [...facturi].reverse().forEach(function (f) {
+    var nrPlatite = 0, nrCash = 0, nrRestante = 0;
+
+    f.saptamani.forEach(function (w) {
+      var cheie = String(w) + "_" + an;
+      var st = statusSaptamani[cheie] || "RESTANT";
+      if (st === "Platit") nrPlatite++; else if (st === "CASH") nrCash++; else nrRestante++;
+    });
+
+    var total = f.saptamani.length;
+    var badgeHtml, cardClass;
+
+    if (nrRestante === total) {
+      badgeHtml = '<span class="badge-factura-restant"><i class="bi bi-exclamation-circle"></i> DE ÎNCASAT</span>';
+      cardClass = "factura-restant";
+      totalRestant += Math.max(0, f.totalC - (f.avans || 0));
+    } else if (nrPlatite === total) {
+      badgeHtml = '<span class="badge-factura-incasat"><i class="bi bi-check-circle-fill"></i> ÎNCASAT</span>';
+      cardClass = "factura-incasat";
+      totalIncasat += f.totalC;
+    } else if (nrCash === total) {
+      badgeHtml = '<span class="badge-factura-cash"><i class="bi bi-cash-stack"></i> CASH</span>';
+      cardClass = "factura-cash";
+      totalCash += f.totalC;
+    } else if (nrRestante === 0) {
+      badgeHtml = '<span class="badge-factura-incasat"><i class="bi bi-check-circle-fill"></i> ACHITAT</span>';
+      cardClass = "factura-incasat";
+      totalIncasat += f.totalC;
+    } else {
+      badgeHtml = '<span class="badge-factura-partial"><i class="bi bi-hourglass-split"></i> PARȚIAL ' + nrPlatite + '/' + total + '</span>';
+      cardClass = "factura-partial";
+      totalRestant += Math.max(0, f.totalC - (f.avans || 0));
+    }
+
+    html += '<div class="pro-card ' + cardClass + '" style="margin-bottom:16px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;">' +
+        '<span style="font-weight:600;font-size:1rem;color:var(--text-main);">' + f.nom + '</span>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          badgeHtml +
+          '<button onclick="stergeFactura(' + f.id + ')" aria-label="Șterge factura" style="background:none;border:none;color:var(--danger);font-size:1.05rem;cursor:pointer;padding:0 4px;"><i class="bi bi-trash3-fill"></i></button>' +
+        '</div>' +
+      '</div>';
+
+    f.saptamani.forEach(function (w) {
+      var ws = globalStats[String(w)] || { h: 0, suma: 0 };
+      var cheie = String(w) + "_" + an;
+      var st = statusSaptamani[cheie] || "RESTANT";
+
+      var dotColor, stLabel;
+      if (st === "Platit") { dotColor = "var(--cash)"; stLabel = '<span style="font-size:0.72rem;font-weight:700;color:var(--cash);background:var(--cash-soft);padding:2px 8px;border-radius:8px;">✓ Încasat</span>'; }
+      else if (st === "CASH") { dotColor = "var(--accent)"; stLabel = '<span style="font-size:0.72rem;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:8px;">⚡ Cash</span>'; }
+      else { dotColor = "var(--danger)"; stLabel = '<span style="font-size:0.72rem;font-weight:700;color:var(--danger);background:var(--danger-soft);padding:2px 8px;border-radius:8px;">⏳ Restant</span>'; }
+
+      html += '<div class="sapt-row">' +
+        '<span style="font-size:0.85rem;color:var(--text-muted);display:flex;align-items:center;">' +
+          '<span class="sapt-status-dot" style="background:' + dotColor + ';"></span>' +
+          '<i class="bi bi-calendar3" style="margin-right:5px;"></i>Săptămâna ' + w +
+        '</span>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+          stLabel +
+          '<span style="font-size:0.85rem;font-weight:700;color:var(--text-main);">' + ws.h.toFixed(1) + 'h = ' + ws.suma.toFixed(0) + '€</span>' +
+        '</div>' +
+      '</div>';
+    });
+
+    var avans = f.avans || 0;
+    var rest = Math.max(0, f.totalC - avans);
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:8px;border-top:1px solid var(--line-soft);">' +
+        '<span style="font-size:0.78rem;font-weight:600;color:var(--text-muted);">Total factură</span>' +
+        '<span style="font-size:1.05rem;font-weight:700;color:var(--primary);">' + f.totalH.toFixed(1) + 'h = ' + f.totalC.toFixed(2) + '€</span>' +
+      '</div>';
+
+    if (avans > 0) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;">' +
+          '<span style="font-size:0.76rem;font-weight:700;color:var(--accent);"><i class="bi bi-piggy-bank-fill"></i> Avans încasat</span>' +
+          '<span style="font-size:0.88rem;font-weight:700;color:var(--accent);">' + avans.toFixed(2) + '€</span>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:2px;">' +
+          '<span style="font-size:0.76rem;font-weight:700;color:var(--danger);">Rest de încasat</span>' +
+          '<span style="font-size:0.92rem;font-weight:700;color:var(--danger);">' + rest.toFixed(2) + '€</span>' +
+        '</div>';
+    }
+
+    var butonPlataIntegrala = (nrPlatite !== total) ?
+  '<button onclick="achitaFacturaIntegral(' + f.id + ')" style="width:100%; margin-top:10px; background:var(--cash); color:white; border:none; border-radius:var(--r-sm); padding:10px; font-weight:600; font-size:0.85rem; cursor:pointer;">' +
+    '<i class="bi bi-check2-circle"></i> Plată Integrală' +
+  '</button>' : '';
+
+html += butonPlataIntegrala +
+  '<button onclick="cereAvans(' + f.id + ', ' + f.totalC + ', ' + avans + ')" style="width:100%; margin-top:8px; background:var(--accent-soft); color:var(--accent); border:1px solid rgba(3,105,161,0.25); border-radius:var(--r-sm); padding:10px; font-weight:600; font-size:0.85rem; cursor:pointer;">' +
+    '<i class="bi bi-cash-coin"></i> Înregistrează avans' +
+  '</button>' +
+'</div>';
+  });
+
+   container.innerHTML = html;
+  updateSumarFacturi(totalRestant, totalIncasat, calculeazaTotalCashReal());
+}
+
+function achitaFacturaIntegral(id) {
+  var f = facturi.find(function (x) { return x.id === id; });
+  if (!f) return;
+  var an = document.getElementById('anSelector').value;
+
+  Swal.fire({
+    title: 'Confirmare Plată Integrală',
+    html: 'Confirmi încasarea integrală de <b>' + f.totalC.toFixed(2) + '€</b> pentru <b>' + f.nom + '</b>?<br>' +
+          '<span style="font-size:0.8rem; color:var(--text-muted);">Săptămânile: ' + f.saptamani.join(', ') + '</span>',
+    icon: 'question', showCancelButton: true, confirmButtonColor: 'var(--cash)',
+    confirmButtonText: 'Da, e achitată!', cancelButtonText: 'Anulează', customClass: { popup: 'rounded-4' }
+  }).then(function (result) {
+    if (result.isConfirmed) {
+      google.script.run
+        .withSuccessHandler(function () {
+          f.avans = f.totalC;
+          f.saptamani.forEach(function (w) { statusSaptamani[String(w) + "_" + an] = "Platit"; });
+          confetti({ particleCount: 120, spread: 65, origin: { y: 0.6 }, colors: ['#0f766e', '#4338ca'] });
+          Swal.fire({ icon: 'success', title: 'Factură achitată!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+          renderFacturi();
+          loadData();
+        })
+        .withFailureHandler(function (err) { Swal.fire({ icon: 'error', title: 'Eroare', text: err.message }); })
+        .marcheazaFacturaPlatita(id, f.saptamani, an);
+    }
+  });
+}
+
+function cereAvans(id, totalC, avansActual) {
+  var rest = Math.max(0, totalC - avansActual);
+  Swal.fire({
+    title: 'Înregistrează avans',
+    html: '<div style="text-align:left; font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">Rest de încasat: <b style="color:var(--danger);">' + rest.toFixed(2) + '€</b></div>',
+    input: 'number', inputAttributes: { step: '0.01', min: '0' }, inputPlaceholder: 'Suma încasată (€)',
+    showCancelButton: true, confirmButtonText: 'Salvează', confirmButtonColor: 'var(--accent)',
+    cancelButtonText: 'Anulează', customClass: { popup: 'rounded-4' }
+  }).then(function (result) {
+    if (result.isConfirmed && result.value) {
+      var suma = parseFloat(result.value);
+      if (isNaN(suma) || suma <= 0) return;
+
+      google.script.run
+        .withSuccessHandler(function (avansNou) {
+          var f = facturi.find(function (x) { return x.id === id; });
+          if (f) f.avans = avansNou;
+          actualizaDeIncasat();
+          renderFacturi();
+          updateHomeFacturi();
+          confetti({ particleCount: 70, spread: 55, origin: { y: 0.6 }, colors: ['#0369a1', '#4338ca'] });
+          Swal.fire({ icon: 'success', title: 'Avans salvat!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+        })
+        .withFailureHandler(function (err) { Swal.fire({ icon: 'error', title: 'Eroare', text: err.message }); })
+        .adaugaAvansGS(id, suma);
+    }
+  });
+}
+
+function updateSumarFacturi(restant, incasat, cash) {
+  var elR = document.getElementById('fact-total-restant');
+  var elI = document.getElementById('fact-total-incasat');
+  var elC = document.getElementById('fact-total-cash');
+  if (elR) elR.innerText = restant.toFixed(0) + ' €';
+  if (elI) elI.innerText = incasat.toFixed(0) + ' €';
+  if (elC) elC.innerText = cash.toFixed(0) + ' €';
+}
+
+function calculeazaTotalFacturiIncasate() {
+  var an = document.getElementById('anSelector').value;
+  var total = 0;
+  facturi.forEach(function (f) {
+    var nrPlatite = 0, nrCash = 0, nrRestante = 0;
+    f.saptamani.forEach(function (w) {
+      var cheie = String(w) + "_" + an;
+      var st = statusSaptamani[cheie] || "RESTANT";
+      if (st === "Platit") nrPlatite++;
+      else if (st === "CASH") nrCash++;
+      else nrRestante++;
+    });
+    // "incasat" = fara nicio saptamana restanta si nu e 100% cash
+    // (adica: fie 100% platit, fie mix platit+cash fara restant = "ACHITAT")
+    if (nrRestante === 0 && nrCash < f.saptamani.length) {
+      total += f.totalC;
+    }
+  });
+  return total;
+}
+
+function calculeazaTotalFacturiRestante() {
+  var an = document.getElementById('anSelector').value;
+  var total = 0;
+  facturi.forEach(function (f) {
+    var nrPlatite = 0, nrCash = 0, nrRestante = 0;
+    f.saptamani.forEach(function (w) {
+      var cheie = String(w) + "_" + an;
+      var st = statusSaptamani[cheie] || "RESTANT";
+      if (st === "Platit") nrPlatite++;
+      else if (st === "CASH") nrCash++;
+      else nrRestante++;
+    });
+    // factura intra la restant doar daca are macar o saptamana efectiv restanta
+    if (nrRestante > 0) {
+      total += Math.max(0, f.totalC - (f.avans || 0));
+    }
+  });
+  return total;
+}
+
+function calculeazaTotalCashReal() {
+  var an = document.getElementById('anSelector').value;
+  var total = 0;
+  Object.keys(statusSaptamani).forEach(function (cheie) {
+    var parti = cheie.split('_');
+    var sapt = parti[0];
+    var anCheie = parti[1];
+    if (anCheie != an) return;
+    if (statusSaptamani[cheie] === 'CASH') {
+      var ws = globalStats[sapt];
+      if (ws) total += (ws.cashVal || 0);
+    }
+  });
+  return total;
+}
+
+function actualizaDeIncasat() {
+  var totalRestant = calculeazaTotalFacturiRestante();
+
+  var el = document.getElementById('total-de-incasat');
+  if (el) el.innerText = totalRestant.toFixed(2) + " €";
+
+  var elHome = document.getElementById('home-facturi-neplatite');
+  if (elHome) elHome.innerText = totalRestant.toFixed(2) + " €";
+
+  syncKpi(); // NOU
+}
+
+
+// ============================================================
+// CONFIRMA PLATA
+// ============================================================
+function confirmaPlata(saptamana, an) {
+  Swal.fire({
+    title: 'Confirmare Încasare', text: 'Ai primit banii pentru săptămâna ' + saptamana + '?', icon: 'question',
+    showCancelButton: true, confirmButtonColor: 'var(--cash)', cancelButtonColor: 'var(--text-muted)',
+    confirmButtonText: 'Da, încasat!', cancelButtonText: 'Anulează',
+    backdrop: 'rgba(15, 23, 42, 0.25) blur(4px)',
+    showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' }
+  }).then(function (result) {
+    if (result.isConfirmed) {
+      google.script.run
+        .withSuccessHandler(function () {
+          confetti({ particleCount: 120, spread: 65, origin: { y: 0.6 }, colors: ['#0f766e', '#4338ca'] });
+          loadData();
+        })
+        .marcheazaPlata(saptamana, an);
+    }
+  });
+}
+
+// ============================================================
+// HOME DASHBOARD
+// ============================================================
+function salutTimp() {
+  var h = new Date().getHours();
+  if (h < 12) return 'Bună dimineața,';
+  if (h < 18) return 'Bună ziua,';
+  return 'Bună seara,';
+}
+
+function formatOreMinute(oreZecimale) {
+  var totalMin = Math.round((parseFloat(oreZecimale) || 0) * 60);
+  var h = Math.floor(totalMin / 60);
+  var m = totalMin % 60;
+  return h + 'h ' + m + 'm';
+}
+
+function generateSparklineSVG(vals) {
+  if (!vals || !vals.length) return '<div class="text-center text-muted small py-3">Fără date luna aceasta încă.</div>';
+  var max = Math.max.apply(null, vals) || 1;
+  var w = 300, h = 64;
+  var step = vals.length > 1 ? (w / (vals.length - 1)) : w;
+  var pts = vals.map(function (v, i) {
+    var x = i * step;
+    var y = h - (v / max) * (h - 12) - 6;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  });
+  var pointsStr = pts.join(' ');
+  var areaStr = '0,' + h + ' ' + pointsStr + ' ' + w + ',' + h;
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; height:64px; display:block;" preserveAspectRatio="none">' +
+    '<defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#0f766e" stop-opacity="0.28"/>' +
+      '<stop offset="100%" stop-color="#0f766e" stop-opacity="0"/>' +
+    '</linearGradient></defs>' +
+    '<polygon points="' + areaStr + '" fill="url(#sparkGrad)"/>' +
+    '<polyline points="' + pointsStr + '" fill="none" stroke="#0f766e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+  '</svg>';
+}
+
+function updateHomeStats(anSelectat) {
+  var salutEl = document.getElementById('home-salut');
+  if (salutEl) salutEl.innerText = salutTimp();
+
+  var azi = new Date();
+  var saptCurenta = getWeek(azi.toISOString());
+  var anCurent = azi.getFullYear();
+
+  // --- SĂPTĂMÂNA CURENTĂ ---
+  var oreSapt = 0, incasariSapt = 0;
+  globalData.forEach(function (r) {
+    if (getWeek(r[1]) === saptCurenta) {
+      var h = parseFloat(r[5]) || 0;
+      var km = parseFloat(r[6]) || 0;
+      var tH = parseFloat(r[9]) || 30;
+      var tK = parseFloat(r[10]) || 0.45;
+      var cashVal = String(r[8]).toLowerCase().trim();
+      var esteCash = (cashVal === "true" || cashVal === "adevărat" || cashVal === "adevarat");
+      oreSapt += h;
+      incasariSapt += esteCash ? 0 : (h * tH + km * tK);
+    }
+  });
+
+  var oreSaptEl = document.getElementById('home-ore-sapt');
+  if (oreSaptEl) oreSaptEl.innerText = formatOreMinute(oreSapt);
+  var incasariSaptEl = document.getElementById('home-incasari-sapt');
+  if (incasariSaptEl) incasariSaptEl.innerText = incasariSapt.toFixed(2) + ' €';
+
+  var weekLabel = document.getElementById('home-week-label');
+  if (weekLabel) weekLabel.innerText = 'SĂPTĂMÂNA ' + saptCurenta + ' · ' + anSelectat;
+
+  try {
+    var luni = getMondayOfISOWeek(saptCurenta, anCurent);
+    var duminica = new Date(luni); duminica.setDate(luni.getDate() + 6);
+    var opt = { day: 'numeric', month: 'short' };
+    var interval = luni.toLocaleDateString('ro-RO', opt) + ' - ' + duminica.toLocaleDateString('ro-RO', opt) + ' ' + duminica.getFullYear();
+    var intervalEl = document.getElementById('home-interval');
+    if (intervalEl) intervalEl.innerText = interval;
+  } catch (e) {}
+
+  // --- LUNA CURENTĂ ---
+  var lunaCurenta = azi.getMonth();
+  var oreLuna = 0, incasariLuna = 0;
+  var perZi = {};
+  globalData.forEach(function (r) {
+    var d = new Date(r[1]);
+    if (isNaN(d)) return;
+    if (d.getMonth() !== lunaCurenta) return;
+    var h = parseFloat(r[5]) || 0;
+    var km = parseFloat(r[6]) || 0;
+    var tH = parseFloat(r[9]) || 30;
+    var tK = parseFloat(r[10]) || 0.45;
+    var cashVal = String(r[8]).toLowerCase().trim();
+    var esteCash = (cashVal === "true" || cashVal === "adevărat" || cashVal === "adevarat");
+    var suma = esteCash ? 0 : (h * tH + km * tK);
+    oreLuna += h;
+    incasariLuna += suma;
+    var zi = d.getDate();
+    perZi[zi] = (perZi[zi] || 0) + suma;
+  });
+
+  var oreLunaEl = document.getElementById('home-ore-luna');
+  if (oreLunaEl) oreLunaEl.innerText = formatOreMinute(oreLuna);
+  var incasariLunaEl = document.getElementById('home-incasari-luna');
+  if (incasariLunaEl) incasariLunaEl.innerText = incasariLuna.toFixed(2) + ' €';
+
+  var zileSortate = Object.keys(perZi).map(Number).sort(function (a, b) { return a - b; });
+  var valsSparkline = zileSortate.map(function (z) { return perZi[z]; });
+  var sparkEl = document.getElementById('home-sparkline');
+  if (sparkEl) sparkEl.innerHTML = generateSparklineSVG(valsSparkline);
+
+  var motivEl = document.getElementById('home-motivational');
+  if (motivEl) {
+    if (oreSapt === 0) motivEl.innerText = 'Nicio zi lucrată încă săptămâna asta.';
+    else if (oreSapt >= 40) motivEl.innerText = 'Săptămână excelentă — ai atins pragul de 40h.';
+    else motivEl.innerText = 'Ai o zi productivă.';
+  }
+
+   // ✅ ADAUGĂ AICI — evoluția pe tot anul
+  updateHomeYearStats(anSelectat);
+
+  syncKpi(); // NOU
+}
+
+function updateHomeFacturi() {
+  actualizaDeIncasat();
+}
+
+function goHome() { switchTab('home', document.getElementById('nav-home')); }
+function navigateFromHome(tab) { switchTab(tab, document.getElementById('nav-' + tab)); }
+
+function checkSuiviBadge() {
+  google.script.run
+    .withSuccessHandler(function (n) {
+      n = n || 0;
+      document.querySelectorAll('[data-badge="suivi"]').forEach(function (b) {
+        b.innerText = n;
+        b.style.display = n ? 'flex' : 'none';
+        b.title = n + ' matériel à commander';
+      });
+    })
+    .withFailureHandler(function () {})
+    .getSuiviBadge();
+}
+
+// ============================================================
+// SWITCH TAB
+// ============================================================
+function switchTab(tab, el) {
+  document.querySelectorAll('.view-section').forEach(function (v) {
+    v.classList.remove('active');
+  });
+
+  document.querySelectorAll('.nav-item').forEach(function (n) {
+    n.classList.remove('active');
+  });
+
+  document.getElementById('view-' + tab).classList.add('active');
+  el.classList.add('active');
+
+  document.getElementById('searchBar').value = '';
+  filtreazaDate();
+
+  var titluri = {
+    pontaje: 'Jurnal Pontaj',
+    santiere: 'Șantiere',
+    stats: 'Statistici',
+    facturi: 'Facturi',
+          deductibil: 'Deductibil',
+      suivi: 'Suivi chantiers'
+  };
+
+  var header = document.getElementById('app-header');
+  var fab = document.getElementById('fabBtn');
+  var searchWrap = document.getElementById('searchWrapper');
+
+  if (tab === 'home') {
+    header.style.display = 'none';
+    searchWrap.style.display = 'none';
+
+    updateHomeStats(document.getElementById('anSelector').value);
+    updateHomeFacturi();
+
+  } else {
+    header.style.display = 'block';
+
+    if (tab === 'pontaje') {
+      document.getElementById('pageTitle').innerHTML =
+        'Jurnal Pontaj <span class="an-pulsat">' +
+        document.getElementById('anSelector').value +
+        '</span>';
+    } else {
+      document.getElementById('pageTitle').innerText =
+        titluri[tab] || 'Acasă';
+    }
+
+    searchWrap.style.display =
+      (tab === 'pontaje' || tab === 'santiere') ? 'block' : 'none';
+  }
+
+  if (tab === 'facturi') {
+    renderFacturi();
+  }
+
+  if (tab === 'deductibil') {
+    incarcaDeduceri();
+  }
+
+  // ✅ FAB vizibil în TOATE tab-urile, inclusiv Acasă
+  if (tab === 'suivi') {
+    var fr = document.getElementById('suivi-frame');
+    if (!fr.getAttribute('src')) fr.setAttribute('src', fr.getAttribute('data-src'));
+  }
+
+    if (tab !== 'suivi') checkSuiviBadge();
+  // butonul + ar acoperi butoanele din Suivi
+  fab.style.display = (tab === 'suivi') ? 'none' : 'flex';
+
+  syncShell(tab); // NOU: sidebar activ, titlu topbar, căutare desktop
+  window.scrollTo(0, 0); // NOU: pagina nouă începe de sus
+}
+
+// ============================================================
+// FILTRARE SEARCH
+// ============================================================
+function filtreazaDate() {
+  var query = document.getElementById('searchBar').value.toLowerCase().trim();
+  var activeTab = document.querySelector('.view-section.active').id;
+
+  if (activeTab === 'view-pontaje') {
+    var container = document.getElementById('lista-bruta');
+    if (query === "") { container.innerHTML = ""; renderedCount = 0; renderNextChunk(); return; }
+    container.innerHTML = "";
+    var rezultate = globalData.filter(function (r) {
+      return r[0].toLowerCase().includes(query) || r[1].toLowerCase().includes(query) ||
+             r[4].toLowerCase().includes(query) || r[7].toLowerCase().includes(query);
+    });
+    if (rezultate.length === 0) {
+      container.innerHTML = emptyStateHTML('bi-search', 'Nicio zi găsită', 'Încearcă alt cuvânt sau șterge căutarea.'); // NOU
+    } else {
+      rezultate.forEach(function (r) {
+        var valCash = String(r[8]).toLowerCase().trim();
+        var cash = (valCash === "true" || valCash === "adevărat");
+        var card = document.createElement('div');
+        card.className = 'pro-card ' + (cash ? 'card-cash' : '');
+        card.innerHTML = buildCardJurnalHTML(r, cash); // NOU: același card ca în lista normală
+        container.appendChild(card);
+      });
+    }
+  } else if (activeTab === 'view-santiere') {
+    var cards = document.querySelectorAll('#lista-santiere .pro-card');
+    cards.forEach(function (card) {
+      var text = card.innerText.toLowerCase();
+      card.style.setProperty('display', text.includes(query) ? 'block' : 'none', 'important');
+    });
+  }
+}
+
+// ============================================================
+// ADAUGARE / EDITARE
+// ============================================================
+function deschideAdaugare() {
+  currentEditIdx = null;
+  document.getElementById('fMain').reset();
+  document.getElementById('container-adrese').innerHTML = '';
+  adaugaRandAdresa();
+  document.getElementById('modalTitle').innerText = "Adaugă Zi";
+  modalObj.show();
+}
+
+function pregatesteEdit(idx) {
+  var r = globalData.find(function (x) { return String(x[11]) === String(idx); });
+  if (!r) { console.warn("Nu am găsit rândul pentru editare. ID:", idx); return; }
+
+  currentEditIdx = String(idx);
+
+  function curataOra(valoare) {
+    if (!valoare) return "";
+    var s = String(valoare).trim();
+    var match = s.match(/(\d{1,2}):(\d{2})/);
+    if (match) return match[1].padStart(2, "0") + ":" + match[2];
+    return "";
+  }
+
+  document.getElementById("nume").value = r[7];
+  document.getElementById("data").value = convertLaISO(r[1]);
+  document.getElementById("intrare").value = curataOra(r[2]);
+  document.getElementById("iesire").value = curataOra(r[3]);
+
+  var containerAdrese = document.getElementById("container-adrese");
+  containerAdrese.innerHTML = "";
+
+  // Reconstruim orele de plecare din orele salvate: [3h] + [6h] => intrare+3h etc.
+  var cursor = minDinOra(curataOra(r[2]));
+  var bucati = (r[4] || "").split("+").map(function (x) { return x.trim(); }).filter(Boolean);
+  if (bucati.length === 0) bucati = [""];
+
+  bucati.forEach(function (b, i) {
+    var m = b.match(/^(.*?)\s*\[([\d\.,]+)h?\]$/);
+    var nume = m ? m[1].trim() : b;
+    var plecare = "";
+    if (m && cursor !== null && i < bucati.length - 1) {
+      cursor += Math.round(parseFloat(m[2].replace(',', '.')) * 60);
+      plecare = oraDinMin(cursor);
+    }
+    adaugaRandAdresa(nume, plecare);
+  });
+
+  document.getElementById("km").value = r[6] || "";
+
+  var val = String(r[8]).toLowerCase().trim();
+  document.getElementById("isCash").checked = (val === "true" || val === "adevărat" || val === "adevarat");
+
+  document.getElementById("modalTitle").innerText = "Editează Ziua";
+  modalObj.show();
+}
+
+function convertLaISO(dataStr) {
+  if (!dataStr) return "";
+  var s = String(dataStr).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var parts = s.split(/[\/\.]/);
+  if (parts.length !== 3) return s;
+  var zi = parts[0].padStart(2, '0');
+  var luna = parts[1].padStart(2, '0');
+  var an = parts[2];
+  return an + '-' + luna + '-' + zi;
+}
+
+function confirmSterge(idx, dS, h, km) {
+  Swal.fire({
+    title: 'Ștergi înregistrarea?', text: 'Data: ' + dS + ' (' + h + 'h). Acțiunea este ireversibilă!',
+    icon: 'warning', showCancelButton: true, confirmButtonColor: 'var(--danger)',
+    confirmButtonText: 'Da, șterge!', cancelButtonText: 'Renunță'
+  }).then(function (result) {
+    if (result.isConfirmed) {
+      google.script.run
+        .withSuccessHandler(function () {
+          Swal.fire({ title: 'Șters!', icon: 'success', timer: 1000, showConfirmButton: false });
+          loadData();
+        })
+        .stergeRand(idx, dS, h, km, document.getElementById('tH').value, document.getElementById('tK').value);
+    }
+  });
+}
+
+function execSalveaza() {
+  var b = document.getElementById('btnS');
+
+  var strada = obtineStradaDinFormular();
+  if (strada === null) return;   // mesajul de eroare a apărut deja
+
+  var dVal = document.getElementById('data').value;
+  var oraInt = document.getElementById('intrare').value;
+
+  var dateDeTrimis = {
+    rowIndex: currentEditIdx,
+    isCash: document.getElementById('isCash').checked,
+    nume: document.getElementById('nume').value,
+    data: dVal,
+    ziua: ["Duminică", "Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă"][new Date(dVal).getDay()],
+    oraIntrare: oraInt,
+    oraIesire: document.getElementById('iesire').value,
+    strada: strada,
+    km: document.getElementById('km').value,
+    tarifH: document.getElementById('tH').value,
+    tarifKm: document.getElementById('tK').value
+  };
+
+  b.disabled = true;
+  google.script.run
+    .withSuccessHandler(function () {
+      currentEditIdx = null;
+      document.getElementById('fMain').reset();
+      modalObj.hide();
+      loadData();
+      b.disabled = false;
+      Swal.fire({ icon: 'success', title: 'Salvat!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+    })
+    .adaugaDate(dateDeTrimis);
+}
+
+// ---------- helpers de timp ----------
+function minDinOra(s) {
+  var m = String(s || '').match(/(\d{1,2}):(\d{2})/);
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+}
+function difMin(a, b) { var d = b - a; if (d < 0) d += 1440; return d; }
+function oraDinMin(m) {
+  m = ((m % 1440) + 1440) % 1440;
+  return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+}
+
+// ---------- rânduri de adrese ----------
+function adaugaRandAdresa(nume, plecare) {
+  var container = document.getElementById('container-adrese');
+  var div = document.createElement('div');
+  div.className = 'rand-adresa mb-2';
+  div.innerHTML =
+    '<div class="input-group">' +
+      '<input type="text" class="form-control camp-strada" placeholder="Unde ai lucrat?">' +
+      '<button class="btn btn-outline-danger btn-sterge-rand" type="button" onclick="stergeRandAdresa(this)" aria-label="Șterge locația"><i class="bi bi-trash"></i></button>' +
+    '</div>' +
+    '<div class="wrap-plecare mt-1" style="display:none;">' +
+      '<label class="lbl">La ce oră ai plecat de aici?</label>' +
+      '<input type="time" class="form-control camp-plecare">' +
+    '</div>';
+  div.querySelector('.camp-strada').value = (typeof nume === 'string') ? nume : '';
+  div.querySelector('.camp-plecare').value = plecare || '';
+  container.appendChild(div);
+  refreshAdrese();
+}
+
+function stergeRandAdresa(btn) {
+  btn.closest('.rand-adresa').remove();
+  refreshAdrese();
+}
+
+// Câmpul de plecare apare pe toate rândurile, în afară de ultimul
+function refreshAdrese() {
+  var randuri = document.querySelectorAll('#container-adrese .rand-adresa');
+  randuri.forEach(function (r, i) {
+    var ultim = (i === randuri.length - 1);
+    r.querySelector('.wrap-plecare').style.display = ultim ? 'none' : 'block';
+    r.querySelector('.btn-sterge-rand').style.display = (randuri.length === 1) ? 'none' : '';
+  });
+}
+
+// Returnează textul pentru Sheet, sau null dacă e eroare (și afișează mesajul)
+function obtineStradaDinFormular() {
+  var randuri = [];
+  document.querySelectorAll('#container-adrese .rand-adresa').forEach(function (r) {
+    var nume = r.querySelector('.camp-strada').value.trim();
+    if (nume) randuri.push({ nume: nume, plecare: r.querySelector('.camp-plecare').value });
+  });
+
+  if (randuri.length === 0) return '';
+  if (randuri.length === 1) return randuri[0].nume; // toată ziua pe o singură adresă
+
+  function eroare(msg) {
+    Swal.fire({ icon: 'warning', title: msg, toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+    return null;
+  }
+
+  var intrare = minDinOra(document.getElementById('intrare').value);
+  var iesire = minDinOra(document.getElementById('iesire').value);
+  if (intrare === null || iesire === null) return eroare('Completează ora de intrare și ieșire!');
+
+  var totalMin = difMin(intrare, iesire);
+  var cursor = intrare, folosit = 0, parti = [];
+
+  for (var i = 0; i < randuri.length; i++) {
+    var durata;
+    if (i === randuri.length - 1) {
+      durata = totalMin - folosit;   // ultima ia restul până la ieșire
+    } else {
+      var p = minDinOra(randuri[i].plecare);
+      if (p === null) return eroare('Completează ora de plecare de la "' + randuri[i].nume + '"');
+      durata = difMin(cursor, p);
+      cursor = p;
+    }
+    if (durata <= 0) return eroare('Orele de plecare nu sunt în ordine corectă!');
+    folosit += durata;
+    parti.push(randuri[i].nume + ' [' + parseFloat((durata / 60).toFixed(2)) + 'h]');
+  }
+  return parti.join(' + ');
+}
+
+// ============================================================
+// AN SELECTOR
+// ============================================================
+function genereazaAni() {
+  var selector = document.getElementById('anSelector');
+  var anulCurent = new Date().getFullYear();
+  var startAn = 2025;
+  var stopAn = anulCurent + 1;
+  selector.innerHTML = '';
+  for (var an = startAn; an <= stopAn; an++) {
+    var opt = document.createElement('option');
+    opt.value = an; opt.innerText = an;
+    if (an === anulCurent) opt.selected = true;
+    selector.appendChild(opt);
+  }
+}
+
+function alegeAnulCuStil() {
+  var anSelector = document.getElementById('anSelector');
+  var anCurent = anSelector.value, btns = '';
+  for (var i = 0; i < anSelector.options.length; i++) {
+    var v = anSelector.options[i].value;
+    btns += '<button onclick="setAn(' + v + ')" class="btn btn-outline-primary p-3 fw-bold ' + (anCurent == v ? 'active' : '') + '">Anul ' + v + '</button>';
+  }
+  Swal.fire({
+    title: 'Selectează Anul',
+    html: '<div class="d-grid gap-2 mt-3">' + btns +
+      '<button onclick="Swal.close(); pxSettings && pxSettings()" class="btn btn-light p-2 mt-2"><i class="bi bi-cloud-arrow-up"></i> Sincronizare și date</button>' +
+    '</div>',
+    showConfirmButton: false, showCancelButton: true, cancelButtonText: 'Închide',
+    customClass: { popup: 'rounded-4 shadow-lg', cancelButton: 'btn btn-light mt-2' }
+  });
+}
+
+function setAn(an) {
+  var selector = document.getElementById('anSelector');
+  selector.value = an;
+  Swal.close();
+  loadData();
+}
+
+// ============================================================
+// LANDING PAGE / CEAS
+// ============================================================
+function initLandingPage() {
+  var clock = document.getElementById('clock-container');
+  clock.style.transform = "translateY(-150vh) scale(0.5)";
+
+  setTimeout(function () { clock.style.transform = "translateY(0) scale(1)"; clock.style.opacity = "1"; }, 100);
+
+  var face = document.getElementById('clock-face');
+  if (face) {
+    for (var i = 1; i <= 12; i++) {
+      var digit = document.createElement('div');
+      digit.className = 'clock-digit';
+      digit.style.transform = 'rotate(' + (i * 30) + 'deg)';
+      digit.innerHTML = '<span style="display:inline-block; transform:rotate(-' + (i * 30) + 'deg)">' + i + '</span>';
+      face.appendChild(digit);
+    }
+  }
+
+  var displayDate = document.getElementById('display-date');
+  if (displayDate) {
+    var acum = new Date();
+    var optiuni = { day: 'numeric', month: 'long', year: 'numeric' };
+    displayDate.innerText = acum.toLocaleDateString('ro-RO', optiuni).toUpperCase();
+  }
+
+  setInterval(updateMecanismCeas, 1000);
+  updateMecanismCeas();
+}
+
+function updateMecanismCeas() {
+  var acum = new Date();
+  var h = acum.getHours() % 12;
+  var m = acum.getMinutes();
+  var s = acum.getSeconds();
+  document.getElementById('hr-hand').style.transform = 'translateX(-50%) rotate(' + (h * 30 + m * 0.5) + 'deg)';
+  document.getElementById('min-hand').style.transform = 'translateX(-50%) rotate(' + (m * 6) + 'deg)';
+  document.getElementById('sec-hand').style.transform = 'translateX(-50%) rotate(' + (s * 6) + 'deg)';
+}
+
+function intraInAplicatie() {
+  document.getElementById('hero-section').classList.add('exit-anim');
+  if (typeof loadData === "function") loadData();
+}
+
+// window.addEventListener('DOMContentLoaded', initLandingPage);
+
+// ============================================================
+// AUTO-REFRESH
+// ============================================================
+document.addEventListener("visibilitychange", function () {
+  if (document.visibilityState === 'visible') {
+    var sBar = document.getElementById('searchBar');
+    if (!sBar || sBar.value === "") loadData();
+  }
+});
+
+setInterval(function () {
+  var sBar = document.getElementById('searchBar');
+  if (!sBar || sBar.value === "") loadData();
+  actualizeazaSceneWidget();
+}, 120000);
+
+function actualizeazaWidgetCalendar() {
+  var d = new Date();
+  var luni = ["IAN", "FEB", "MAR", "APR", "MAI", "IUN", "IUL", "AUG", "SEP", "OCT", "NOI", "DEC"];
+  var elDay = document.getElementById('widget-day');
+  var elMonth = document.getElementById('widget-month');
+  if (elDay) elDay.innerText = d.getDate();
+  if (elMonth) elMonth.innerText = luni[d.getMonth()];
+}
+function actualizeazaSceneWidget() {
+  var scene = document.getElementById('hwc-scene');
+  if (!scene) return;
+  var h = new Date().getHours();
+  var esteZi = (h >= 7 && h < 20); // ajustează orele după preferință
+  scene.classList.toggle('day', esteZi);
+  scene.classList.toggle('night', !esteZi);
+}
+function generateYearBarChartSVG(vals) {
+  var maxVal = Math.max.apply(null, vals) || 1;
+  var w = 320, h = 90, barGap = 4;
+  var barW = (w / vals.length) - barGap;
+  var luniShort = ["I","F","M","A","M","I","I","A","S","O","N","D"];
+  var lunaCurenta = new Date().getMonth();
+  var bars = '', labels = '', puncte = [];
+
+  vals.forEach(function (v, i) {
+    var barH = maxVal > 0 ? (v / maxVal) * (h - 20) : 0;
+    var x = i * (barW + barGap);
+    var y = h - barH - 14;
+    var culoare = (i === lunaCurenta) ? '#4338ca' : '#c7d2fe';
+
+    bars += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.max(barH,2).toFixed(1) + '" rx="3" fill="' + culoare + '"/>';
+    labels += '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (h - 2) + '" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle">' + luniShort[i] + '</text>';
+
+    // punctul liniei de trend = centrul fiecărei bare, la vârful ei
+    var cx = x + barW / 2;
+    var cy = y;
+    puncte.push(cx.toFixed(1) + ',' + cy.toFixed(1));
+  });
+
+  var pointsStr = puncte.join(' ');
+
+  // cerculețe pe fiecare punct al liniei
+  var cercuri = puncte.map(function (p) {
+    var coords = p.split(',');
+    return '<circle cx="' + coords[0] + '" cy="' + coords[1] + '" r="2.2" fill="#0f766e"/>';
+  }).join('');
+
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%; height:90px; display:block;">' +
+    bars +
+    '<polyline points="' + pointsStr + '" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+    cercuri +
+    labels +
+  '</svg>';
+}
+
+function updateHomeYearStats(anSelectat) {
+  var oreAn = 0, incasariAn = 0;
+  var perLuna = new Array(12).fill(0);
+
+  globalData.forEach(function (r) {
+    var d = new Date(convertLaISO(r[1]));
+    if (isNaN(d) || d.getFullYear() != anSelectat) return;
+
+    var h = parseFloat(r[5]) || 0;
+    var km = parseFloat(r[6]) || 0;
+    var tH = parseFloat(r[9]) || 30;
+    var tK = parseFloat(r[10]) || 0.45;
+    var cashVal = String(r[8]).toLowerCase().trim();
+    var esteCash = (cashVal === "true" || cashVal === "adevărat" || cashVal === "adevarat");
+    var suma = esteCash ? 0 : (h * tH + km * tK);
+
+    oreAn += h;
+    incasariAn += suma;
+    perLuna[d.getMonth()] += h; // schimbă în "+= suma" dacă vrei bare pe încasări, nu pe ore
+  });
+
+  var oreAnEl = document.getElementById('home-ore-an');
+  if (oreAnEl) oreAnEl.innerText = formatOreMinute(oreAn);
+
+  var incasariAnEl = document.getElementById('home-incasari-an');
+  if (incasariAnEl) incasariAnEl.innerText = incasariAn.toFixed(2) + ' €';
+
+  var chartEl = document.getElementById('home-year-chart');
+  if (chartEl) chartEl.innerHTML = generateYearBarChartSVG(perLuna);
+}
+// ============================================================
+// BACKUP FUNCTION
+// ============================================================
+function execBackup() {
+  var btn = document.getElementById('fabMainBtn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
+  Swal.fire({
+    title: 'Se creează backup...',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: function() {
+      Swal.showLoading();
+    },
+    customClass: { popup: 'rounded-4' }
+  });
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+
+      if (result.success) {
+        Swal.fire({
+          icon: 'success',
+          title: result.message,
+          html: '<div style="font-size:0.85rem; color:#666;">' +
+                '<b>Fișier:</b> ' + result.fileName + '<br>' +
+                '<b>Locație:</b> Google Drive / Pontaj Backups' +
+                '</div>',
+          confirmButtonColor: 'var(--primary)',
+          confirmButtonText: 'OK',
+          customClass: { popup: 'rounded-4' }
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Eroare la Backup',
+          text: result.error,
+          confirmButtonColor: 'var(--danger)',
+          customClass: { popup: 'rounded-4' }
+        });
+      }
+    })
+    .withFailureHandler(function(err) {
+      if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+      Swal.fire({
+        icon: 'error',
+        title: 'Eroare Server',
+        text: err.toString(),
+        customClass: { popup: 'rounded-4' }
+      });
+    })
+        .creazaBackupPDF(document.getElementById('anSelector').value);
+}
+// ============================================================
+// DEDUCTIBIL
+// ============================================================
+var deduceri = [];
+
+function incarcaDeduceri() {
+  console.log('🔵 START incarcaDeduceri()');
+
+  google.script.run
+    .withSuccessHandler(function (data) {
+      console.log('✅ getDeduceriGS() a returnvat:', data);
+      console.log('✅ Tip date:', typeof data, Array.isArray(data));
+
+      deduceri = data || [];
+      console.log('✅ deduceri array acum e:', deduceri);
+      console.log('✅ deduceri.length:', deduceri.length);
+
+      renderDeduceri();
+      actualizeazaBilantuDeductibil();
+    })
+    .withFailureHandler(function(err) {
+      console.error('❌ EROARE în getDeuceriGS():', err);
+    })
+    .getDeduceriGS();
+}
+
+function toggleFormDeducere() {
+  var form = document.getElementById('form-deducere');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') {
+    document.getElementById('input-data-deducere').valueAsDate = new Date();
+  }
+}
+
+function salveazaDeducere() {
+  var desc = document.getElementById('input-desc-deducere').value.trim();
+  var suma = parseFloat(document.getElementById('input-suma-deducere').value) || 0;
+  var data = document.getElementById('input-data-deducere').value;
+
+  if (!desc) {
+    Swal.fire({ icon: 'warning', title: 'Descriere obligatorie!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+    return;
+  }
+  if (suma <= 0) {
+    Swal.fire({ icon: 'warning', title: 'Suma trebuie > 0!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+    return;
+  }
+  if (!data) {
+    Swal.fire({ icon: 'warning', title: 'Alege o dată!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+    return;
+  }
+
+  var deducere = {
+    id: Date.now(),
+    descriere: desc,
+    suma: suma,
+    data: data,
+    an: new Date(data).getFullYear()
+  };
+
+  google.script.run.withSuccessHandler(function () {
+    // ✅ NU MAI ADAUGA manual, REÎNCARCĂ din getDeduceriGS()
+    console.log('✅ Deducere salvată pe server/mock');
+    incarcaDeduceri();  // ← Asta reîncarcă datele
+
+    document.getElementById('form-deducere').style.display = 'none';
+    document.getElementById('input-desc-deducere').value = '';
+    document.getElementById('input-suma-deducere').value = '';
+    actualizeazaBilantuDeductibil();
+    updateHomeStats(document.getElementById('anSelector').value);
+    Swal.fire({ icon: 'success', title: 'Deducere salvată!', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+  }).salveazaDeducereGS(deducere);
+}
+
+function stergeDeducere(id) {
+  Swal.fire({
+    title: 'Ștergi deducerea?', icon: 'warning', showCancelButton: true,
+    confirmButtonColor: 'var(--danger)', confirmButtonText: 'Da, șterge!', cancelButtonText: 'Anulează'
+  }).then(function (result) {
+    if (result.isConfirmed) {
+      google.script.run.withSuccessHandler(function () {
+        deduceri = deduceri.filter(function (d) { return d.id !== id; });
+        renderDeduceri();
+        actualizeazaBilantuDeductibil();
+        updateHomeStats(document.getElementById('anSelector').value);
+      }).stergeDeducereGS(id);
+    }
+  });
+}
+
+function renderDeduceri() {
+  var container = document.getElementById('lista-deduceri');
+  console.log('📋 renderDeduceri() apelat. Container:', container);
+  console.log('📋 Deduceri:', deduceri);
+
+  var an = document.getElementById('anSelector').value;
+  console.log('📋 An selectat:', an);
+
+  var deduceriFiltrate = deduceri.filter(function (d) {
+    return d.an == an;
+  });
+  console.log('📋 Deduceri filtrate:', deduceriFiltrate);
+
+  if (deduceriFiltrate.length === 0) {
+    console.log('❌ GOLI - setez mesaj gol');
+    container.innerHTML = emptyStateHTML('bi-percent', 'Nicio deducere adăugată', 'Adaugă cheltuielile deductibile ca să vezi venitul net.'); // NOU
+    actualizeazaBilantuDeductibil();
+    return;
+  }
+
+  var totalDeduceri = 0;
+  var html = '';
+
+  deduceriFiltrate.forEach(function (d) {
+    console.log('🔹 Procesez deducere:', d);
+    totalDeduceri += d.suma;
+    var data = new Date(d.data);
+    var dataFormat = data.toLocaleDateString('ro-RO');
+
+    html += '<div class="pro-card" style="margin-bottom:16px; border-left: 3px solid var(--danger);">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+        '<div>' +
+          '<div class="card-title" style="font-size:1rem;">' + d.descriere + '</div>' +
+          '<div class="text-muted small">' + dataFormat + '</div>' +
+        '</div>' +
+        '<button onclick="stergeDeducere(' + d.id + ')" aria-label="Șterge deducerea" style="background:none;border:none;color:var(--danger);font-size:1.05rem;cursor:pointer;padding:0 4px;"><i class="bi bi-trash3-fill"></i></button>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--line-soft);">' +
+        '<span style="font-size:0.85rem;color:var(--text-muted);font-weight:600;">Suma de dedus</span>' +
+        '<span style="font-size:1.1rem;font-weight:700;color:var(--danger);">' + d.suma.toFixed(2) + ' €</span>' +
+      '</div>' +
+    '</div>';
+  });
+
+  console.log('✅ HTML generat:', html);
+  console.log('✅ Container innerHTML set la:', html.length, 'caractere');
+
+  container.innerHTML = html;
+  actualizeazaBilantuDeductibil();
+}
+
+function actualizeazaBilantuDeductibil() {
+  var an = document.getElementById('anSelector').value;
+  var deduceriFiltrate = deduceri.filter(function (d) { return d.an == an; });
+  var totalDeduceri = deduceriFiltrate.reduce(function (sum, d) { return sum + d.suma; }, 0);
+
+  // Calculez totalul facturat din Sheet2
+  var totalFacturat = 0;
+  Object.keys(globalStats).forEach(function (w) {
+    var s = globalStats[w];
+    totalFacturat += s.suma || 0;
+  });
+
+  var elFacturat = document.getElementById('deduct-total-facturat');
+  var elDeduceri = document.getElementById('deduct-total-deduceri');
+  var elNetFacturat = document.getElementById('deduct-net-facturat');
+  var elNetFinal = document.getElementById('deduct-net-final');
+
+  if (elFacturat) elFacturat.innerText = totalFacturat.toFixed(2) + ' €';
+  if (elDeduceri) elDeduceri.innerText = totalDeduceri.toFixed(2) + ' €';
+  if (elNetFacturat) elNetFacturat.innerText = totalFacturat.toFixed(2) + ' €';
+  if (elNetFinal) elNetFinal.innerText = Math.max(0, totalFacturat - totalDeduceri).toFixed(2) + ' €';
+
+  // Update Home
+  var elHomeFacturat = document.getElementById('home-facturat-an');
+  var elHomeDeduceri = document.getElementById('home-deduceri-an');
+  var elHomeNet = document.getElementById('home-net-final');
+  if (elHomeFacturat) elHomeFacturat.innerText = totalFacturat.toFixed(2) + ' €';
+  if (elHomeDeduceri) elHomeDeduceri.innerText = totalDeduceri.toFixed(2) + ' €';
+  if (elHomeNet) elHomeNet.innerText = Math.max(0, totalFacturat - totalDeduceri).toFixed(2) + ' €';
+}
+
+</script>
+</body>
+</html>
