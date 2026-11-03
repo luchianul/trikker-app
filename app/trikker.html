@@ -1289,7 +1289,8 @@ function generate() {
   const grp = {}, edges = {};
   ALLP().forEach(i => { if (i.t === 'sym' && CAT[i.k]) { const id = (i.id || '?').trim() || '?'; const g = grp[id] = grp[id] || { l:0, f:0, m:0, w:0, s:0, dev:[] }; g[CAT[i.k]] += qtyOf(i); g.dev.push(i); } });
   ALLP().forEach(l => { if (l.t === 'link') { (edges[l.from] = edges[l.from] || []).push(l.to); (edges[l.to] = edges[l.to] || []).push(l.from); } });
-  const ids = Object.keys(grp).sort();
+  Object.keys(circCfg).forEach(k => { if (circCfg[k] && circCfg[k].spare && !grp[k]) grp[k] = { l:0, f:0, m:0, w:0, s:0, dev:[], spare:true }; });   // rezerve (disjunctoare libere)
+  const ids = Object.keys(grp).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0));   // A…Z, AA, AB… (nu AA înaintea lui B)
   if (!ids.length) { alert('Pune întâi prize, lămpi sau întrerupătoare în planul casei (pagina 2, oricare nivel).'); return; }
   if (grp['?'] && !confirm(grp['?'].dev.length + ' simboluri nu au circuit (apar ca „?”). Folosește 🔗 Leagă / Circuit ca să le dai un circuit. Continui oricum?')) return;
   if (pages[1].length && !pages[1].some(i => i.gk) && !confirm('Pagina 1 conține un desen făcut manual. Unifilarul generat se adaugă peste el. Continui?')) return;
@@ -1323,7 +1324,8 @@ function generate() {
      const ext = Math.max(60, ...rows.map(r => { const l = lay(r).pop(); return l.px + l.w + 16; }));
     const sp = Math.max(30, Math.min(58, (y0 - 40) / Math.max(rows.length - 1, 1)));
 items.push({ t:'sym', k:'u_mcb', x:cx, y:Bc, a:0, L:ML, to:20, tp:26, id, gk:id+'|mcb', txt: cfg.app ? cfg.app.replace(/\s*\+\s*/g, '|') : '3kA|' + (sock ? '2P - C 16A' : '2P - C 10A') + '|LEGRAND' });
-    items.push({ t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:y0, txt: cfg.cab || (sock ? 'VOB 3G2,5' : 'VOB 3G1,5'), pl: cfg.pl || '', side:'r', gk:id+'|w' });
+    if (!rows.length) items.push({ t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:Bc-ML-22, gk:id+'|w' });          // rezervă: doar disjunctorul, liber
+    else items.push({ t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:y0, txt: cfg.cab || (sock ? 'VOB 3G2,5' : 'VOB 3G1,5'), pl: cfg.pl || '', side:'r', gk:id+'|w' });
     if (rows.length > 1) items.push({ t:'line', k:'u_wire', x1:cx, y1:y0, x2:cx, y2:y0 - (rows.length-1)*sp, gk:id+'|w2' });
     rows.forEach((r, i) => {
       const y = y0 - i*sp, L = lay(r), last = L[L.length-1], lastIsSock = CAT[last.d.k] === 's' || AL.has(last.k), wend = lastIsSock || last.k === 'lp_x' || last.k === 'u_x' || CAT[last.d.k] === 'l' ? (last.nq > 1 ? (last.nq - 1) * imgPitch(last.k) : 0) : (/^(sw_|e_sw)/.test(last.k) ? 8 : last.w);
@@ -1339,7 +1341,7 @@ items.push({ t:'sym', k:'u_mcb', x:cx, y:Bc, a:0, L:ML, to:20, tp:26, id, gk:id+
     if (g.f) L.push(g.f + ' ventilat.');
     if (g.m) L.push(g.m + ' aparat/motor');
     if (g.w) L.push(g.w + ' într.');
-    sum.push((o.gn ? o.gn + '/' : '') + id + ': ' + L.join(', ') + ' pe ' + rows.length + (rows.length === 1 ? ' rând' : ' rânduri'));
+    sum.push((o.gn ? o.gn + '/' : '') + id + ': ' + (rows.length ? L.join(', ') + ' pe ' + rows.length + (rows.length === 1 ? ' rând' : ' rânduri') : 'rezervă'));
     cx += ext + 50;
     if (!o.gn) occ.push([c0 - 45, c0 + ext + 15]);
     if (o.gn) { gbus.x2 = cx - 20; if (o.last) { cx += 30; occ.push([gstart - 45, gbus.x2 + 15]); } }
@@ -2167,7 +2169,8 @@ function trikFromData(d, name) {
   const grp = {}, edges = {}, where = {};
   pls.forEach((p, pi) => (p.items || []).forEach(i => { where[i.uid] = pi; if (i.t === 'sym' && CAT[i.k]) { const id = (i.id || '?').trim() || '?'; (grp[id] = grp[id] || []).push(i); } }));
   pls.forEach(p => (p.items || []).forEach(l => { if (l.t === 'link') { (edges[l.from] = edges[l.from] || []).push(l.to); (edges[l.to] = edges[l.to] || []).push(l.from); } }));
-  const ids = Object.keys(grp).sort();
+  Object.keys(cc).forEach(k => { if (cc[k] && cc[k].spare && !grp[k]) grp[k] = []; });
+  const ids = Object.keys(grp).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0));
   const reg = (it, tag) => { const id = guid(); if (it.uid !== undefined) nodeOf[it.uid] = { id, tag }; return id; };
   const place = (it, id) => { const pi = where[it.uid], pg = pages[pi]; if (!pg) return;
     const wm = WALLMOUNT[it.k], a = it.a || 0; let X = tx(it.x), Y = ty(it.y), r = a;
@@ -2210,7 +2213,7 @@ function trikFromData(d, name) {
     const lead = tag('Leiding', ' Id="' + guid() + '"' + (cty ? ' GeleiderType="' + cty + '"' + (cty === 'XVB' ? ' Brandklasse="Cca"' : '') : '') + ' GeleiderDoorsnede="' + (cb ? cb[2].replace('.', ',') : '2,5') + '" AantalGeleiders="' + (cb ? cb[1] : '3') + '"' + (cfg.pl === 'incastrat' ? ' Plaatsing="InWand"' : ''), kids);
     rep.circuits++; if (id === '?') rep.noCirc = dev.length;
     const parts = String(cfg.app || '').split(/\s*\|\s*/), brandT = (parts[2] || '').trim(), vier = /\b4P\b/.test(String(cfg.app || ''));
-    return tag('AutomatischeSchakelaar', ' Id="' + guid() + '" StartSubkring="Automatisch"' + (vier ? ' AantalPolen="Vierpolig"' : '') + ' Kortsluitstroom="' + a.ka + '" NominaleStroomsterkte="' + a.A + '"' + (brandT ? ' Adres="' + esc(brandT) + '"' : '') + ' Uitschakelcurve="' + a.cv + '"', [lead], 14);
+    return tag('AutomatischeSchakelaar', ' Id="' + guid() + '" StartSubkring="Automatisch"' + (vier ? ' AantalPolen="Vierpolig"' : '') + ' Kortsluitstroom="' + a.ka + '" NominaleStroomsterkte="' + a.A + '"' + (brandT ? ' Adres="' + esc(brandT) + '"' : '') + ' Uitschakelcurve="' + a.cv + '"', (dev.length ? [lead] : []), 14);
   };
   const grpOf = id => ((cc[id] || {}).grp || '').trim();
   const board = [];
@@ -2280,6 +2283,7 @@ function trikToData(txt) {
     if (t === 'AutomatischeSchakelaar') {
       const ma = c.getAttribute('VerliesStroomsterkte'), hasL = kidsOf(c).some(x => x.nodeName === 'Leiding');
       if (hasL) circuit(c, grp);
+      else if (!ma && kidsOf(c).every(x => x.nodeName === 'Nota')) { circuit(c, grp); cc[letter(nC - 1)].spare = true; rep.spares = (rep.spares || 0) + 1; }      // rezervă: disjunctor fără nimic pe el
       else if (ma && num(ma) <= 30 && seenBoard) { const g = 'D' + (++nG); gc[g] = { app:'2P - ' + (c.getAttribute('NominaleStroomsterkte') || '40') + 'A|Δ' + ma + 'mA - tip A|LEGRAND' }; rep.groups++; walk(c, g); }
       else { if (ma) so.diff = true; else if (!seenBoard) so.brk = true; walk(c, grp); }
     } else if (t === 'Teller') { so.meter = true; walk(c, grp); }
@@ -2703,7 +2707,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:19)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:21)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2753,7 +2757,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:19';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:21';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
