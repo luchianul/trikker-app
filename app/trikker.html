@@ -1142,7 +1142,7 @@ function dlgStart(cb) {
 }
 function cfgStart() {
   dlgStart(n => {
-    startOpts = n;
+    n.t = startOpts.t; startOpts = n;
     pages[1] = pages[1].filter(i => !(i.gk && i.gk.startsWith('pre_')));
     pages.del = (pages.del || []).filter(g => !g.startsWith('pre_'));
     if (pages[1].some(i => i.gk)) generate(); else { save(); document.getElementById('help').textContent = 'Setările branșamentului sunt salvate; se aplică la ⚡ Generează unifilar.'; }
@@ -1342,7 +1342,7 @@ function generate() {
      const ext = Math.max(60, ...rows.map((r, i) => { const l = lay(r).pop(); return l.px + l.w + 16 + (lblRows[i] ? lblRows[i].length * 6.5 + 12 : 0); }));
     const sp = Math.max(30, Math.min(58, (y0 - 40) / Math.max(rows.length - 1, 1)));
 items.push({ t:'sym', k:'u_mcb', x:cx, y:Bc, a:0, L:ML, to:20, tp:26, id, gk:id+'|mcb', txt: cfg.app ? cfg.app.replace(/\s*\+\s*/g, '|') : '3kA|' + (sock ? '2P - C 16A' : '2P - C 10A') + '|LEGRAND' });
-    if (!rows.length) items.push({ t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:Bc-ML-22, gk:id+'|w' });          // rezervă: doar disjunctorul, liber
+    if (!rows.length) items.push(cfg.feeder ? { t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:Bc-ML-110, txt:cfg.cab || '', pl:cfg.pl || '', side:'r', gk:id+'|w' } : { t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:Bc-ML-22, gk:id+'|w' });          // rezervă: doar disjunctorul, liber; alimentare subtablou: cablul cu nume
     else items.push({ t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:y0, txt: cfg.cab || (sock ? 'VOB 3G2,5' : 'VOB 3G1,5'), pl: cfg.pl || '', side:'r', gk:id+'|w' });
     if (rows.length > 1) items.push({ t:'line', k:'u_wire', x1:cx, y1:y0, x2:cx, y2:y0 - (rows.length-1)*sp, gk:id+'|w2' });
     rows.forEach((r, i) => {
@@ -1499,17 +1499,17 @@ function presetItems(x, y, o) {
   const parts = ['brk','meter','sect','diff'].filter(k => o[k]);
   let prev = null;
   parts.forEach((p, idx) => {
-    wire(idx === 0 || prev === 'meter' ? 100 : prev === 'sect' ? 80 : 70, idx === 0 || prev === 'meter' ? 'EXVB 4x16' : '');
-    if (p === 'brk') dev('brk', 'u_mcb', '4P - 25A');
-    else if (p === 'meter') { add('meter', { t:'sym', k:'u_meter', x:cx+20, y, a:0, txt:'NR. xxxxxxxxxx' }); cx += 40; }
+    wire(idx === 0 || prev === 'meter' ? 100 : prev === 'sect' ? 80 : 70, idx === 0 ? ((o.t && o.t.cab) || 'EXVB 4x16') : prev === 'meter' ? ((o.t && (o.t.cab2 || o.t.cab)) || 'EXVB 4x16') : '');
+    if (p === 'brk') dev('brk', 'u_mcb', (o.t && o.t.brk) || '4P - 25A');
+    else if (p === 'meter') { add('meter', { t:'sym', k:'u_meter', x:cx+20, y, a:0, txt:(o.t && o.t.meter) || 'NR. xxxxxxxxxx' }); cx += 40; }
     else if (p === 'sect') dev('sect', 'u_sect', '4P - 40A|Separator');
-    else dev('diff', 'u_diff_g', '4P - C 40A|Δ300mA - 10kA|LEGRAND');
+    else dev('diff', 'u_diff_g', (o.t && o.t.diff) || '4P - C 40A|Δ300mA - 10kA|LEGRAND');
     prev = p;
   });
   wire(20);
   add('riser', { t:'line', k:'u_wire', x1:cx, y1:y, x2:cx, y2:y-40 });
   add('bus', { t:'line', k:'u_bus', x1:x, y1:y-40, x2:cx+300, y2:y-40 });
-  add('ground', { t:'sym', k:'u_ground', x:x+60, y:y-40, a:0, txt:'??Ω|' + today() });
+  add('ground', { t:'sym', k:'u_ground', x:x+60, y:y-40, a:0, txt:(o.t && o.t.ground) || '??Ω|' + today() });
   return it;
 }
 // Simbolurile care se montează pe perete: [jumătate din lățime, distanța față de axa peretelui]
@@ -1633,7 +1633,7 @@ function onDown(e) {
   if (k === 'line' && md === 'wall' && currentPage === 2) { wallDown(e); return; }
   if (k === 'room') { wallDown(e); return; }
   if (k === 'line') { start = p; cv.setPointerCapture(e.pointerId); }
-  else if (md === 'u_start') { const L = pages[currentPage]; dlgStart(n => { startOpts = n; L.push(...presetItems(p.x, p.y, n)); redraw(); save(); }); }
+  else if (md === 'u_start') { const L = pages[currentPage]; dlgStart(n => { n.t = startOpts.t; startOpts = n; L.push(...presetItems(p.x, p.y, n)); redraw(); save(); }); }
   else if (k === 'edit') {
     const i = hit(p); if (i < 0) return; const it = pages[currentPage][i];
     if (it.t === 'link') return;
@@ -2232,7 +2232,7 @@ function trikFromData(d, name) {
     });
     const a = parseA(cfg.app, sock ? 16 : 10, 'C'), cb = /(\d+)\s*G\s*(\d+(?:[.,]\d+)?)/.exec(cfg.cab || (sock ? 'VOB 3G2,5' : 'VOB 3G1,5'));
     const ct = /^\s*(VOB|XVB|EXVB|XGB)\b/i.exec(cfg.cab || (sock ? 'VOB 3G2,5' : 'VOB 3G1,5')), cty = ct ? ct[1].toUpperCase() : '';
-    const lead = tag('Leiding', ' Id="' + guid() + '"' + (cty ? ' GeleiderType="' + cty + '"' + (cty === 'XVB' ? ' Brandklasse="Cca"' : '') : '') + ' GeleiderDoorsnede="' + (cb ? cb[2].replace('.', ',') : '2,5') + '" AantalGeleiders="' + (cb ? cb[1] : '3') + '"' + (cfg.pl === 'incastrat' ? ' Plaatsing="InWand"' : ''), kids);
+    const lead = tag('Leiding', ' Id="' + guid() + '"' + (cty ? ' GeleiderType="' + cty + '"' + (cty === 'XVB' ? ' Brandklasse="Cca"' : '') : '') + ' GeleiderDoorsnede="' + (cb ? cb[2].replace('.', ',') : '2,5') + '" AantalGeleiders="' + (cb ? cb[1] : '3') + '"' + (cfg.pl === 'incastrat' ? ' Plaatsing="InWand"' : cfg.pl === 'perete' ? ' Plaatsing="OpWand"' : ''), kids);
     rep.circuits++; if (id === '?') rep.noCirc = dev.length;
     const parts = String(cfg.app || '').split(/\s*\|\s*/), brandT = (parts[2] || '').trim(), vier = /\b4P\b/.test(String(cfg.app || ''));
     return tag('AutomatischeSchakelaar', ' Id="' + guid() + '" StartSubkring="Automatisch"' + (vier ? ' AantalPolen="Vierpolig"' : '') + ' Kortsluitstroom="' + a.ka + '" NominaleStroomsterkte="' + a.A + '"' + (brandT ? ' Adres="' + esc(brandT) + '"' : '') + ' Uitschakelcurve="' + a.cv + '"', (dev.length ? [lead] : []), 14);
@@ -2246,10 +2246,14 @@ function trikFromData(d, name) {
   });
   board.push(tag('Aardingsstrip', ' Id="' + guid() + '"', ['<Aarding Id="' + guid() + '" />']));
   let chain = tag('Verdeelbord', ' Id="' + guid() + '"', board);
-  if (so.diff) chain = tag('AutomatischeSchakelaar', ' Id="' + guid() + '" StartSubkring="Automatisch" VerliesStroomsterkte="300" Kortsluitstroom="3000" VerliesstroomschakelaarType="Type A" NominaleStroomsterkte="40"', [chain], 20);
+  const T = so.t || {}, POLE = { 3:' AantalPolen="Driepolig"', 4:' AantalPolen="Vierpolig"' }, brandX = t => (t && t.trim()) ? ' Adres="' + esc(t.trim()) + '"' : '';
+  const dl = String(T.diff || '').split(/\s*\|\s*/), dMa = (/Δ\s*(\d+)\s*mA/.exec(dl[0] || '') || [])[1] || '300', dTy = (/(Type\s*[A-Z])/i.exec(dl[0] || '') || [])[1] || 'Type A', dA = (/(\d+)\s*A/.exec(dl[1] || '') || [])[1] || '40', dP = (/(\d)P/.exec(dl[1] || '') || [])[1];
+  if (so.diff) chain = tag('AutomatischeSchakelaar', ' Id="' + guid() + '" StartSubkring="Automatisch" VerliesStroomsterkte="' + dMa + '"' + (POLE[dP] || '') + ' Kortsluitstroom="3000" VerliesstroomschakelaarType="' + esc(dTy) + '" NominaleStroomsterkte="' + dA + '"' + brandX(dl[2]), [chain], 20);
   if (so.meter) chain = tag('Teller', ' Id="' + guid() + '"', [chain]);
-  if (so.brk) chain = tag('AutomatischeSchakelaar', ' Id="' + guid() + '" StartSubkring="Automatisch" Kortsluitstroom="6000" NominaleStroomsterkte="25"', [chain], 14);
-  chain = tag('Leiding', ' Id="' + guid() + '" GeleiderType="EXVB" GeleiderDoorsnede="16" AantalGeleiders="4" Beschermingsgeleider="Nee" Plaatsing="Ondergronds"', [chain]);
+  const bl = String(T.brk || '').split(/\s*\|\s*/), bA = (/(\d+)\s*A/.exec(bl[0] || '') || [])[1] || '25', bP = (/(\d)P/.exec(bl[0] || '') || [])[1];
+  if (so.brk) chain = tag('AutomatischeSchakelaar', ' Id="' + guid() + '" StartSubkring="Automatisch"' + (POLE[bP] || '') + ' Kortsluitstroom="6000" NominaleStroomsterkte="' + bA + '"' + brandX(bl[1]), [chain], 14);
+  const cm = /^\s*([A-Za-z]+)\s+(\d+)\s*([xG])\s*(\d+(?:[.,]\d+)?)/.exec(T.cab || ''), cabA = cm ? ' GeleiderType="' + cm[1].toUpperCase() + '" GeleiderDoorsnede="' + cm[4].replace('.', ',') + '" AantalGeleiders="' + cm[2] + '"' + (cm[3].toLowerCase() === 'x' ? ' Beschermingsgeleider="Nee"' : '') : ' GeleiderType="EXVB" GeleiderDoorsnede="16" AantalGeleiders="4" Beschermingsgeleider="Nee"';
+  chain = tag('Leiding', ' Id="' + guid() + '"' + cabA + ' Plaatsing="Ondergronds"', [chain]);
   // ---- texte de pe plan -> Nota ----
   const notes = [];
   pls.forEach((p, pi) => (p.items || []).forEach(it => { if (it.t === 'text' && String(it.txt || '').trim()) { const id = guid(), t = String(it.txt).replace(/\s+/g, ' ').trim();
@@ -2286,38 +2290,53 @@ function trikToData(txt) {
   // ---- arborele electric: circuite, grupuri 30 mA, lanțuri de aparate ----
   const root = doc.getElementsByTagName('RootNodes')[0], byId = {}, circOf = {}, devParent = {}, cc = {}, gc = {}, so = { brk:false, meter:false, sect:false, diff:false };
   [...(root ? root.getElementsByTagName('*') : [])].forEach(e => { if (e.getAttribute('Id')) byId[e.getAttribute('Id')] = e; });
-  let nC = 0, nG = 0, seenBoard = false;
+  let nAuto = 0, nG = 0, seenBoard = false;
   const letter = n => { let s = ''; n++; while (n > 0) { s = String.fromCharCode(65 + (n - 1) % 26) + s; n = Math.floor((n - 1) / 26); } return s; };
+  const fixed = new Set([...(root ? root.getElementsByTagName('AutomatischeSchakelaar') : [])].map(e => (e.getAttribute('VasteLetter') || '').trim()).filter(Boolean));     // litere fixate în Trikker (J, K, L…)
+  const autoLetter = () => { let l; do { l = letter(nAuto++); } while (fixed.has(l) || cc[l]); return l; };
   const DEV = ['Schakelaar', 'Lichtpunt', 'Toestel', 'Drukknop', 'Bewegingsdetector'];
   const noteOf = {}, DEVLBL = ['Schakelaar', 'Lichtpunt', 'Toestel', 'Drukknop', 'Bewegingsdetector', 'Contactdoos'];
-  const mark = (el, id, pd) => kidsOf(el).forEach(c => { if (c.nodeName === 'Nota' && DEVLBL.includes(el.nodeName) && (c.getAttribute('Tekst') || '').trim()) noteOf[el.getAttribute('Id')] = c.getAttribute('Tekst').trim(); const cid = c.getAttribute('Id'); if (cid) circOf[cid] = id; const isDev = DEV.includes(c.nodeName); if (isDev && pd) devParent[cid] = pd; mark(c, id, isDev ? cid : pd); });
-  const circuit = (br, grp) => {
-    const L = kidsOf(br).filter(x => x.nodeName === 'Leiding'), L0 = L[0], id = letter(nC++), A = br.getAttribute('NominaleStroomsterkte') || '16', ma = br.getAttribute('VerliesStroomsterkte');
-    const kr = String(br.getAttribute('Kortsluitstroom') || ''), ka = /kA/i.test(kr) ? num(kr) : (num(kr) >= 100 ? num(kr) / 1000 : num(kr)) || 3;      // „3kA” sau „3000”
-    const brand = String(br.getAttribute('Adres') || '').replace(/\s+\d+\s*A\s*$/i, '').replace(/\s+/g, ' ').trim() || 'LEGRAND', poles = br.getAttribute('AantalPolen') === 'Vierpolig' ? '4P' : '2P';
-    const sec = String((L0 && L0.getAttribute('GeleiderDoorsnede')) || '1,5').replace('.', ','), n = (L0 && L0.getAttribute('AantalGeleiders')) || '3', ty = (L0 && L0.getAttribute('GeleiderType')) || 'VOB', plc = (L0 && L0.getAttribute('Plaatsing')) || '';
-    circCfg_[id] = { cab: ty + ' ' + n + 'G' + sec, pl: plc === 'InWand' ? 'incastrat' : plc === 'Ondergronds' ? 'subteran' : '', app: ma ? poles + ' - ' + A + 'A|Δ' + ma + 'mA - tip A|' + brand : ka + 'kA|' + poles + ' - ' + (br.getAttribute('Uitschakelcurve') || 'C') + ' ' + A + 'A|' + brand };
-    if (grp) circCfg_[id].grp = grp;
-    L.forEach(l => { circOf[l.getAttribute('Id')] = id; mark(l, id, null); }); rep.circuits++;
+  const notesOf = e => { const sat = [...e.children].find(x => x.nodeName === 'Satellites'); return [...kidsOf(e), ...(sat ? [...sat.children] : [])].filter(x => x.nodeName === 'Nota').map(x => (x.getAttribute('Tekst') || '').replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean); };   // texte lipite de un element (copii sau „satelit”)
+  const mark = (el, id, pd) => kidsOf(el).forEach(c => { if (DEVLBL.includes(c.nodeName)) { const t = notesOf(c).join(' '); if (t) noteOf[c.getAttribute('Id')] = t; } const cid = c.getAttribute('Id'); if (cid) circOf[cid] = id; const isDev = DEV.includes(c.nodeName); if (isDev && pd) devParent[cid] = pd; mark(c, id, isDev ? cid : pd); });
+  const cabOf = L => { if (!L) return ''; const n = L.getAttribute('AantalGeleiders') || '3', sec = String(L.getAttribute('GeleiderDoorsnede') || '1,5').replace('.', ','), ty = L.getAttribute('GeleiderType') || 'VOB'; return ty + ' ' + n + (L.getAttribute('Beschermingsgeleider') === 'Nee' ? 'x' : 'G') + sec; };
+  const placeOf = L => { const p = L ? (L.getAttribute('Plaatsing') || '') : ''; return p === 'InWand' ? 'incastrat' : p === 'Ondergronds' ? 'subteran' : p === 'OpWand' ? 'perete' : ''; };
+  const polesOf = br => ({ Vierpolig:'4P', Driepolig:'3P', Tweepolig:'2P' }[br.getAttribute('AantalPolen')] || '2P');
+  const brandOf = br => String(br.getAttribute('Adres') || '').replace(/\s+\d+\s*A\s*$/i, '').replace(/\s+/g, ' ').trim() || 'LEGRAND';
+  const tipOf = br => String(br.getAttribute('VerliesstroomschakelaarType') || 'Type A').replace(/^Type/i, 'tip');
+  const kaOf = br => { const kr = String(br.getAttribute('Kortsluitstroom') || ''); return /kA/i.test(kr) ? num(kr) : (num(kr) >= 100 ? num(kr) / 1000 : num(kr)) || 3; };      // „3kA” sau „3000”
+  const lblOf = e => notesOf(e).join(' ');
+  so.t = {};
+  const circuit = (br, grp, feeder) => {
+    const L = kidsOf(br).filter(x => x.nodeName === 'Leiding'), L0 = L[0], vl = (br.getAttribute('VasteLetter') || '').trim();
+    const id = (vl && /^[A-Z]{1,3}\d*$/.test(vl) && !cc[vl]) ? vl : autoLetter(), A = br.getAttribute('NominaleStroomsterkte') || '16', ma = br.getAttribute('VerliesStroomsterkte');
+    const brand = brandOf(br), poles = polesOf(br), lb = L0 ? lblOf(L0) : '';
+    cc[id] = { cab: (cabOf(L0) + (feeder && lb ? ' ' + lb : '')).trim(), pl: placeOf(L0), app: ma ? poles + ' - ' + A + 'A|Δ' + ma + 'mA - ' + tipOf(br) + '|' + brand : kaOf(br) + 'kA|' + poles + ' - ' + (br.getAttribute('Uitschakelcurve') || 'C') + ' ' + A + 'A|' + brand };
+    if (grp) cc[id].grp = grp;
+    if (feeder) { cc[id].spare = true; cc[id].feeder = true; rep.feeders = (rep.feeders || 0) + 1; }
+    else L.forEach(l => { circOf[l.getAttribute('Id')] = id; mark(l, id, null); });
+    rep.circuits++; return id;
   };
-  const circCfg_ = cc;
   const walk = (el, grp) => kidsOf(el).forEach(c => {
     const t = c.nodeName;
     if (t === 'AutomatischeSchakelaar') {
-      const ma = c.getAttribute('VerliesStroomsterkte'), hasL = kidsOf(c).some(x => x.nodeName === 'Leiding');
-      if (hasL) circuit(c, grp);
-      else if (!ma && kidsOf(c).every(x => x.nodeName === 'Nota')) { circuit(c, grp); cc[letter(nC - 1)].spare = true; rep.spares = (rep.spares || 0) + 1; }      // rezervă: disjunctor fără nimic pe el
-      else if (ma && num(ma) <= 30 && seenBoard) { const g = 'D' + (++nG); gc[g] = { app:'2P - ' + (c.getAttribute('NominaleStroomsterkte') || '40') + 'A|Δ' + ma + 'mA - tip A|LEGRAND' }; rep.groups++; walk(c, g); }
-      else { if (ma) so.diff = true; else if (!seenBoard) so.brk = true; walk(c, grp); }
-    } else if (t === 'Teller') { so.meter = true; walk(c, grp); }
+      const ma = c.getAttribute('VerliesStroomsterkte'), Ls = kidsOf(c).filter(x => x.nodeName === 'Leiding'), hasL = Ls.length > 0;
+      if (hasL) { const feeder = Ls.some(l => l.getElementsByTagName('Verdeelbord').length > 0); circuit(c, grp, feeder); if (feeder) Ls.forEach(l => walk(l, grp)); }     // alimentare de subtablou: circuitele din el se caută mai departe
+      else if (!ma && kidsOf(c).every(x => x.nodeName === 'Nota')) { circuit(c, grp); cc[Object.keys(cc).pop()].spare = true; rep.spares = (rep.spares || 0) + 1; }      // rezervă: disjunctor fără nimic pe el
+      else if (ma && num(ma) <= 30 && seenBoard) { const g = 'D' + (++nG); gc[g] = { app:polesOf(c) + ' - ' + (c.getAttribute('NominaleStroomsterkte') || '40') + 'A|Δ' + ma + 'mA - ' + tipOf(c) + '|' + brandOf(c) }; rep.groups++; walk(c, g); }
+      else {
+        if (!seenBoard) { if (ma) { so.diff = true; so.t.diff = tipOf(c).replace('tip', 'Type') + ' - Δ' + ma + 'mA|' + polesOf(c) + ' - ' + (c.getAttribute('NominaleStroomsterkte') || '40') + 'A|' + brandOf(c); } else { so.brk = true; so.t.brk = polesOf(c) + ' - ' + (c.getAttribute('NominaleStroomsterkte') || '25') + 'A|' + brandOf(c); } }
+        walk(c, grp);
+      }
+    } else if (t === 'Teller') { so.meter = true; const l = lblOf(c); if (l) so.t.meter = l; walk(c, grp); }
     else if (t === 'Verdeelbord') { seenBoard = true; walk(c, grp); }
-    else if (t === 'Leiding' || t === 'StartNode') walk(c, grp);
+    else if (t === 'Aardingsstrip') { const a = c.getElementsByTagName('Nota')[0]; if (a && !so.t.ground) so.t.ground = (a.getAttribute('Tekst') || '').replace(/\s*\n\s*/g, '|').trim(); }
+    else if (t === 'Leiding' || t === 'StartNode') { if (t === 'Leiding' && !seenBoard) { if (so.t.cab === undefined) so.t.cab = cabOf(c); else if (so.meter && so.t.cab2 === undefined) so.t.cab2 = cabOf(c); } walk(c, grp); }
   });
   [...(root ? root.children : [])].forEach(sn => walk(sn, ''));
   // ---- planul: scară și poziții ----
   const pgs = [...doc.getElementsByTagName('GrondplanPage')], xs = [], ys = [];
   const pt = (e, n) => { const p = e.getElementsByTagName(n)[0]; return p ? [num(p.getAttribute('X')), num(p.getAttribute('Y'))] : null; };
-  pgs.forEach(pg => { ['Muur', 'Raam', 'Deur', 'Trap', 'Draaitrap'].forEach(tg => [...pg.getElementsByTagName(tg)].forEach(e => { [pt(e, 'P1'), pt(e, 'P2')].forEach(q => { if (q) { xs.push(q[0]); ys.push(q[1]); } }); }));
+  pgs.forEach(pg => { ['Muur', 'Raam', 'Garagepoort', 'Deur', 'Trap', 'Draaitrap'].forEach(tg => [...pg.getElementsByTagName(tg)].forEach(e => { [pt(e, 'P1'), pt(e, 'P2')].forEach(q => { if (q) { xs.push(q[0]); ys.push(q[1]); } }); }));
     [...pg.getElementsByTagName('GrondplanNode')].forEach(n => { const p = pt(n, 'Position'); if (p) { xs.push(p[0]); ys.push(p[1]); } }); });
   const mnX = xs.length ? Math.min(...xs) : 0, mxX = xs.length ? Math.max(...xs) : 0, mnY = ys.length ? Math.min(...ys) : 0, mxY = ys.length ? Math.max(...ys) : 0;
   const S = Math.max(12, (mxX - mnX) / 2400, (mxY - mnY) / 1800), px = v => Math.round((v - mnX) / S + 60), py = v => Math.round((v - mnY) / S + 60), r1 = v => Math.round(v * 10) / 10;
@@ -2325,7 +2344,7 @@ function trikToData(txt) {
   pgs.forEach((pg, pi) => {
     const items = [], wallsMm = [];
     [...pg.getElementsByTagName('Muur')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; items.push({ t:'line', k:'wall', x1:px(a[0]), y1:py(a[1]), x2:px(b[0]), y2:py(b[1]) }); wallsMm.push([a[0], a[1], b[0], b[1]]); rep.walls++; });
-    [...pg.getElementsByTagName('Raam')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; items.push({ t:'sym', k:'window', x:px(a[0]), y:py(a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), len:Math.max(10, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / S)), uid:newUid() }); rep.windows++; });
+    [...pg.getElementsByTagName('Raam'), ...pg.getElementsByTagName('Garagepoort')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; items.push({ t:'sym', k:'window', x:px(a[0]), y:py(a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), len:Math.max(10, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / S)), uid:newUid() }); rep.windows++; });
     [...pg.getElementsByTagName('Deur')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; const d = { t:'sym', k:'door', x:px(a[0]), y:py(a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), dw:Math.max(30, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / S)), uid:newUid() };
       if (/Links/.test(e.getAttribute('Type') || '')) d.fx = true; if (e.getAttribute('Gespiegeld') === 'Ja') d.fy = true; items.push(d); rep.doors++; });
     [...pg.getElementsByTagName('Trap')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; const L = Math.hypot(b[0] - a[0], b[1] - a[1]) / S;
@@ -2732,7 +2751,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:38)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:44)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2782,7 +2801,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:38';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:44';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
