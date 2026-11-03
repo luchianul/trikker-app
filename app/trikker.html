@@ -1402,21 +1402,37 @@ if (NATIVE && Capacitor.Plugins && Capacitor.Plugins.PrintPlugin) window.print =
 const APP_BUILD = 0;   // înlocuit automat de GitHub la construire (numărul versiunii instalate)
 const UPD_REPO = 'luchianul/trikker-app';
 function openExternalUrl(url) { if (NATIVE && Capacitor.Plugins && Capacitor.Plugins.Browser) Capacitor.Plugins.Browser.open({ url }); else window.open(url, '_blank'); }
-function showUpdate(n, url) {
+function showUpdateBox(title, msg, yesText, onYes, noText) {
   if (document.getElementById('updbox')) return;
   const d = document.createElement('div'); d.id = 'updbox';
   d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center';
   d.innerHTML = '<div style="background:#fff;border-radius:14px;padding:22px 24px;max-width:380px;width:90%;font-family:Arial,sans-serif;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.3)">' +
-    '<div style="font-size:19px;font-weight:bold;margin-bottom:8px">Versiune nouă disponibilă</div>' +
-    '<div style="font-size:14px;color:#555;margin-bottom:18px;line-height:1.5">Ai versiunea ' + APP_BUILD + ', a apărut versiunea ' + n + '.<br>Vrei să actualizezi acum?<br><small>Proiectele tale rămân. După ce se descarcă fișierul, deschide-l și apasă „Instalează”.</small></div>' +
-    '<button id="updyes" style="background:#2e86de;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-size:16px;margin:4px">Da, actualizează</button>' +
-    '<button id="updno" style="background:#e5e7eb;color:#333;border:0;border-radius:10px;padding:12px 20px;font-size:16px;margin:4px">Mai târziu</button></div>';
+    '<div style="font-size:19px;font-weight:bold;margin-bottom:8px">' + title + '</div>' +
+    '<div style="font-size:14px;color:#555;margin-bottom:18px;line-height:1.5">' + msg + '</div>' +
+    '<button id="updyes" style="background:#2e86de;color:#fff;border:0;border-radius:10px;padding:12px 20px;font-size:16px;margin:4px">' + yesText + '</button>' +
+    '<button id="updno" style="background:#e5e7eb;color:#333;border:0;border-radius:10px;padding:12px 20px;font-size:16px;margin:4px">' + (noText || 'Mai târziu') + '</button></div>';
   document.body.appendChild(d);
   d.querySelector('#updno').onclick = () => d.remove();
-  d.querySelector('#updyes').onclick = () => { d.remove(); openExternalUrl(url); };
+  d.querySelector('#updyes').onclick = () => { d.remove(); onYes(); };
 }
+function showUpdate(n, url) {              // Android: descarcă fișierul .apk; apoi atingi notificarea și „Instalează”
+  showUpdateBox('Versiune nouă disponibilă', 'Ai versiunea ' + APP_BUILD + ', a apărut versiunea ' + n + '.<br>Vrei să actualizezi acum?<br><small>Proiectele tale rămân. După ce se descarcă fișierul, deschide-l și apasă „Instalează”.</small>', 'Da, actualizează', () => openExternalUrl(url));
+}
+let manualUpd = false;
+if (window.trikkerElectron && window.trikkerElectron.onUpdate) window.trikkerElectron.onUpdate(d => {      // Windows: se descarcă singur în fundal
+  if (d.state === 'downloaded') showUpdateBox('Actualizare gata', 'Versiunea ' + d.version + ' a fost descărcată.<br>Repornești acum ca să se instaleze?<br><small>Proiectele tale rămân. Dacă alegi mai târziu, se instalează singură când închizi aplicația.</small>', 'Repornește acum', () => window.trikkerElectron.installUpdate(), 'Mai târziu');
+  else if (d.state === 'available') { setCloud('⬇ se descarcă actualizarea ' + d.version + '…'); if (manualUpd) alert('Există o versiune nouă (' + d.version + '). Se descarcă în fundal; te anunț când e gata.'); }
+  else if (d.state === 'none') { if (manualUpd) alert('Ai cea mai nouă versiune.'); }
+  else if (d.state === 'error') { if (manualUpd) alert('Nu pot verifica actualizările: ' + d.message); }
+  if (d.state !== 'available') manualUpd = false;
+});
 async function checkUpdate(manual) {
   if (!(NATIVE || window.trikkerElectron)) return;
+  if (window.trikkerElectron && window.trikkerElectron.checkUpdate) {        // Windows: verificarea o face programul însuși
+    manualUpd = !!manual;
+    try { const r = await window.trikkerElectron.checkUpdate(); if (manual && r.state === 'dev') alert('Variantă de test: fără actualizări.'); if (r.state === 'error' && manual) alert('Nu pot verifica: ' + r.message); } catch (e) { if (manual) alert('Nu pot verifica acum.'); }
+    return;
+  }
   if (!APP_BUILD) { if (manual) alert('Această variantă nu are număr de versiune, deci nu poate verifica actualizări.'); return; }
   try {
     const r = await fetch('https://api.github.com/repos/' + UPD_REPO + '/releases/latest', { headers:{ Accept:'application/vnd.github+json' } });
@@ -1428,7 +1444,7 @@ async function checkUpdate(manual) {
     showUpdate(n, a.browser_download_url);
   } catch (e) { if (manual) alert('Nu pot verifica acum. Ai internet?'); }
 }
-window.addEventListener('load', () => setTimeout(() => checkUpdate(false), 4000));
+if (!window.trikkerElectron) window.addEventListener('load', () => setTimeout(() => checkUpdate(false), 4000));   // pe Windows verifică programul însuși
 function exportPNG() {
   hideLinks = true; redraw(); hideLinks = false;      // PNG curat, fără linii de legătură
   const t = document.createElement('canvas'); t.width = cv.width; t.height = cv.height;
@@ -2656,7 +2672,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 16:44)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 16:55)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2706,7 +2722,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 16:44';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 16:55';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);

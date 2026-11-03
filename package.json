@@ -10,14 +10,15 @@
     "dist": "electron-builder --win --x64"
   },
   "dependencies": {
+    "electron-updater": "6.3.9"
+  },
+  "devDependencies": {
     "@capacitor/android": "6.2.0",
     "@capacitor/browser": "6.0.5",
     "@capacitor/cli": "6.2.0",
     "@capacitor/core": "6.2.0",
     "@capacitor/filesystem": "6.0.2",
-    "@capacitor/share": "6.0.3"
-  },
-  "devDependencies": {
+    "@capacitor/share": "6.0.3",
     "electron": "33.2.1",
     "electron-builder": "25.1.8"
   },
@@ -41,7 +42,15 @@
       "oneClick": true,
       "perMachine": false,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+      "createStartMenuShortcut": true,
+      "artifactName": "Trikker-Setup.exe"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "luchianul",
+        "repo": "trikker-app"
+      }
+    ]
   }
 }
