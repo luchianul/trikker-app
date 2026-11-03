@@ -35,6 +35,8 @@ body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; hei
 body.tbhid #tbshow { display: block; }
 body.tbhid #help { display: none; }
 body.p2 .p1only { display: none !important; }
+.p2only { display: none; }
+body.p2 .p2only { display: inline; }
 #toolbar button { padding: 6px 10px; cursor: pointer; }
 #cab, #app { padding: 4px; }
 #cid { width: 60px; font-weight: bold; border: 2px solid var(--accent); padding: 4px; }
@@ -568,6 +570,7 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
       <button onclick="cfgStart()" title="Alege ce conține lanțul de intrare: contor, separator, diferențial 300mA...">⚙ Branșament</button>
       <button onclick="toggleMenu()" title="Ascunde/arată meniul din stânga (loc mai mult pe tabletă)">☰ Meniu</button>
       <label title="Linie oblică (pe calculator: ține Alt apăsat)"><input type="checkbox" id="obl"> Oblic</label>
+      <span class="p2only"><button id="ssbtn" onclick="cycleSymScale()" title="Micșorează simbolurile din plan (100 → 80 → 65 → 50 → 40%)">Simboluri: 100%</button></span>
       <button onclick="exportPNG()">🖼️ PNG</button>
       <button onclick="editCartus()" title="Datele din chenarul de la tipărire: adresă, instalator">📋 Cartuș</button>
       <button onclick="printNow()" title="Tipărește/salvează PDF cu unifilarul și toate nivelurile planului">🖨️ PDF</button>
@@ -622,10 +625,10 @@ const TOOLS = {
       ['wall','Perete','line'], ['room','Cameră','room'], ['door','Ușă','sym'], ['window','Fereastră','sym'],
       ['stair','Scară dreaptă','sym'], ['stair_r','Scară rotundă','sym'], ['resize','Redimensionează','resize'] ]],
     ['ILUMINAT', [
-      ['lp_x','Lampă','sym'], ['lp_spot','Spot','sym'], ['lp_neon','Neon','sym'], ['fan','Ventilator','sym'] ]],
+      ['lp_x','Lampă','sym'], ['lp_led','LED','sym'], ['lp_spot','Spot','sym'], ['lp_neon','Neon','sym'], ['fan','Ventilator','sym'] ]],
     ['PRIZE ȘI COMUTARE', [
       ['sk_1','Priză','sym'], ['sk_2','Priză dublă','sym'], ['sk_ip','Priză IP44','sym'], ['sk_3','Priză trifazată','sym'],
-      ['sw_1','Întrerup.','sym'], ['sw_2','Întrerup. dublu','sym'], ['sw_b','Bipolar','sym'], ['sw_c','Vai-vien','sym'], ['sw_x','Cruce','sym'] ]],
+      ['sw_1','Întrerup.','sym'], ['sw_2','Întrerup. dublu','sym'], ['sw_b','Bipolar','sym'], ['sw_c','Vai-vien','sym'], ['sw_x','Cruce','sym'], ['sw_dk','Buton','sym'], ['sw_det','Detector','sym'] ]],
     ['ALTELE', [
       ['panel','Tablou','sym'], ['jb','Doză','sym'], ['motor','Motor','sym'], ['text','Text','sym'], ['move','Mută text','move'], ['erase','Șterge','erase'] ]]
   ]
@@ -720,6 +723,12 @@ S.sw_b = c => { tkRing(c); tkFlag(c, 1, -1, true); c.beginPath(); c.moveTo(10,-1
 S.sw_c = c => { tkRing(c); tkFlag(c, 1, -1, true); tkFlag(c, -1, 1, true); };                           // vai-vien
 S.sw_2 = c => { tkRing(c); tkFlag(c, 1, -1, true); tkFlag(c, -1, -1, true); };                          // dublu (aprindere dublă)
 S.sw_x = c => { tkRing(c); tkFlag(c, 1, -1, true); tkFlag(c, -1, -1, true); tkFlag(c, 1, 1, false); tkFlag(c, -1, 1, false); };   // cruce
+S.lp_led = c => { c.beginPath(); c.moveTo(-8,-7); c.lineTo(-8,7); c.lineTo(6,0); c.closePath(); c.save(); c.fillStyle = '#fff'; c.fill(); c.restore(); c.stroke();
+  c.beginPath(); c.moveTo(6,-8); c.lineTo(6,8); c.moveTo(-12,0); c.lineTo(-8,0); c.moveTo(6,0); c.lineTo(12,0); c.moveTo(-3,-10); c.lineTo(1,-16); c.moveTo(2,-9); c.lineTo(6,-15); c.stroke();
+  [[1,-16],[6,-15]].forEach(q => { c.beginPath(); c.moveTo(q[0] + 1.5, q[1] - 1.5); c.lineTo(q[0] - 3.5, q[1] + .5); c.lineTo(q[0] + .5, q[1] + 3.5); c.closePath(); c.fill(); }); };                 // bec LED (diodă + raze)
+S.sw_dk = c => { c.save(); c.fillStyle = '#fff'; c.beginPath(); c.arc(0,0,10,0,7); c.fill(); c.restore(); c.beginPath(); c.arc(0,0,10,0,7); c.stroke(); c.beginPath(); c.arc(0,0,4.5,0,7); c.stroke(); };   // buton
+S.sw_det = c => { c.beginPath(); c.moveTo(-10,0); c.lineTo(6,-9); c.lineTo(6,9); c.closePath(); c.save(); c.fillStyle = '#fff'; c.fill(); c.restore(); c.stroke();
+  [[10,-8],[12,0],[10,8]].forEach(q => { c.beginPath(); c.moveTo(q[0] - 3, q[1] - 2.5); c.lineTo(q[0] + 2, q[1]); c.lineTo(q[0] - 3, q[1] + 2.5); c.closePath(); c.fill(); }); };   // detector de mișcare
 S.e_sw = S.sw_1; S.e_sw2 = S.sw_2; S.e_swvv = S.sw_c; S.e_swx = S.sw_x;
 S.lp_x = S.u_x = c => { c.beginPath(); c.moveTo(-10,-10); c.lineTo(10,10); c.moveTo(10,-10); c.lineTo(-10,10); c.stroke(); };   // lampă = X simplu
 S.lp_neon = c => { c.beginPath(); c.moveTo(-17.5,0); c.lineTo(17.5,0); c.moveTo(-17.5,-6); c.lineTo(-17.5,6); c.moveTo(17.5,-6); c.lineTo(17.5,6); c.stroke(); };   // corp fluorescent
@@ -826,7 +835,7 @@ function insertOnWire(it, p) {              // it = aparatul (deja poziționat p
   L.push(it); if (hi + d > px + len) L.push(rest);
   return true;
 }   // simbolurile pentru care se întreabă „câte bucăți”   // pleacă în sus din bară
-const IDSYM = ['lp_x','lp_spot','lp_neon','fan','motor','sk_1','sk_2','sk_ip','sk_3','sw_1','sw_2','sw_b','sw_c','sw_x'];
+const IDSYM = ['lp_led','sw_dk','sw_det','lp_x','lp_spot','lp_neon','fan','motor','sk_1','sk_2','sk_ip','sk_3','sw_1','sw_2','sw_b','sw_c','sw_x'];
 function ftx(c, tag, it, t, x, y) {      // fillText care își notează caseta (pentru „Mută text”)
   if (!noRec && t) {
     const m = c.getTransform(), w = c.measureText(t).width, h = parseInt((c.font.match(/(\d+)px/) || [0,12])[1]);
@@ -878,9 +887,14 @@ function symText(c, it) {
   }
   c.restore();
 }
+const STRUCT = ['door', 'window', 'stair', 'stair_r'];
+let SS = 1;                                  // mărimea simbolurilor din plan (1 = 100%)
+const SSV = [1, .8, .65, .5, .4];
+function ssText() { const b = document.getElementById('ssbtn'); if (b) b.textContent = 'Simboluri: ' + Math.round(SS * 100) + '%'; }
+function cycleSymScale() { SS = SSV[(Math.max(0, SSV.findIndex(v => Math.abs(v - SS) < .01)) + 1) % SSV.length]; ssText(); redraw(); save(); }
 function idLabel(c, it) {          // litera circuitului: în partea dinspre cameră, ca să știi a cui e fiecare priză
-    const ux = Math.sin(it.a), uy = -Math.cos(it.a), d = QTY.includes(it.k) ? 38 : (WALLMOUNT[it.k] ? 27 : 24);
-  c.save(); const o = offOf(it, 'id'); if (o) c.translate(o[0], o[1]); style(c, 1); c.font = 'bold 13px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    const ux = Math.sin(it.a), uy = -Math.cos(it.a), d0 = QTY.includes(it.k) ? 38 : (WALLMOUNT[it.k] ? 27 : 24), wm0 = WALLMOUNT[it.k] ? WALLMOUNT[it.k][1] : 0, ks = (currentPage === 2 && !STRUCT.includes(it.k)) ? SS : 1, d = (d0 - wm0) * ks + wm0;
+  c.save(); const o = offOf(it, 'id'); if (o) c.translate(o[0], o[1]); style(c, 1); c.font = 'bold ' + Math.round(13 * Math.max(ks, .75)) + 'px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle';
   const x = it.x + ux*d, y = it.y + uy*d;
   c.strokeStyle = '#fff'; c.lineWidth = 3; c.strokeText(it.id, x, y); ftx(c, 'id', it, it.id, x, y);
   c.restore();
@@ -934,12 +948,16 @@ function drawItem(c, it) {
   } else if (it.t === 'text') {
     c.font = (it.nb ? '' : 'bold ') + (it.sz || 14) + 'px Arial'; ftx(c, 'free', it, it.txt, it.x, it.y);
   } else if (it.t === 'sym') {
-    c.save(); c.translate(it.x, it.y); c.rotate(it.a); if (FLIP.includes(it.k)) c.scale(-1, -1); style(c); if (S[it.k]) S[it.k](c, it); c.restore();
+    c.save(); c.translate(it.x, it.y); c.rotate(it.a);
+    if (currentPage === 2 && SS !== 1 && !STRUCT.includes(it.k)) { const wm = WALLMOUNT[it.k]; if (wm) { c.translate(wm[0], wm[1]); c.scale(SS, SS); c.translate(-wm[0], -wm[1]); } else c.scale(SS, SS); }   // simboluri de plan mai mici (stau lipite de perete)
+    if (FLIP.includes(it.k)) c.scale(-1, -1); style(c); if (S[it.k]) S[it.k](c, it);
+    if (it.hw && CAT[it.k] === 'w') { c.save(); c.font = 'bold 10px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.translate(-9, -12); c.rotate(-it.a); c.fillText('h', 0, 0); c.restore(); }   // semietanș
+    c.restore();
     if (it.txt) { if (it.k === 'u_ground') groundText(c, it); else symText(c, it); }
     if (it.id) {
       style(c);
       if (IDSYM.includes(it.k)) idLabel(c, it);
-      else if (it.k === 'u_mcb') { c.save(); const o = offOf(it, 'id'); if (o) c.translate(o[0], o[1]); c.font = 'bold 16px Arial'; ftx(c, 'id', it, it.id, it.x-22, it.y - (it.L ? 30 : 6)); c.restore(); }
+      else if (it.k === 'u_mcb') { c.save(); const o = offOf(it, 'id'); if (o) c.translate(o[0], o[1]); c.font = 'bold 16px Arial'; ftx(c, 'id', it, it.id, it.x - 10 - Math.max(12, c.measureText(it.id).width), it.y - (it.L ? 30 : 6)); c.restore(); }
     }
 if (it.q > 1 && !SOCKU.includes(it.k)) qtyLabel(c, it);
   }
@@ -1247,7 +1265,7 @@ function hideMenu() { document.getElementById('sidebar').style.display = 'none';
 function toggleMenu() { const sb = document.getElementById('sidebar'); sb.style.display = sb.style.display === 'none' ? '' : 'none'; }
 function rotate() { rot = (rot + 1) % 4; setMode(md); if (mouse) redraw(ghostAt(mouse)); }
 /* ---------- Generare automată a unifilarului din plan ---------- */
-const CAT = { lp_x:'l', lp_spot:'l', lp_neon:'l', fan:'f', motor:'m', sk_1:'s', sk_2:'s', sk_ip:'s', sk_3:'s', sw_1:'w', sw_2:'w', sw_b:'w', sw_c:'w', sw_x:'w' };
+const CAT = { lp_led:'l', sw_dk:'w', sw_det:'w', lp_x:'l', lp_spot:'l', lp_neon:'l', fan:'f', motor:'m', sk_1:'s', sk_2:'s', sk_ip:'s', sk_3:'s', sw_1:'w', sw_2:'w', sw_b:'w', sw_c:'w', sw_x:'w' };
 const EL = { sk_1:'e_sock', sk_2:'e_sock', sk_ip:'e_sockh', sk_3:'e_sock3' };
 const AL = new Set();                                                      // simboluri din bibliotecă desenate cu marginea stângă în punctul firului (unifilar)
 const SOCKU = ['e_sock','e_sock3','e_sockm','e_sockh'];                     // toate simbolurile de priză de pe unifilar
@@ -1258,7 +1276,7 @@ const imgPitch = k => Math.round((defOf(k) || { w:12 }).w) + 2;                 
 const elOf = d => { const b = EL[d.k]; return ((b === 'e_sock' || b === 'e_sockh') && arcs(d) > 1) ? 'e_sockm' : (b || d.k); };   // 2+ prize = bară cu arcuri
 const arcs = d => qtyOf(d) * (d.k === 'sk_2' ? 2 : 1);                          // câte arcuri desenăm
 const EP = { lp_x:[10,10], lp_spot:[9,9], lp_neon:[25,25], fan:[13,13], motor:[14,14], sk_1:[14,10], sk_2:[14,18], sk_ip:[14,10], sk_3:[19,10], sw_1:[8,16], sw_2:[8,16], sw_b:[8,19], sw_c:[17,17], sw_x:[17,17], u_x:[10,10], e_sock:[0,24], e_sw:[0,18], e_sw2:[0,18], e_swvv:[0,18], e_swx:[0,18], e_sock3:[0,24], e_sockm:[0,24], e_sockh:[0,24] };   // [decalaj față de cursor, lățime]
-Object.assign(EP, { sw_1:[6,26], sw_2:[6,26], sw_b:[6,26], sw_c:[6,26], sw_x:[6,26], e_sw:[6,26], e_sw2:[6,26], e_swvv:[6,26], e_swx:[6,26], e_fan:[0,38], e_motor:[0,24], lp_neon:[19,19] });   // dimensiuni pe rândul de unifilar (după Trikker)
+Object.assign(EP, { lp_led:[10,12], sw_dk:[11,11], sw_det:[10,16], sw_1:[6,26], sw_2:[6,26], sw_b:[6,26], sw_c:[6,26], sw_x:[6,26], e_sw:[6,26], e_sw2:[6,26], e_swvv:[6,26], e_swx:[6,26], e_fan:[0,38], e_motor:[0,24], lp_neon:[19,19] });   // dimensiuni pe rândul de unifilar (după Trikker)
 EL.fan = 'e_fan'; EL.motor = 'e_motor'; AL.add('e_fan'); AL.add('e_motor');   // ventilator / motor pe unifilar = terminale: firul se oprește în marginea lor
 const epw = k => (EP[k] || [14,14])[1];
 const qtyOf = i => CAT[i.k] === 's' ? (i.q || 1) : 1;
@@ -1318,10 +1336,10 @@ function generate() {
       items.push(gbus);
       cx = gx + 110;
     }
-    const MERGE = k => CAT[k] === 'l' || k === 'ar_12' || k === 'ar_15';
+    const MERGE = k => CAT[k] === 'l' || k === 'sw_dk' || k === 'ar_12' || k === 'ar_15';
     const mergeRow = r => { const out = [], ix = {}; r.forEach(d => { if (!MERGE(d.k)) { out.push(d); return; } if (ix[d.k] === undefined) { ix[d.k] = out.length; out.push(Object.assign({}, d, { _n: d.q || 1 })); } else out[ix[d.k]]._n += (d.q || 1); }); return out; };
-    const g = grp[id], sock = g.s > 0 && g.s >= g.l + g.f, rows = buildRows(g.dev, edges).map(mergeRow), cfg = circCfg[id] || {};
-     const ext = Math.max(60, ...rows.map(r => { const l = lay(r).pop(); return l.px + l.w + 16; }));
+    const g = grp[id], sock = g.s > 0 && g.s >= g.l + g.f, raw = buildRows(g.dev, edges), rows = raw.map(mergeRow), lblRows = raw.map(r => [...new Set(r.map(d => d.lbl).filter(Boolean))].join(' ')), cfg = circCfg[id] || {};
+     const ext = Math.max(60, ...rows.map((r, i) => { const l = lay(r).pop(); return l.px + l.w + 16 + (lblRows[i] ? lblRows[i].length * 6.5 + 12 : 0); }));
     const sp = Math.max(30, Math.min(58, (y0 - 40) / Math.max(rows.length - 1, 1)));
 items.push({ t:'sym', k:'u_mcb', x:cx, y:Bc, a:0, L:ML, to:20, tp:26, id, gk:id+'|mcb', txt: cfg.app ? cfg.app.replace(/\s*\+\s*/g, '|') : '3kA|' + (sock ? '2P - C 16A' : '2P - C 10A') + '|LEGRAND' });
     if (!rows.length) items.push({ t:'line', k:'u_wire', x1:cx, y1:Bc-ML, x2:cx, y2:Bc-ML-22, gk:id+'|w' });          // rezervă: doar disjunctorul, liber
@@ -1331,8 +1349,10 @@ items.push({ t:'sym', k:'u_mcb', x:cx, y:Bc, a:0, L:ML, to:20, tp:26, id, gk:id+
       const y = y0 - i*sp, L = lay(r), last = L[L.length-1], lastIsSock = CAT[last.d.k] === 's' || AL.has(last.k), wend = lastIsSock || last.k === 'lp_x' || last.k === 'u_x' || CAT[last.d.k] === 'l' ? (last.nq > 1 ? (last.nq - 1) * imgPitch(last.k) : 0) : (/^(sw_|e_sw)/.test(last.k) ? 8 : last.w);
       items.push({ t:'line', k:'u_wire', x1:cx, y1:y, x2:cx + last.px + wend, y2:y, gk:id+'|r'+i });
       L.forEach((e, j) => { const an = ancOf(e.k), s = { t:'sym', k:e.k, x:cx + e.px + an[0], y:y + an[1], a:0, gk:id+'|r'+i+'s'+j }; if (SOCKU.includes(e.k)) s.n = arcs(e.d); else if (qtyOf(e.d) > 1 && !imgSock(e.k, e.d)) s.q = qtyOf(e.d); items.push(s);
-        if (e.d._n > 1) items.push({ t:'text', x:s.x + 11, y:s.y - 9, txt:'x' + e.d._n, sz:10, nb:1, gk:s.gk + 'n' });
+        if (e.d.hw) s.hw = true;
+        if (e.d._n > 1) items.push({ t:'text', x:s.x - 6, y:s.y - 15, txt:'x' + e.d._n, sz:10, nb:1, gk:s.gk + 'n' });
         if (imgSock(e.k, e.d)) for (let q = 1; q < qtyOf(e.d); q++) items.push({ t:'sym', k:e.k, x:s.x + q * imgPitch(e.k), y:s.y, a:0, gk:s.gk + 'c' + q }); });
+      if (lblRows[i]) items.push({ t:'text', x: cx + last.px + Math.max(wend, last.w) + 12, y: y + 4, txt: lblRows[i], sz:11, nb:1, gk:id+'|l'+i });   // nume (ex. BIBLIO.RDC) la capătul rândului
       items.push({ t:'text', x: cx - (i > 8 ? 22 : 14), y: y + 4, txt: String(i+1), sz:11, gk:id+'|n'+i });
     });
     const L = [];
@@ -1493,7 +1513,7 @@ function presetItems(x, y, o) {
   return it;
 }
 // Simbolurile care se montează pe perete: [jumătate din lățime, distanța față de axa peretelui]
-const WALLMOUNT = { door:[20,0], window:[25,0], sk_1:[0,17], sk_2:[0,17], sk_ip:[0,17], sk_3:[0,47], sw_1:[0,27], sw_2:[0,27], sw_b:[0,27], sw_c:[0,27], sw_x:[0,27] };
+const WALLMOUNT = { sw_dk:[0,12], door:[20,0], window:[25,0], sk_1:[0,17], sk_2:[0,17], sk_ip:[0,17], sk_3:[0,47], sw_1:[0,27], sw_2:[0,27], sw_b:[0,27], sw_c:[0,27], sw_x:[0,27] };
 function ghostAt(p) {
   if (md === 'u_start') return { t:'group', items: presetItems(p.x, p.y) };
   const it = { t:'sym', k:md, x:p.x, y:p.y, a:rot*Math.PI/2, id: currentPage === 2 ? '' : document.getElementById('cid').value };
@@ -1989,7 +2009,7 @@ window.addEventListener('beforeprint', () => { if (!printReady) buildPrint(); })
 window.addEventListener('afterprint', () => { printReady = false; document.getElementById('pa').innerHTML = ''; });
 
 /* ---------- Salvare automată în browser ---------- */
-const snap = () => JSON.stringify({ 1:pages[1], del:pages.del || [], plans, lvl, so:startOpts, cp:cabPlace, cc:circCfg, gc:gc, lib:usedLib() });
+const snap = () => JSON.stringify({ 1:pages[1], del:pages.del || [], plans, lvl, ss:SS, so:startOpts, cp:cabPlace, cc:circCfg, gc:gc, lib:usedLib() });
 
 /* ---------- Proiecte multiple (fiecare casă are planul ei) + galeria de proiecte ---------- */
 let current = '', projList = [], cloudD = {}, cloudPending = '';   // cloudPending = proiect care există doar în Drive și încă se descarcă: nu are voie să fie salvat/trimis gol
@@ -2017,11 +2037,11 @@ function makeThumb() {                      // miniatura proiectului (din ce e a
   } catch (_) {}
 }
 function save() { if (bulkBackup) bulkBackup.touched = true; if (!current || current === cloudPending) return; lsSet(lsKey(current), snap()); lsSet('proiect_data:' + current, new Date().toISOString()); thumbSoon(); cloudSave(); }
-function resetState() { pages[1] = []; pages.del = []; plans = [{ name:'Parter', items:[] }]; lvl = 0; startOpts = { brk:true, meter:true, sect:false, diff:true }; cabPlace = ''; circCfg = {}; gc = {}; linkFrom = null; start = null; }
+function resetState() { SS = 1; pages[1] = []; pages.del = []; plans = [{ name:'Parter', items:[] }]; lvl = 0; startOpts = { brk:true, meter:true, sect:false, diff:true }; cabPlace = ''; circCfg = {}; gc = {}; linkFrom = null; start = null; }
 function applyData(d) {
   if (!d || !d[1]) return;
   if (d.lib) { Object.keys(d.lib).forEach(id => { if (!lib[id]) { lib[id] = d.lib[id]; regSym(id); } }); libSave(); libTools(); }
-  pages[1] = d[1]; pages.del = d.del || []; if (d.so) startOpts = d.so; if (d.cp !== undefined) cabPlace = d.cp; circCfg = d.cc || {}; gc = d.gc || {}; delete circCfg['undefined'];   // curăță circuitul „undefined” rămas din eroarea cu butoanele de grup
+  SS = d.ss || 1; ssText(); pages[1] = d[1]; pages.del = d.del || []; if (d.so) startOpts = d.so; if (d.cp !== undefined) cabPlace = d.cp; circCfg = d.cc || {}; gc = d.gc || {}; delete circCfg['undefined'];   // curăță circuitul „undefined” rămas din eroarea cu butoanele de grup
   if (d.plans && d.plans.length) { plans = d.plans; lvl = Math.min(d.lvl || 0, plans.length - 1); }
   else if (d[2]) plans = [{ name:'Parter', items:d[2] }];
   const all = [pages[1]].concat(plans.map(p => p.items));
@@ -2185,16 +2205,18 @@ function trikFromData(d, name) {
   const tag = (t, attrs, kids, w) => kids && kids.length ? '<' + t + attrs + '>\n<Children>\n' + kids.join('\n') + '\n</Children>\n' + (w ? '<Width>' + w + '</Width>\n' : '') + '</' + t + '>' : '<' + t + attrs + (w ? '>\n<Width>' + w + '</Width>\n</' + t + '>' : ' />');
   const parseA = (s, defA, defC) => { s = String(s || ''); const ka = /(\d+)\s*kA/i.exec(s), cv = /\b([BCD])\s*\d+\s*A/.exec(s), t = s.replace(/\d+\s*[kmΔ]?A/gi, m => /^\d+\s*[km]A/i.test(m) ? '' : m), am = /(\d+)\s*A/.exec(t.replace(/Δ\s*\d+\s*mA/g, ''));
     return { ka: ka ? +ka[1] * 1000 : 3000, A: am ? +am[1] : defA, cv: cv ? cv[1] : defC, ma: (/Δ\s*(\d+)\s*mA/.exec(s) || [])[1] }; };
+  const notaOf = dv => dv.lbl ? ['<Nota Id="' + guid() + '" Width="' + f(8.2 + 1.4 * String(dv.lbl).length) + '" Height="10" Tekst="' + esc(dv.lbl) + '" />'] : [];
   const devNode = (dv, kids) => {                                   // un aparat din plan -> nod în arbore
     const k = dv.k, c = CAT[k];
     if (c === 's') { const two = qtyOf(dv) > 1 || k === 'sk_2';
       const id = reg(dv, 'Contactdoos'); place(dv, id);
-      return '<Contactdoos Id="' + id + '"' + (k === 'sk_3' ? ' Nulgeleider="Ja" AantalFasen="Drie" Kinderbescherming="Nee" Width="12"' : (two ? ' Aantal="Twee" Width="9"' : ' Width="6"') + (k === 'sk_ip' ? ' HalfWaterdicht="Ja"' : '')) + ' />'; }
-    if (c === 'w') { const id = reg(dv, 'Schakelaar'); place(dv, id); return tag('Schakelaar', ' Id="' + id + '"' + (k === 'sw_c' ? ' Type="Wissel"' : k === 'sw_x' ? ' Type="Kruis"' : '') + (k === 'sw_b' ? ' AantalPolen="Dubbelpolig"' : ''), kids); }
-    if (k === 'ar_12' || k === 'ar_15') { const id = reg(dv, 'Drukknop'); place(dv, id); return tag('Drukknop', ' Id="' + id + '"', kids); }
+      return tag('Contactdoos', ' Id="' + id + '"' + (k === 'sk_3' ? ' Nulgeleider="Ja" AantalFasen="Drie" Kinderbescherming="Nee" Width="12"' : (two ? ' Aantal="Twee" Width="9"' : ' Width="6"') + (k === 'sk_ip' ? ' HalfWaterdicht="Ja"' : '')), notaOf(dv)); }
+    if (c === 'w') { const id = reg(dv, 'Schakelaar'); place(dv, id); return tag('Schakelaar', ' Id="' + id + '"' + (k === 'sw_c' ? ' Type="Wissel"' : k === 'sw_x' ? ' Type="Kruis"' : '') + (k === 'sw_b' ? ' AantalPolen="Dubbelpolig"' : '') + (dv.hw ? ' HalfWaterdicht="Ja"' : ''), (kids || []).concat(notaOf(dv))); }
+    if (k === 'ar_12' || k === 'ar_15' || k === 'sw_dk') { const id = reg(dv, 'Drukknop'); place(dv, id); return tag('Drukknop', ' Id="' + id + '"', (kids || []).concat(notaOf(dv))); }
+    if (k === 'sw_det') { const id = reg(dv, 'Bewegingsdetector'); place(dv, id); return tag('Bewegingsdetector', ' Id="' + id + '"', (kids || []).concat(notaOf(dv))); }
     if (c === 'f') { const t = guid(), id = reg(dv, 'Toestel'); place(dv, id); return tag('Lichtpunt', ' Id="' + t + '"', ['<Toestel Id="' + id + '" Type="Ventilator" />'].concat(kids || [])); }
     if (c === 'm') { const id = reg(dv, 'Toestel'); place(dv, id); return tag('Toestel', ' Id="' + id + '"', kids); }
-    const id = reg(dv, 'Lichtpunt'); place(dv, id); return tag('Lichtpunt', ' Id="' + id + '"' + (k === 'lp_spot' ? ' Type="Spot"' : ''), kids);
+    const id = reg(dv, 'Lichtpunt'); place(dv, id); return tag('Lichtpunt', ' Id="' + id + '"' + (k === 'lp_spot' ? ' Type="Spot"' : k === 'lp_led' ? ' Type="LED"' : ''), (kids || []).concat(notaOf(dv)));
   };
   const circuit = id => {
     const dev = grp[id], cfg = cc[id] || {}, sock = dev.some(x => CAT[x.k] === 's'), rows = buildRows(dev, edges), kids = [];
@@ -2267,7 +2289,8 @@ function trikToData(txt) {
   let nC = 0, nG = 0, seenBoard = false;
   const letter = n => { let s = ''; n++; while (n > 0) { s = String.fromCharCode(65 + (n - 1) % 26) + s; n = Math.floor((n - 1) / 26); } return s; };
   const DEV = ['Schakelaar', 'Lichtpunt', 'Toestel', 'Drukknop', 'Bewegingsdetector'];
-  const mark = (el, id, pd) => kidsOf(el).forEach(c => { const cid = c.getAttribute('Id'); if (cid) circOf[cid] = id; const isDev = DEV.includes(c.nodeName); if (isDev && pd) devParent[cid] = pd; mark(c, id, isDev ? cid : pd); });
+  const noteOf = {}, DEVLBL = ['Schakelaar', 'Lichtpunt', 'Toestel', 'Drukknop', 'Bewegingsdetector', 'Contactdoos'];
+  const mark = (el, id, pd) => kidsOf(el).forEach(c => { if (c.nodeName === 'Nota' && DEVLBL.includes(el.nodeName) && (c.getAttribute('Tekst') || '').trim()) noteOf[el.getAttribute('Id')] = c.getAttribute('Tekst').trim(); const cid = c.getAttribute('Id'); if (cid) circOf[cid] = id; const isDev = DEV.includes(c.nodeName); if (isDev && pd) devParent[cid] = pd; mark(c, id, isDev ? cid : pd); });
   const circuit = (br, grp) => {
     const L = kidsOf(br).filter(x => x.nodeName === 'Leiding'), L0 = L[0], id = letter(nC++), A = br.getAttribute('NominaleStroomsterkte') || '16', ma = br.getAttribute('VerliesStroomsterkte');
     const kr = String(br.getAttribute('Kortsluitstroom') || ''), ka = /kA/i.test(kr) ? num(kr) : (num(kr) >= 100 ? num(kr) / 1000 : num(kr)) || 3;      // „3kA” sau „3000”
@@ -2316,12 +2339,14 @@ function trikToData(txt) {
       let k = null;
       if (tag === 'Contactdoos') k = el.getAttribute('AantalFasen') === 'Drie' ? 'sk_3' : el.getAttribute('HalfWaterdicht') === 'Ja' ? 'sk_ip' : el.getAttribute('Aantal') === 'Twee' ? 'sk_2' : 'sk_1';
       else if (tag === 'Schakelaar') { const ty = el.getAttribute('Type') || ''; k = ty === 'Wissel' ? 'sw_c' : ty === 'Kruis' ? 'sw_x' : /dubbelp|bipol/i.test(el.getAttribute('AantalPolen') || '') ? 'sw_b' : /dubb/i.test(ty) ? 'sw_2' : 'sw_1'; }
-      else if (tag === 'Lichtpunt') k = el.getAttribute('Type') === 'Spot' ? 'lp_spot' : 'lp_x';
-      else if (tag === 'Drukknop') k = (typeof natDef !== 'undefined' && natDef['ar_12']) ? 'ar_12' : 'sw_1';       // buton
-      else if (tag === 'Bewegingsdetector') k = 'sw_1';                                                          // detector de mișcare: îl tratăm ca întrerupător
+      else if (tag === 'Lichtpunt') k = el.getAttribute('Type') === 'Spot' ? 'lp_spot' : el.getAttribute('Type') === 'LED' ? 'lp_led' : 'lp_x';
+      else if (tag === 'Drukknop') k = 'sw_dk';                                                                  // buton
+      else if (tag === 'Bewegingsdetector') k = 'sw_det';                                                        // detector de mișcare
       else if (tag === 'Toestel') k = el.getAttribute('Type') === 'Ventilator' ? 'fan' : 'motor';
       if (!k) { rep.skipped++; return; }
       const it = { t:'sym', k, x:px(p[0]), y:py(p[1]), a:0, id:circOf[id] || '', uid:newUid() }, wm = WALLMOUNT[k];
+      if (el.getAttribute('HalfWaterdicht') === 'Ja' && tag === 'Schakelaar') it.hw = true;
+      if (noteOf[id] && !uidOf[id]) it.lbl = noteOf[id];
       if (wm) {                                                     // simbol de perete: îl lipim de cel mai apropiat perete, cu fața spre cameră
         let best = null, bd = CAT[k] === 's' ? 450 : 700;
         wallsMm.forEach(w => { const dx = w[2] - w[0], dy = w[3] - w[1], l2 = dx * dx + dy * dy; if (!l2) return; const t = Math.max(0, Math.min(1, ((p[0] - w[0]) * dx + (p[1] - w[1]) * dy) / l2)), qx = w[0] + t * dx, qy = w[1] + t * dy, d = Math.hypot(p[0] - qx, p[1] - qy); if (d < bd) { bd = d; best = [qx, qy]; } });
@@ -2346,7 +2371,7 @@ function trikToData(txt) {
   const placed = new Set(Object.keys(uidOf));
   Object.keys(byId).forEach(i => { if (['Contactdoos', 'Schakelaar', 'Lichtpunt', 'Toestel', 'Drukknop', 'Bewegingsdetector'].includes(byId[i].nodeName) && !placed.has(i)) rep.unplaced++; });
   if (!plans.length) plans.push({ name:'Parter', items:[] });
-  return { data:{ 1:[], del:[], plans, lvl:0, cc, gc, so, cp:'' }, rep };
+  return { data:{ 1:[], del:[], plans, lvl:0, ss:.65, cc, gc, so, cp:'' }, rep };   // planurile Trikker au simboluri mici: pornim cu 65%
 }
 function importTrik() {
   const i = document.createElement('input'); i.type = 'file'; if (!NATIVE) i.accept = '.trik,.xml,text/xml,application/xml';
@@ -2707,7 +2732,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:21)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:38)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2757,7 +2782,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:21';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:38';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
