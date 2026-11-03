@@ -33,7 +33,7 @@ jobs:
           npm install --no-audit --no-fund --ignore-scripts
           npx cap add android
           pip install pillow
-          python3 android-src/prepare_android.py
+          BUILD_NUM=${{ github.run_number }} python3 android-src/prepare_android.py
           npx cap sync android
       - name: Construieste APK
         working-directory: android

@@ -1,5 +1,5 @@
 # Rulat automat de GitHub dupa "npx cap add android": pune pluginul de tiparire, cheia stabila si iconita Trikker.
-import os, shutil
+import os, re, shutil
 from PIL import Image, ImageDraw
 
 pkg = 'android/app/src/main/java/com/diazelectricite/trikker'
@@ -25,4 +25,11 @@ shutil.rmtree(res + '/mipmap-anydpi-v26', ignore_errors=True)
 home = os.path.expanduser('~/.android')
 os.makedirs(home, exist_ok=True)
 shutil.copy('android-keystore/debug.keystore', home + '/debug.keystore')
-print('Android pregatit')
+# numar intern de versiune = numarul build-ului: telefonul recunoaste noul .apk ca actualizare reala
+num = os.environ.get('BUILD_NUM', '1')
+g = open('android/app/build.gradle').read()
+g2 = re.sub(r'versionCode \d+', 'versionCode ' + num, g)
+g2 = re.sub(r'versionName "[^"]*"', 'versionName "1.0.' + num + '"', g2)
+assert g2 != g or num == '1'
+open('android/app/build.gradle', 'w').write(g2)
+print('Android pregatit, versionCode', num)
