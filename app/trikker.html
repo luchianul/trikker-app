@@ -662,9 +662,9 @@ const S = {
   u_lamp: c => { vline(c,0,20); c.beginPath(); c.arc(0,30,10,0,7); c.moveTo(-7,23); c.lineTo(7,37); c.moveTo(7,23); c.lineTo(-7,37); c.stroke(); },
   u_sock: c => { vline(c,0,22); c.beginPath(); c.arc(0,22,9,Math.PI,0,true); c.stroke(); c.beginPath(); c.moveTo(-9,22); c.lineTo(9,22); c.stroke(); },
   u_vov:  c => { vline(c,0,20); c.beginPath(); c.arc(0,32,12,0,7); c.stroke(); c.save(); c.scale(1,-1); c.font='bold 13px Arial'; c.fillText('M',-5,-27); c.restore(); },
-  door: (c, it) => { if (it && it.fx) { c.translate(40,0); c.scale(-1,1); } if (it && it.fy) c.scale(1,-1);
-    c.globalCompositeOperation='destination-out'; c.fillRect(0,-6,40,12); c.globalCompositeOperation='source-over';
-    c.lineWidth=2; c.beginPath(); c.moveTo(0,0); c.lineTo(0,-40); c.stroke(); c.lineWidth=1; c.beginPath(); c.arc(0,0,40,-Math.PI/2,0); c.stroke(); },
+  door: (c, it) => { const D = (it && it.dw) || 40; if (it && it.fx) { c.translate(D,0); c.scale(-1,1); } if (it && it.fy) c.scale(1,-1);
+    c.globalCompositeOperation='destination-out'; c.fillRect(0,-6,D,12); c.globalCompositeOperation='source-over';
+    c.lineWidth=2; c.beginPath(); c.moveTo(0,0); c.lineTo(0,-D); c.stroke(); c.lineWidth=1; c.beginPath(); c.arc(0,0,D,-Math.PI/2,0); c.stroke(); },
   window: (c, it) => { const L = (it && it.len) || 50; c.globalCompositeOperation='destination-out'; c.fillRect(0,-6,L,12); c.globalCompositeOperation='source-over';
     c.lineWidth=1.5; c.strokeRect(0,-4,L,8); c.beginPath(); c.moveTo(0,0); c.lineTo(L,0); c.stroke(); },
   stair: (c, it) => {                // scară dreaptă: pornește din 0,0 spre „sus”, n trepte de 10px
@@ -955,8 +955,8 @@ function textAt(r) {                       // ultimul text desenat sub cursor
 }
 function rawPos(e) { const r = cv.getBoundingClientRect(); return { x:(e.clientX - r.left) * cv.width / r.width, y:(e.clientY - r.top) * cv.height / r.height }; }
 function redraw(ghost) {
-  if (currentPage === 1) { let m = 0; pages[1].forEach(i => { m = Math.max(m, i.x || 0, i.x1 || 0, i.x2 || 0); }); const w = Math.max(1100, m + 90); if (cv.width !== w) cv.width = w; }
-  else if (cv.width !== 1100) cv.width = 1100;
+  { let mw = 0, mh = 0; pages[currentPage].forEach(i => { mw = Math.max(mw, i.x || 0, i.x1 || 0, i.x2 || 0); mh = Math.max(mh, i.y || 0, i.y1 || 0, i.y2 || 0); });
+    const w = Math.max(1100, mw + 90), h = Math.max(900, mh + (currentPage === 1 ? 130 : 90)); if (cv.width !== w) cv.width = w; if (cv.height !== h) cv.height = h; }
   applyZoom();
   ct.clearRect(0,0,cv.width,cv.height); TB = []; noRec = false;
   U = {}; pages[currentPage].forEach(i => { if (i.uid) U[i.uid] = i; });
@@ -1293,7 +1293,9 @@ function generate() {
   if (!ids.length) { alert('Pune întâi prize, lămpi sau întrerupătoare în planul casei (pagina 2, oricare nivel).'); return; }
   if (grp['?'] && !confirm(grp['?'].dev.length + ' simboluri nu au circuit (apar ca „?”). Folosește 🔗 Leagă / Circuit ca să le dai un circuit. Continui oricum?')) return;
   if (pages[1].length && !pages[1].some(i => i.gk) && !confirm('Pagina 1 conține un desen făcut manual. Unifilarul generat se adaugă peste el. Continui?')) return;
-  const H = Math.PI/2, B = 690, x0 = 110, y0 = B - 170, ML = 70;   // tulpina circuitului (bară → primul rând) = 160; textul disjunctorului începe deasupra simbolului
+  const rowsN = {}; ids.forEach(id => { rowsN[id] = buildRows(grp[id].dev, edges).length; });
+  const B = Math.max(690, ...ids.map(id => (((circCfg[id] || {}).grp || '').trim() ? 130 : 0) + 210 + (rowsN[id] - 1) * 30));   // multe rânduri => tabloul coboară, nimic nu iese din pagină
+  const H = Math.PI/2, x0 = 110, y0 = B - 170, ML = 70;   // tulpina circuitului (bară → primul rând) = 160; textul disjunctorului începe deasupra simbolului
   const lay = r => { let c = 16; return r.map(d => { const k = elOf(d), ep = SOCKU.includes(k) ? [14, 10 + (k === 'e_sock3' ? 12 : 15)*(arcs(d)-1)] : (EP[k] || [14,14]), nq = imgSock(k, d) ? qtyOf(d) : 1, ext2 = ep[1] + (nq - 1) * (nq > 1 ? imgPitch(k) : 0), px = c + ep[0]; c = px + ext2 + 12; return { d, k, px, w:ext2, nq }; }); };
   const items = presetItems(40, B + 40), bus = items.find(i => i.k === 'u_bus'), sum = [];
   items.forEach(it => { it.gk = 'pre_' + it.pk; delete it.pk; });
@@ -1574,7 +1576,7 @@ function hit(p) {
     if (it.t === 'link') { const a = U[it.from], b = U[it.to]; if (a && b && distSeg(p, a, b) < 6) return i; }
     if (it.t === 'line' && distSeg(p, {x:it.x1,y:it.y1}, {x:it.x2,y:it.y2}) < 8) return i;
     if (it.t === 'sym' && it.k === 'u_ground' && distSeg(p, it, { x: it.x - Math.sin(it.a)*112, y: it.y + Math.cos(it.a)*112 }) < 16) return i;
-    if (it.t === 'sym' && it.k === 'door' && Math.hypot(p.x-(it.x+Math.cos(it.a)*20), p.y-(it.y+Math.sin(it.a)*20)) < 30) return i;
+    if (it.t === 'sym' && it.k === 'door' && Math.hypot(p.x-(it.x+Math.cos(it.a)*((it.dw||40)/2)), p.y-(it.y+Math.sin(it.a)*((it.dw||40)/2))) < Math.max(30, (it.dw||40)/2 + 10)) return i;
     if (it.t === 'sym' && it.k === 'window' && distSeg(p, it, { x: it.x + Math.cos(it.a) * (it.len || 50), y: it.y + Math.sin(it.a) * (it.len || 50) }) < 12) return i;
     if (it.t === 'sym' && !STAIRS.includes(it.k) && Math.hypot(p.x-it.x, p.y-it.y) < 22) return i;
     if (it.t === 'text' && p.x > it.x-4 && p.x < it.x + it.txt.length*8 && Math.abs(p.y-it.y+5) < 10) return i;
@@ -1969,7 +1971,7 @@ window.addEventListener('afterprint', () => { printReady = false; document.getEl
 const snap = () => JSON.stringify({ 1:pages[1], del:pages.del || [], plans, lvl, so:startOpts, cp:cabPlace, cc:circCfg, gc:gc, lib:usedLib() });
 
 /* ---------- Proiecte multiple (fiecare casă are planul ei) + galeria de proiecte ---------- */
-let current = '', projList = [], cloudD = {};
+let current = '', projList = [], cloudD = {}, cloudPending = '';   // cloudPending = proiect care există doar în Drive și încă se descarcă: nu are voie să fie salvat/trimis gol
 const lsKey = n => 'proiect_electric:' + n;
 const lsGet = k => { try { return localStorage.getItem(k); } catch (_) { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
@@ -1993,7 +1995,7 @@ function makeThumb() {                      // miniatura proiectului (din ce e a
     lsSet('proiect_thumb:' + current, t.toDataURL('image/jpeg', .7));
   } catch (_) {}
 }
-function save() { if (bulkBackup) bulkBackup.touched = true; if (!current) return; lsSet(lsKey(current), snap()); lsSet('proiect_data:' + current, new Date().toISOString()); thumbSoon(); cloudSave(); }
+function save() { if (bulkBackup) bulkBackup.touched = true; if (!current || current === cloudPending) return; lsSet(lsKey(current), snap()); lsSet('proiect_data:' + current, new Date().toISOString()); thumbSoon(); cloudSave(); }
 function resetState() { pages[1] = []; pages.del = []; plans = [{ name:'Parter', items:[] }]; lvl = 0; startOpts = { brk:true, meter:true, sect:false, diff:true }; cabPlace = ''; circCfg = {}; gc = {}; linkFrom = null; start = null; }
 function applyData(d) {
   if (!d || !d[1]) return;
@@ -2012,6 +2014,7 @@ function load() {                          // la pornire
   if (old && !projList.length) { projList = ['Proiect 1']; lsSet(lsKey('Proiect 1'), old); }
   current = lsGet('proiect_nume') || ''; if (!projList.includes(current)) current = projList[0] || '';
   if (current) readLocal(current);
+  if (current && HAS_CLOUD() && !lsGet(lsKey(current))) cloudPending = current;
   saveList();
 }
 /* --- galeria --- */
@@ -2030,6 +2033,7 @@ function renderHome() {
   });
   const add = (big, t, sub, fn) => { const c = document.createElement('div'); c.className = 'pcard'; c.innerHTML = '<div class="th big">' + big + '</div><div><div class="nm">' + t + '</div><div class="dt">' + sub + '</div></div>'; c.onclick = fn; g.appendChild(c); };
   add('＋', 'Proiect nou', 'Creează un proiect nou', newProject);
+  add('⟳', 'Sincronizează acum', 'Aduce proiectele din Drive', syncAllNow);
   add('⬇', 'Importă proiect', 'Dintr-un fișier .json', importProject);
   add('⬇', 'Importă din Trikker', 'Dintr-un fișier .trik', importTrik);
   if (NATIVE || window.trikkerElectron) add('⟳', 'Caută actualizări', 'Versiunea instalată: ' + (APP_BUILD || 'dev'), () => checkUpdate(true));
@@ -2047,13 +2051,24 @@ function showCMenu(ev, name) {
   document.body.appendChild(m);
 }
 document.addEventListener('pointerdown', e => { if (!e.target.closest || !e.target.closest('#cmenu')) closeCMenu(); });
-function openProject(name) { switchProject(name); hideHome(); }
+function openProject(name) { if (switchProject(name) === false) return; hideHome(); }
 function switchProject(name) {
   if (!name || name === current) return;
+  if (HAS_CLOUD() && !lsGet(lsKey(name)) && !online()) { alert('Proiectul „' + name + '” nu e încă pe acest dispozitiv. Conectează-te la internet ca să-l descarci din Drive.'); return false; }
   if (current) { makeThumb(); save(); cloudFlush(); }
   clearTimeout(thumbT);
-  current = name; resetState(); readLocal(name); saveList(); showProject(); thumbSoon();
+  current = name; resetState(); readLocal(name); cloudPending = (HAS_CLOUD() && !lsGet(lsKey(name))) ? name : ''; saveList(); showProject(); pendingUI(); thumbSoon();
   if (HAS_CLOUD()) cloudLoad();
+}
+function pendingUI(err) {                  // ecran „se descarcă din Drive” cât timp proiectul nu e încărcat (nu poți desena peste un proiect gol)
+  let o = document.getElementById('pendui');
+  if (!cloudPending || cloudPending !== current) { if (o) o.remove(); return; }
+  if (!o) { o = document.createElement('div'); o.id = 'pendui'; o.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,.94);z-index:9000;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif'; document.body.appendChild(o); }
+  const bs = 'border:0;border-radius:10px;padding:11px 18px;font-size:15px;margin:4px;';
+  o.innerHTML = '<div style="text-align:center;max-width:360px;padding:20px"><div style="font-size:19px;font-weight:bold;margin-bottom:8px">' + (err ? 'Nu pot descărca proiectul' : 'Se descarcă din Drive…') + '</div><div style="font-size:14px;color:#555;margin-bottom:14px;line-height:1.5">' + (err ? escH(String(err)) : 'Așteaptă câteva secunde. Proiectul nu se salvează până nu e încărcat, ca să nu se piardă nimic.') + '</div>' +
+    (err ? '<button id="pendretry" style="' + bs + 'background:#2e86de;color:#fff">Reîncearcă</button>' : '') + '<button id="pendback" style="' + bs + 'background:#e5e7eb;color:#333">Înapoi la proiecte</button></div>';
+  const rt = o.querySelector('#pendretry'); if (rt) rt.onclick = () => { pendingUI(); cloudLoad(); };
+  o.querySelector('#pendback').onclick = () => { o.remove(); showHome(); };
 }
 function newProject() {
   const v = prompt('Numele proiectului nou (de ex. adresa casei):'); if (!v || !v.trim()) return;
@@ -2105,7 +2120,7 @@ function trikFromData(d, name) {
     if (it.t === 'line' && it.k === 'wall') pts.push([it.x1, it.y1], [it.x2, it.y2]);
     else if (it.t === 'sym' || it.t === 'text') { pts.push([it.x, it.y]);
       if (it.k === 'window') pts.push([it.x + Math.cos(it.a) * (it.len || 50), it.y + Math.sin(it.a) * (it.len || 50)]);
-      else if (it.k === 'door') pts.push([it.x + Math.cos(it.a) * 40, it.y + Math.sin(it.a) * 40]);
+      else if (it.k === 'door') pts.push([it.x + Math.cos(it.a) * (it.dw || 40), it.y + Math.sin(it.a) * (it.dw || 40)]);
       else if (it.k === 'stair') pts.push([it.x + (it.n || 8) * 10 * Math.sin(it.a), it.y - (it.n || 8) * 10 * Math.cos(it.a)]);
       else if (it.k === 'stair_r') { const r = it.r || 45; pts.push([it.x - r, it.y - r], [it.x + r, it.y + r]); } } }));
   const minX = pts.length ? Math.min(...pts.map(q => q[0])) : 0, maxX = pts.length ? Math.max(...pts.map(q => q[0])) : 0;
@@ -2123,7 +2138,7 @@ function trikFromData(d, name) {
     (p.items || []).forEach(it => {
       if (it.t === 'line' && it.k === 'wall') { seg('Muur', ' Breedte="50"', it.x1, it.y1, it.x2, it.y2); rep.walls++; }
       else if (it.t === 'sym' && it.k === 'window') { const L = it.len || 50; seg('Raam', ' Breedte="50"', it.x, it.y, it.x + Math.cos(it.a) * L, it.y + Math.sin(it.a) * L); rep.windows++; }
-      else if (it.t === 'sym' && it.k === 'door') { seg('Deur', ' Breedte="50" Type="' + (it.fx ? 'LinksDraaiend' : 'RechtsDraaiend') + '" Gespiegeld="' + (it.fy ? 'Ja' : 'Nee') + '"', it.x, it.y, it.x + Math.cos(it.a) * 40, it.y + Math.sin(it.a) * 40); rep.doors++; }
+      else if (it.t === 'sym' && it.k === 'door') { seg('Deur', ' Breedte="50" Type="' + (it.fx ? 'LinksDraaiend' : 'RechtsDraaiend') + '" Gespiegeld="' + (it.fy ? 'Ja' : 'Nee') + '"', it.x, it.y, it.x + Math.cos(it.a) * (it.dw || 40), it.y + Math.sin(it.a) * (it.dw || 40)); rep.doors++; }
       else if (it.t === 'sym' && it.k === 'stair') { const Ln = (it.n || 8) * 10; seg('Trap', ' Breedte="' + tl(it.w || 40) + '"', it.x, it.y, it.x + Ln * Math.sin(it.a), it.y - Ln * Math.cos(it.a)); rep.stairs++; }
       else if (it.t === 'sym' && it.k === 'stair_r') { const r = it.r || 45, th = Math.PI / 4 + (it.a || 0); seg('Draaitrap', '', it.x - r * Math.cos(th), it.y - r * Math.sin(th), it.x + r * Math.cos(th), it.y + r * Math.sin(th)); rep.stairs++; }   // scară rotundă: P1–P2 = diametrul
     });
@@ -2255,13 +2270,13 @@ function trikToData(txt) {
   pgs.forEach(pg => { ['Muur', 'Raam', 'Deur', 'Trap', 'Draaitrap'].forEach(tg => [...pg.getElementsByTagName(tg)].forEach(e => { [pt(e, 'P1'), pt(e, 'P2')].forEach(q => { if (q) { xs.push(q[0]); ys.push(q[1]); } }); }));
     [...pg.getElementsByTagName('GrondplanNode')].forEach(n => { const p = pt(n, 'Position'); if (p) { xs.push(p[0]); ys.push(p[1]); } }); });
   const mnX = xs.length ? Math.min(...xs) : 0, mxX = xs.length ? Math.max(...xs) : 0, mnY = ys.length ? Math.min(...ys) : 0, mxY = ys.length ? Math.max(...ys) : 0;
-  const S = Math.max(14, (mxX - mnX) / 980, (mxY - mnY) / 760), px = v => Math.round((v - mnX) / S + 60), py = v => Math.round((v - mnY) / S + 60), r1 = v => Math.round(v * 10) / 10;
+  const S = Math.max(12, (mxX - mnX) / 2400, (mxY - mnY) / 1800), px = v => Math.round((v - mnX) / S + 60), py = v => Math.round((v - mnY) / S + 60), r1 = v => Math.round(v * 10) / 10;
   const uidOf = {}, plans = [];
   pgs.forEach((pg, pi) => {
     const items = [], wallsMm = [];
     [...pg.getElementsByTagName('Muur')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; items.push({ t:'line', k:'wall', x1:px(a[0]), y1:py(a[1]), x2:px(b[0]), y2:py(b[1]) }); wallsMm.push([a[0], a[1], b[0], b[1]]); rep.walls++; });
     [...pg.getElementsByTagName('Raam')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; items.push({ t:'sym', k:'window', x:px(a[0]), y:py(a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), len:Math.max(10, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / S)), uid:newUid() }); rep.windows++; });
-    [...pg.getElementsByTagName('Deur')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; const d = { t:'sym', k:'door', x:px(a[0]), y:py(a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), uid:newUid() };
+    [...pg.getElementsByTagName('Deur')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; const d = { t:'sym', k:'door', x:px(a[0]), y:py(a[1]), a:Math.atan2(b[1] - a[1], b[0] - a[0]), dw:Math.max(30, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / S)), uid:newUid() };
       if (/Links/.test(e.getAttribute('Type') || '')) d.fx = true; if (e.getAttribute('Gespiegeld') === 'Ja') d.fy = true; items.push(d); rep.doors++; });
     [...pg.getElementsByTagName('Trap')].forEach(e => { const a = pt(e, 'P1'), b = pt(e, 'P2'); if (!a || !b) return; const L = Math.hypot(b[0] - a[0], b[1] - a[1]) / S;
       items.push({ t:'sym', k:'stair', x:px(a[0]), y:py(a[1]), a:Math.atan2(b[0] - a[0], -(b[1] - a[1])), n:Math.max(2, Math.round(L / 10)), w:Math.max(20, Math.round(num(e.getAttribute('Breedte')) / S)), uid:newUid() }); rep.stairs++; });
@@ -2381,7 +2396,7 @@ async function syncNow() {
     const names = Object.keys(getQ('cloud_dirty', {}));
     if (names.length) await cloudList();
     for (const n of names) {
-      if (!projList.includes(n)) { setDirty(n, false); continue; }
+      if (!projList.includes(n) || n === cloudPending) { setDirty(n, false); continue; }
       const data = n === current ? snap() : lsGet(lsKey(n)); if (!data) { setDirty(n, false); continue; }
       const rd = cloudD[n], ls = lsGet('proiect_sync:' + n);                       // conflict: Drive are o versiune mai nouă decât ultima sincronizare
       if (rd && (!ls || new Date(rd) - new Date(ls) > 3000)) {
@@ -2411,9 +2426,9 @@ function cloudLoad() {
   setCloud('☁ se încarcă...');
   return api('loadProject', nm).then(j => {
     if (nm !== current) return;
-    if (!j) { setCloud('☁ proiect nou: se salvează la prima modificare'); return; }
-    resetState(); applyData(JSON.parse(j)); lsSet(lsKey(nm), snap()); lsSet('proiect_sync:' + nm, new Date().toISOString()); showProject(); thumbSoon(); setCloud('☁ încărcat');
-  }).catch(e => setCloud('☁ EROARE la încărcare: ' + (e && e.message || e)));
+    if (!j) { cloudPending = ''; pendingUI(); setCloud('☁ proiect nou: se salvează la prima modificare'); return; }
+    resetState(); applyData(JSON.parse(j)); lsSet(lsKey(nm), snap()); lsSet('proiect_sync:' + nm, new Date().toISOString()); cloudPending = ''; pendingUI(); showProject(); thumbSoon(); setCloud('☁ încărcat');
+  }).catch(e => { setCloud('☁ EROARE la încărcare: ' + (e && e.message || e)); pendingUI((e && e.message) || e); });
 }
 function cloudList() {
   if (!HAS_CLOUD() || !online()) return Promise.resolve();
@@ -2425,7 +2440,29 @@ function cloudList() {
 function cloudBoot() {
   if (!HAS_CLOUD()) { if (!GAS) setCloud('📴 doar local – apasă ☁ ca să setezi sincronizarea cu Drive'); return; }
   if (!online()) { setCloud('📴 fără internet – lucrezi local'); return; }
+  pendingUI();
   syncNow().then(() => cloudList()).then(() => cloudLoad());
+}
+async function forceUpload(nm) {            // trimite versiunea de pe acest dispozitiv în Drive (suprascrie Drive)
+  if (!nm || nm === cloudPending) return; if (nm === current) { makeThumb(); save(); }
+  const data = lsGet(lsKey(nm)); if (!data) { alert('Proiectul nu e pe acest dispozitiv.'); return; }
+  setCloud('☁ se trimite...');
+  try { await api('saveProject', nm, data, summaryOfData(data)); setDirty(nm, false); lsSet('proiect_sync:' + nm, new Date().toISOString()); setCloud('☁ trimis în Drive ' + new Date().toLocaleTimeString()); alert('Trimis în Drive: „' + nm + '”.'); }
+  catch (e) { setCloud('☁ EROARE: ' + (e && e.message || e)); alert('Nu am putut trimite: ' + (e && e.message || e)); }
+}
+async function forceDownload(nm) {          // aduce versiunea din Drive și o pune peste cea de aici
+  if (!nm) return; setCloud('☁ se descarcă...');
+  try {
+    const j = await api('loadProject', nm); if (!j) { alert('„' + nm + '” nu există în Drive.'); return; }
+    lsSet(lsKey(nm), j); lsSet('proiect_sync:' + nm, new Date().toISOString()); setDirty(nm, false);
+    if (nm === current) { cloudPending = ''; resetState(); applyData(JSON.parse(j)); showProject(); thumbSoon(); }
+    await cloudList(); setCloud('☁ descărcat din Drive'); alert('Descărcat din Drive: „' + nm + '”.');
+  } catch (e) { setCloud('☁ EROARE: ' + (e && e.message || e)); alert('Nu am putut descărca: ' + (e && e.message || e)); }
+}
+function syncAllNow() {                      // buton „Sincronizează acum”: trimite ce e nou, aduce lista și proiectele noi din Drive
+  if (!HAS_CLOUD()) { cloudDlg(); return; }
+  if (!online()) { alert('Fără internet.'); return; }
+  setCloud('☁ se sincronizează...'); syncNow().then(() => cloudList()).then(() => { setCloud('☁ sincronizat ' + new Date().toLocaleTimeString()); renderHome(); });
 }
 function cloudDlg() {
   const c = apiCfg();
@@ -2434,8 +2471,12 @@ function cloudDlg() {
     '<label>Adresa aplicației Apps Script (se termină cu /exec):<input class="au full" value="' + escA(c.url) + '" placeholder="https://script.google.com/macros/s/…/exec"></label>' +
     '<label>Parola (token):<input class="at full" type="password" value="' + escA(c.token) + '"></label>' +
     '<div class="row"><button type="button" class="atest">Testează conexiunea</button></div><div class="ast" style="min-height:22px;margin:6px 0;font-size:13px"></div>' +
+    (current ? '<div class="row" style="flex-wrap:wrap"><button type="button" class="fup">⬆ Trimite acest proiect în Drive</button><button type="button" class="fdown">⬇ Descarcă din Drive</button></div><small>Forțat, pentru proiectul deschis acum („' + escH(current) + '”). „Trimite” suprascrie Drive cu ce ai aici; „Descarcă” suprascrie ce ai aici cu Drive.</small><br>' : '') +
     '<small>Fără ele, aplicația lucrează doar local (pe acest dispozitiv) și funcționează complet fără internet. Cu ele, proiectele se sincronizează cu Drive când ai internet. Oricând poți exporta un proiect ca fișier.</small><span class="nofocus"></span>',
     d => { if (GAS) return true; lsSet('apps_url', d.querySelector('.au').value.trim()); lsSet('apps_token', d.querySelector('.at').value.trim()); cloudBoot(); libCloudLoad(); return true; });
+  const fu = o.querySelector('.fup'), fd = o.querySelector('.fdown');
+  if (fu) fu.onclick = () => { if (confirm('Suprascrii în Drive proiectul „' + current + '” cu versiunea de pe acest dispozitiv?')) { lsSet('apps_url', o.querySelector('.au').value.trim()); lsSet('apps_token', o.querySelector('.at').value.trim()); forceUpload(current); } };
+  if (fd) fd.onclick = () => { if (confirm('Suprascrii proiectul „' + current + '” de pe acest dispozitiv cu versiunea din Drive?')) { lsSet('apps_url', o.querySelector('.au').value.trim()); lsSet('apps_token', o.querySelector('.at').value.trim()); forceDownload(current); } };
   const t = o.querySelector('.atest'); if (!t) return;
   t.onclick = () => { lsSet('apps_url', o.querySelector('.au').value.trim()); lsSet('apps_token', o.querySelector('.at').value.trim());
     const st = o.querySelector('.ast'); st.textContent = 'Se testează...'; st.style.color = '#555';
@@ -2615,7 +2656,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 02.11 20:28)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 16:44)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2665,7 +2706,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 02.11 20:28';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 16:44';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
