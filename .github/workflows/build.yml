@@ -61,13 +61,17 @@ jobs:
           cp app/trikker.html www/index.html
           sed -i "s/const APP_BUILD = 0;/const APP_BUILD = ${{ github.run_number }};/" www/index.html
           grep -c "const APP_BUILD = ${{ github.run_number }};" www/index.html
+          npm version 1.0.${{ github.run_number }} --no-git-tag-version --allow-same-version
           npm install --no-audit --no-fund
           npx electron-builder --win --x64 --publish never
-          cp dist/*Setup*.exe Trikker-Setup.exe
+          ls dist
       - uses: actions/upload-artifact@v4
         with:
           name: Trikker-Windows
-          path: Trikker-Setup.exe
+          path: |
+            dist/Trikker-Setup.exe
+            dist/latest.yml
+            dist/Trikker-Setup.exe.blockmap
 
   release:
     needs: [android, windows]
@@ -86,3 +90,5 @@ jobs:
           files: |
             out/Trikker.apk
             out/Trikker-Setup.exe
+            out/latest.yml
+            out/Trikker-Setup.exe.blockmap
