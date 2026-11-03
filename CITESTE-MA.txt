@@ -12,3 +12,9 @@ Cum actualizezi aplicatia mai tarziu:
   1. Pe GitHub intri in folderul "app", apesi pe trikker.html -> creionul/Upload -> pui fisierul nou (acelasi nume: trikker.html)
   2. GitHub construieste singur ambele aplicatii (cam 10 minute)
   3. In pagina principala a depozitului, la dreapta, "Releases" -> cea mai noua versiune -> descarci Trikker.apk si Trikker-Setup.exe
+
+----
+Actualizari automate:
+  - Windows: programul descarca singur versiunea noua si intreaba "Repornesti acum?".
+  - Android: apare "Versiune noua disponibila"; dupa Da se descarca .apk, atingi notificarea si "Instaleaza".
+  - Numele aplicatiei: VerTech. Fisierele din Releases se numesc Trikker.apk si Trikker-Setup.exe.
