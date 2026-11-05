@@ -603,11 +603,11 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
   <div id="settings"></div>
   <div id="viewp"></div>
 </div>
-<div id="tl"><button class="ib" onclick="showHome()" title="Proiecte">🏠</button><div id="tlmid"></div><button class="ib" onclick="cloudDlg()" title="Sincronizare Drive">☁</button><button class="ib" onclick="undo()" title="Anulează">↶</button></div>
-<div id="tr"><button class="ib" onclick="exportMenu()" title="Export / tipărire">⇪</button></div>
-<div id="xmenu"><button onclick="closeX();exportPNG()">🖼️ Salvează PNG</button><button onclick="closeX();printNow()">🖨️ PDF / Tipărește</button><button onclick="closeX();editCartus()">📋 Cartuș (chenar)</button></div>
+<div id="tl"><button class="ib" onclick="showHome()" title="Proiecte" data-ic="home"></button><div id="tlmid"></div><button class="ib" onclick="cloudDlg()" title="Sincronizare Drive" data-ic="cloud"></button><button class="ib" onclick="undo()" title="Anulează" data-ic="undo"></button></div>
+<div id="tr"><button class="ib" onclick="exportMenu()" title="Export / tipărire" data-ic="export"></button></div>
+<div id="xmenu"><button onclick="closeX();exportPNG()" data-ic="png"> Salvează PNG</button><button onclick="closeX();printNow()" data-ic="print"> PDF / Tipărește</button><button onclick="closeX();editCartus()" data-ic="clip"> Cartuș (chenar)</button></div>
 <div id="dock"></div>
-<button id="dockshow" onclick="toggleDock()" title="Arată meniurile">☰</button>
+<button id="dockshow" onclick="toggleDock()" title="Arată meniurile" data-ic="menu"></button>
 
 <div id="main">
   <div id="toolbar">
@@ -1332,9 +1332,13 @@ document.body.classList.toggle('small', small); document.body.classList.toggle('
   if (small) { setFocus(false); enterDock(); } else { exitDock(); setFocus(false); }       // tabletă: bara de jos (dock) cu panouri în stânga
 }
 /* ---------- Tabletă: bara de jos deschide panouri în stânga ---------- */
+const ICONS = {"home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/><path d=\"M10 20v-6h4v6\"/>", "plan": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"1\"/><path d=\"M3 12h8M15 12h6M11 3v5M11 12v9\"/>", "unif": "<path d=\"M12 3v6M12 9H5v6M12 9h7v6M5 15v6M19 15v6\"/>", "cloud": "<path d=\"M7 18a4 4 0 010-8 5 5 0 019.6-1A4.500 4.500 0 0117 18z\"/>", "undo": "<path d=\"M9 14L4 9l5-5\"/><path d=\"M4 9h10a6 6 0 010 12h-3\"/>", "export": "<path d=\"M12 16V4M7 9l5-5 5 5\"/><path d=\"M5 14v6h14v-6\"/>", "intrare": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M6 8h12v4a6 6 0 01-12 0z\"/><path d=\"M12 18v3\"/>", "circ": "<circle cx=\"6\" cy=\"5\" r=\"2\"/><circle cx=\"6\" cy=\"19\" r=\"2\"/><circle cx=\"18\" cy=\"12\" r=\"2\"/><path d=\"M6 7v10M6 12h10\"/>", "txt": "<text x=\"12\" y=\"17\" font-size=\"14\" font-weight=\"700\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Arial,sans-serif\">Aa</text>", "struct": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\"/><path d=\"M3 10h18M3 15h18M9 4v6M15 10v5M9 15v5\"/>", "light": "<path d=\"M9 18h6M10 21h4\"/><path d=\"M12 3a6 6 0 00-4 10.500c.8.8 1 1.500 1 2.500h6c0-1 .2-1.700 1-2.500A6 6 0 0012 3z\"/>", "sock": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"4\"/><path d=\"M9 10v2M15 10v2M10 16h4\"/>", "link": "<path d=\"M10 14a4 4 0 005.700 0l3-3a4 4 0 00-5.700-5.700l-1 1\"/><path d=\"M14 10a4 4 0 00-5.700 0l-3 3a4 4 0 005.700 5.700l1-1\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "lib": "<path d=\"M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z\"/><path d=\"M5 17a3 3 0 013-3h11\"/>", "cufar": "<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M4 9h16M4 15h16M10 6h4M10 12h4M10 18h4\"/>", "gen": "<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\" fill=\"currentColor\"/>", "set": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M4.900 4.900l2.100 2.100M17 17l2.100 2.100M4.900 19.100L7 17M17 7l2.100-2.100\"/>", "view": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-5-5\"/>", "hide": "<path d=\"M6 9l6 6 6-6\"/>", "menu": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>", "nav": "<path d=\"M5 3l14 7-6 2-2 6z\"/>", "move": "<path d=\"M12 2v20M2 12h20M12 2l-3 3M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3\"/>", "swap": "<path d=\"M4 8h14l-3-3M20 16H6l3 3\"/>", "edit": "<path d=\"M4 20l1-5L16 4l4 4L9 19z\"/><path d=\"M14 6l4 4\"/>", "resize": "<path d=\"M4 20L20 4M14 4h6v6M10 20H4v-6\"/>", "erase": "<path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13\"/>", "rot": "<path d=\"M20 12a8 8 0 11-3-6.200\"/><path d=\"M20 4v5h-5\"/>", "room": "<rect x=\"4\" y=\"6\" width=\"16\" height=\"12\"/>", "check": "<path d=\"M5 12l5 5 9-10\"/>", "magnet": "<path d=\"M5 4v8a7 7 0 0014 0V4h-4v8a3 3 0 01-6 0V4z\"/>", "png": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><circle cx=\"9\" cy=\"10\" r=\"2\"/><path d=\"M3 18l6-5 4 3 3-2 5 4\"/>", "print": "<path d=\"M7 9V3h10v6\"/><rect x=\"4\" y=\"9\" width=\"16\" height=\"8\" rx=\"2\"/><path d=\"M7 14h10v7H7z\"/>", "clip": "<rect x=\"6\" y=\"4\" width=\"12\" height=\"17\" rx=\"2\"/><path d=\"M9 4h6v3H9zM9 12h6M9 16h6\"/>"};
+const ic = k => ICONS[k] ? '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICONS[k] + '</svg>' : k;
+(function () { const st = document.createElement('style'); st.textContent = '.ic{width:26px;height:26px;display:block;margin:0 auto}.ib .ic{width:24px;height:24px}#xmenu .ic{display:inline-block;width:20px;height:20px;vertical-align:middle;margin:0 8px 0 0}#dockshow .ic{width:24px;height:24px}#cufar .ch .ic{display:inline-block;width:20px;height:20px;vertical-align:-4px;margin-right:6px}'; document.head.appendChild(st);
+  document.querySelectorAll('[data-ic]').forEach(e => { e.insertAdjacentHTML('afterbegin', ic(e.dataset.ic)); }); })();
 const DOCK = {
-  1: [['intrare','🔌','Intrare',['INTRARE']], ['circ','🔀','Circuite',['CIRCUITE (A','PE RÂND']], ['txt','Aa','Text',['TEXT','NAVIGARE']]],
-  2: [['struct','🧱','Structură',['STRUCTURĂ']], ['light','💡','Iluminat',['ILUMINAT']], ['sock','🔌','Prize',['PRIZE']], ['link','🔗','Legături',['CIRCUITE (LEG']], ['oth','➕','Altele',['ALTELE']], ['lib','📚','Bibliotecă',['AREI','BIBLIOTECA']]]
+  1: [['intrare','intrare','Intrare',['INTRARE']], ['circ','circ','Circuite',['CIRCUITE (A','PE RÂND']], ['txt','txt','Text',['TEXT','NAVIGARE']]],
+  2: [['struct','struct','Structură',['STRUCTURĂ']], ['light','light','Iluminat',['ILUMINAT']], ['sock','sock','Prize',['PRIZE']], ['link','link','Legături',['CIRCUITE (LEG']], ['oth','plus','Altele',['ALTELE']], ['lib','lib','Bibliotecă',['AREI','BIBLIOTECA']]]
 };
 let dockMoved = [], panelKey = null;
 function moveTo(el, parent, before) { if (!el) return; dockMoved.push({ el, parent: el.parentNode, next: el.nextSibling }); parent.insertBefore(el, before || null); }
@@ -1357,19 +1361,19 @@ function exitDock() {
 }
 function buildDock() {
   const d = document.getElementById('dock'); if (!d) return; d.innerHTML = ''; buildRail();
-  const add = (cls, ico, txt, fn, key) => { const b = document.createElement('button'); b.className = 'dk ' + cls; if (key) b.dataset.k = key; b.innerHTML = '<b>' + ico + '</b>' + txt; b.onclick = fn; d.appendChild(b); return b; };
+  const add = (cls, ico, txt, fn, key) => { const b = document.createElement('button'); b.className = 'dk ' + cls; if (key) b.dataset.k = key; b.innerHTML = '<b>' + ic(ico) + '</b>' + txt; b.onclick = fn; d.appendChild(b); return b; };
   const sep = () => { const x = document.createElement('div'); x.className = 'sep'; d.appendChild(x); };
-  add('pgb' + (currentPage === 1 ? ' on' : ''), '📐', 'Unifilar', () => switchPage(1));
-  add('pgb' + (currentPage === 2 ? ' on' : ''), '🏠', 'Plan casă', () => switchPage(2));
+  add('pgb' + (currentPage === 1 ? ' on' : ''), 'unif', 'Unifilar', () => switchPage(1));
+  add('pgb' + (currentPage === 2 ? ' on' : ''), 'plan', 'Plan casă', () => switchPage(2));
   sep();
   (DOCK[currentPage] || []).forEach(([k, ico, txt, pre]) => add('', ico, txt, () => togglePanel(k), k));
   sep();
-  add('', '🗄', 'Cufăr', () => toggleCufar(), 'cufar');
-  add('gen', '⚡', 'Generează', () => { closePanel(); generate(); });
-  add('', '⚙️', 'Setări', () => togglePanel('set'), 'set');
-  add('', '🔍', 'Vedere', () => togglePanel('view'), 'view');
+  add('', 'cufar', 'Cufăr', () => toggleCufar(), 'cufar');
+  add('gen', 'gen', 'Generează', () => { closePanel(); generate(); });
+  add('', 'set', 'Setări', () => togglePanel('set'), 'set');
+  add('', 'view', 'Vedere', () => togglePanel('view'), 'view');
   sep();
-  add('', '⌄', 'Ascunde', () => toggleDock());
+  add('', 'hide', 'Ascunde', () => toggleDock());
   markDock();
 }
 function markDock() { document.querySelectorAll('#dock .dk[data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === panelKey)); }
@@ -2081,22 +2085,22 @@ function buildFab2() {
     '#fab2 button.on{background:#2980b9;color:#fff;border-color:#1f6391}body.p2.small #fab2,body.p2.touchui #fab2{display:flex}@media print{#fab2,#loupe{display:none!important}}';
   document.head.appendChild(st);
   const d = document.createElement('div'); d.id = 'fab2';
-  const btn = (id, ico, txt, fn) => { const b = document.createElement('button'); b.id = id; b.innerHTML = '<b>' + ico + '</b>' + txt; b.onclick = fn; d.appendChild(b); };
-  btn('fbWall', '🧱', 'Perete', () => setMode('wall'));
-  btn('fbRoom', '▭', 'Cameră', () => setMode('room'));
-  btn('fbDone', '✓', 'Gata', () => endChain());
-  btn('fbTidy', '🧲', 'Aliniază', () => tidyWalls());
-  btn('fbRes', '⤢', 'Mărime', () => setMode('resize'));
-  btn('fbUndo', '↶', 'Înapoi', () => undo());
-  btn('fbNav', '☝', 'Mută', () => setMode('nav'));
+  const btn = (id, ico, txt, fn) => { const b = document.createElement('button'); b.id = id; b.innerHTML = '<b>' + ic(ico) + '</b>' + txt; b.onclick = fn; d.appendChild(b); };
+  btn('fbWall', 'struct', 'Perete', () => setMode('wall'));
+  btn('fbRoom', 'room', 'Cameră', () => setMode('room'));
+  btn('fbDone', 'check', 'Gata', () => endChain());
+  btn('fbTidy', 'magnet', 'Aliniază', () => tidyWalls());
+  btn('fbRes', 'resize', 'Mărime', () => setMode('resize'));
+  btn('fbUndo', 'undo', 'Înapoi', () => undo());
+  btn('fbNav', 'nav', 'Mută', () => setMode('nav'));
   document.body.appendChild(d); chainUI();
   document.body.classList.toggle('touchui', isCoarse());
 }
 
 /* ---------- Bara de editare (dreapta): toate uneltele de modificat la un loc ---------- */
 const ERAIL = {
-  1: [['nav','☝','Mută'],['move','⇄','Mută text'],['edit','✎','Editează'],['erase','🗑','Șterge'],['@rot','↻','Rotește'],['@undo','↶','Înapoi']],
-  2: [['nav','☝','Mută'],['edit','✎','Întoarce / Editează'],['resize','⤢','Mărime'],['move','⇄','Mută simbol / text'],['erase','🗑','Șterge'],['@rot','↻','Rotește'],['@undo','↶','Înapoi']]
+  1: [['nav','nav','Mută'],['move','swap','Mută text'],['edit','edit','Editează'],['erase','erase','Șterge'],['@rot','rot','Rotește'],['@undo','undo','Înapoi']],
+  2: [['nav','nav','Mută'],['edit','edit','Întoarce / Editează'],['resize','resize','Mărime'],['move','swap','Mută simbol / text'],['erase','erase','Șterge'],['@rot','rot','Rotește'],['@undo','undo','Înapoi']]
 };
 function buildRail() {
   let r = document.getElementById('erail');
@@ -2111,7 +2115,7 @@ function buildRail() {
   }
   r.innerHTML = '';
   (ERAIL[currentPage] || []).forEach(([k, ico, txt]) => {
-    const b = document.createElement('button'); b.dataset.k = k; b.innerHTML = '<b>' + ico + '</b>' + txt; if (k === 'erase') b.className = 'dg';
+    const b = document.createElement('button'); b.dataset.k = k; b.innerHTML = '<b>' + ic(ico) + '</b>' + txt; if (k === 'erase') b.className = 'dg';
     b.onclick = () => { if (k === '@rot') rotate(); else if (k === '@undo') undo(); else setMode(k); };
     r.appendChild(b);
   });
@@ -2141,7 +2145,7 @@ function buildCufar() {
     el = document.createElement('div'); el.id = 'cufar'; document.body.appendChild(el);
   }
   const d = cufarData(), GDEF = '2P - 40A|Δ30mA - tip A|LEGRAND';
-  let h = '<div class="ch"><span>🗄 Cufăr (tablou)</span><button onclick="toggleCufar(false)" title="Închide">✕</button></div><div class="cb">';
+  let h = '<div class="ch"><span>' + ic('cufar') + 'Cufăr (tablou)</span><button onclick="toggleCufar(false)" title="Închide">✕</button></div><div class="cb">';
   if (!d.names.length) h += '<div class="nt">Nu ai încă circuite. Leagă simbolurile de pe plan cu 🔗 și dă-le o literă (A, B, C…).</div>';
   d.names.forEach(g => {
     const ids = d.groups[g], on = cufar && cufar.key === 'g:' + g;
@@ -3108,7 +3112,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 21:10)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 21:40)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3158,7 +3162,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 21:10';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 21:40';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
