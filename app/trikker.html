@@ -38,7 +38,57 @@ body.focus #chrome { opacity: .55; }
 body.focus #sidebar, body.focus #toolbar, body.focus #levels, body.focus #fab, body.focus #help, body.focus #tbshow { display: none !important; }
 body.focus:not(.drawing) #fab2 { display: none !important; }
 body:not(.focus) #toolbar { padding-right: 64px; }
-@media print { #chrome { display: none !important; } }
+body.small #chrome { display: none !important; }
+@media print { #chrome, #tl, #tr, #dock, #dockshow, #xmenu { display: none !important; } }
+/* ---- Interfață tabletă: bara de jos (dock) deschide panouri în stânga ---- */
+#tl, #tr, #dock, #dockshow, #phead, #xmenu { display: none; }
+#settings, #viewp { display: none; }
+.ib { width: 40px; height: 40px; border: none; background: transparent; font-size: 20px; border-radius: 10px; cursor: pointer; padding: 0; flex: none; }
+.ib:active { background: rgba(0,0,0,.08); }
+body.dockui #tl { display: flex; position: fixed; top: 8px; left: 10px; z-index: 60; align-items: center; gap: 2px; background: rgba(255,255,255,.96); padding: 4px 6px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.28); max-width: 62vw; }
+body.dockui #tr { display: flex; position: fixed; top: 8px; right: 10px; z-index: 60; background: rgba(255,255,255,.96); padding: 4px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.28); }
+#tlmid { display: flex; flex-direction: column; line-height: 1.15; padding: 0 6px; min-width: 70px; max-width: 220px; overflow: hidden; }
+#tlmid #pcur { font-size: 14px; max-width: 200px; }
+#tlmid #cloud { font-size: 10px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.dockui #dock { display: flex; position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); max-width: calc(100vw - 20px); overflow-x: auto; gap: 2px; padding: 6px; background: rgba(255,255,255,.97); border-radius: 22px; box-shadow: 0 4px 20px rgba(0,0,0,.32); z-index: 62; -webkit-overflow-scrolling: touch; }
+#dock .dk { min-width: 62px; height: 60px; border: none; background: transparent; border-radius: 14px; font-size: 11px; line-height: 1.15; padding: 2px 4px; color: #333; flex: none; cursor: pointer; }
+#dock .dk b { display: block; font-size: 23px; font-weight: normal; }
+#dock .dk.on { background: #2980b9; color: #fff; }
+#dock .dk.gen { background: #27ae60; color: #fff; }
+#dock .dk.pgb { background: #ecf0f1; }
+#dock .dk.pgb.on { background: #2c3e50; color: #fff; }
+#dock .sep { width: 1px; background: #d5d8dc; margin: 8px 4px; flex: none; }
+body.dockui.dockoff #dock, body.dockui.dockoff #tl, body.dockui.dockoff #tr, body.dockui.dockoff #phead { display: none !important; }
+body.dockui.dockoff #sidebar { display: none !important; }
+body.dockui.dockoff #dockshow { display: flex; position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 62; width: 52px; height: 52px; border-radius: 50%; border: 1px solid #555; background: rgba(255,255,255,.9); font-size: 22px; align-items: center; justify-content: center; opacity: .6; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+body.dockui #toolbar, body.dockui #main > #help, body.dockui #fab, body.dockui #tbshow, body.dockui .nav-tabs { display: none !important; }
+body.dockui #viewp #fab { display: flex !important; }
+body.dockui #sidebar { display: none !important; }
+html body.dockui.panel #sidebar { display: block !important; position: fixed; left: 10px; top: 64px; bottom: 90px; width: 300px; border: none; border-radius: 20px; z-index: 58; box-shadow: 0 6px 28px rgba(0,0,0,.35); background: rgba(250,250,252,.98); overflow-y: auto; -webkit-backdrop-filter: none; backdrop-filter: none; }
+body.dockui #phead { display: flex; position: sticky; top: 0; z-index: 2; align-items: center; justify-content: space-between; padding: 10px 14px; background: #2c3e50; color: #fff; font-size: 15px; }
+body.dockui #phead button { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+body.dockui.panel[data-panel="set"] #settings, body.dockui.panel[data-panel="view"] #viewp { display: block; }
+body.dockui.panel[data-panel="set"] #menu, body.dockui.panel[data-panel="view"] #menu { display: none; }
+body.dockui #settings { padding: 6px 8px 14px; }
+body.dockui #settings #tbmore { display: flex !important; flex-direction: column; align-items: stretch; gap: 10px; padding: 8px 4px; border: none; font-size: 14px; }
+body.dockui #settings input:not([type=checkbox]), body.dockui #settings select { width: 100%; padding: 9px; font-size: 15px; }
+body.dockui #settings button { padding: 10px; font-size: 14px; }
+body.dockui #settings > .p1only { display: block; padding: 8px 4px 0; font-size: 14px; }
+body.dockui.p2 #settings > .p1only { display: none; }
+body.dockui #settings #levels { display: none; background: none; border: none; padding: 8px 4px; }
+body.dockui.p2 #settings #levels { display: flex !important; }
+body.dockui #settings #tbmore button[onclick^="toggleMenu"] { display: none; }
+body.dockui #settings #tbmore button[onclick^="exportPNG"], body.dockui #settings #tbmore button[onclick^="editCartus"], body.dockui #settings #tbmore button[onclick^="printNow"] { display: none; }
+#viewp #fab { position: static; flex-wrap: wrap; flex-direction: row; gap: 8px; padding: 12px; max-height: none; justify-content: flex-start; }
+#viewp #fab button { width: 84px; height: 64px; border-radius: 12px; font-size: 22px; }
+#viewp #fab button::after { content: attr(title); display: block; font-size: 10px; line-height: 1.1; margin-top: 2px; }
+#viewp #fab button[onclick="toggleMenu()"], #viewp #fab button[onclick="toggleBar()"], #viewp #fab button[onclick="showHome()"], #viewp #fab button[onclick="undo()"], #viewp #fab button[onclick="generate()"] { display: none; }
+body.dockui #fab2 { bottom: 92px; }
+body.dockui:not(.drawing) #fab2 { display: none !important; }
+html body.dockui.small #chip { left: 50%; right: auto; transform: translateX(-50%); bottom: auto; height: auto; top: 12px; max-width: 30vw; }
+#xmenu button { display: block; width: 100%; text-align: left; padding: 12px 16px; font-size: 15px; border: none; background: none; cursor: pointer; }
+#xmenu button:active { background: #eee; }
+body.dockui #xmenu.show { display: block; position: fixed; top: 62px; right: 10px; z-index: 70; background: #fff; border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.35); overflow: hidden; min-width: 200px; }
 body.tbhid #help { display: none; }
 body.p2 .p1only { display: none !important; }
 .p2only { display: none; }
@@ -548,8 +598,16 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
     <button class="tab active" id="t1" onclick="switchPage(1)">PAG 1: UNIFILAR</button>
     <button class="tab" id="t2" onclick="switchPage(2)">PAG 2: PLAN CASĂ</button>
   </div>
+  <div id="phead"><b id="ptitle"></b><button onclick="closePanel()" aria-label="Închide">✕</button></div>
   <div id="menu"></div>
+  <div id="settings"></div>
+  <div id="viewp"></div>
 </div>
+<div id="tl"><button class="ib" onclick="showHome()" title="Proiecte">🏠</button><div id="tlmid"></div><button class="ib" onclick="cloudDlg()" title="Sincronizare Drive">☁</button><button class="ib" onclick="undo()" title="Anulează">↶</button></div>
+<div id="tr"><button class="ib" onclick="exportMenu()" title="Export / tipărire">⇪</button></div>
+<div id="xmenu"><button onclick="closeX();exportPNG()">🖼️ Salvează PNG</button><button onclick="closeX();printNow()">🖨️ PDF / Tipărește</button><button onclick="closeX();editCartus()">📋 Cartuș (chenar)</button></div>
+<div id="dock"></div>
+<button id="dockshow" onclick="toggleDock()" title="Arată meniurile">☰</button>
 
 <div id="main">
   <div id="toolbar">
@@ -1003,8 +1061,8 @@ function redraw(ghost) {
 function buildMenu() {
   const m = document.getElementById('menu'); m.innerHTML = '';
   TOOLS[currentPage].forEach(([title, list]) => {
-    const h = document.createElement('div'); h.className = 'section-header'; h.textContent = title; m.appendChild(h);
-    const g = document.createElement('div'); g.className = 'grid'; m.appendChild(g);
+    const h = document.createElement('div'); h.className = 'section-header'; h.textContent = title; h.dataset.sec = title; m.appendChild(h);
+    const g = document.createElement('div'); g.className = 'grid'; g.dataset.sec = title; m.appendChild(g);
     list.forEach(([k, label, kind]) => {
       const b = document.createElement('button'); b.className = 'btn' + (kind==='erase' ? ' danger' : ''); b.dataset.k = k;
       const pv = document.createElement('canvas'); pv.width = pv.height = 72; b.appendChild(pv);
@@ -1072,6 +1130,7 @@ function switchPage(p) {
   document.getElementById('t1').classList.toggle('active', p===1);
   document.getElementById('t2').classList.toggle('active', p===2);
   buildMenu(); buildLevels(); setMode('nav'); redraw(); save();
+  if (document.body.classList.contains('dockui')) { buildDock(); closePanel(); }
 }
 /* ---------- Niveluri (parter, etaj, mansardă...) ---------- */
 function buildLevels() {
@@ -1267,8 +1326,65 @@ function autoMode() {                       // tabletă / ecran mic = atingere S
   if (small === wasSmall) return;           // nu s-a schimbat nimic
   wasSmall = small;
 document.body.classList.toggle('small', small); document.body.classList.toggle('pc', !small);
-  setFocus(small);                          // tabletă: pornește doar cu foaia; meniurile se deschid din butonul ☰
+  if (small) { setFocus(false); enterDock(); } else { exitDock(); setFocus(false); }       // tabletă: bara de jos (dock) cu panouri în stânga
 }
+/* ---------- Tabletă: bara de jos deschide panouri în stânga ---------- */
+const DOCK = {
+  1: [['intrare','🔌','Intrare',['INTRARE']], ['circ','🔀','Circuite',['CIRCUITE (A','PE RÂND']], ['txt','Aa','Text',['TEXT','NAVIGARE']]],
+  2: [['struct','🧱','Structură',['STRUCTURĂ']], ['light','💡','Iluminat',['ILUMINAT']], ['sock','🔌','Prize',['PRIZE']], ['link','🔗','Legături',['CIRCUITE (LEG']], ['oth','➕','Altele',['ALTELE']], ['lib','📚','Bibliotecă',['AREI','BIBLIOTECA']]]
+};
+let dockMoved = [], panelKey = null;
+function moveTo(el, parent, before) { if (!el) return; dockMoved.push({ el, parent: el.parentNode, next: el.nextSibling }); parent.insertBefore(el, before || null); }
+function enterDock() {
+  if (document.body.classList.contains('dockui')) { buildDock(); return; }
+  document.body.classList.add('dockui');
+  const $ = id => document.getElementById(id);
+  moveTo($('pcur'), $('tlmid')); moveTo($('cloud'), $('tlmid'));
+  moveTo($('tbmore'), $('settings'));
+  moveTo(document.querySelector('#tbmain > .p1only'), $('settings'), $('tbmore'));
+  moveTo($('levels'), $('settings'), $('settings').firstChild);
+  moveTo($('fab'), $('viewp'));
+  buildDock(); closePanel();
+}
+function exitDock() {
+  if (!document.body.classList.contains('dockui')) return;
+  closePanel(); document.body.classList.remove('dockui', 'dockoff');
+  document.querySelectorAll('#menu [data-sec]').forEach(e => { e.style.display = ''; });
+  dockMoved.reverse().forEach(m => m.parent.insertBefore(m.el, m.next && m.next.parentNode === m.parent ? m.next : null)); dockMoved = [];
+}
+function buildDock() {
+  const d = document.getElementById('dock'); if (!d) return; d.innerHTML = '';
+  const add = (cls, ico, txt, fn, key) => { const b = document.createElement('button'); b.className = 'dk ' + cls; if (key) b.dataset.k = key; b.innerHTML = '<b>' + ico + '</b>' + txt; b.onclick = fn; d.appendChild(b); return b; };
+  const sep = () => { const x = document.createElement('div'); x.className = 'sep'; d.appendChild(x); };
+  add('pgb' + (currentPage === 1 ? ' on' : ''), '📐', 'Unifilar', () => switchPage(1));
+  add('pgb' + (currentPage === 2 ? ' on' : ''), '🏠', 'Plan casă', () => switchPage(2));
+  sep();
+  (DOCK[currentPage] || []).forEach(([k, ico, txt, pre]) => add('', ico, txt, () => togglePanel(k), k));
+  sep();
+  add('gen', '⚡', 'Generează', () => { closePanel(); generate(); });
+  add('', '⚙️', 'Setări', () => togglePanel('set'), 'set');
+  add('', '🔍', 'Vedere', () => togglePanel('view'), 'view');
+  sep();
+  add('', '⌄', 'Ascunde', () => toggleDock());
+  markDock();
+}
+function markDock() { document.querySelectorAll('#dock .dk[data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === panelKey)); }
+function togglePanel(k) { if (panelKey === k) closePanel(); else openPanel(k); }
+function openPanel(k) {
+  panelKey = k; document.body.classList.add('panel'); document.body.dataset.panel = (k === 'set' || k === 'view') ? k : 'tools';
+  let title = k === 'set' ? 'Setări circuit și cablu' : k === 'view' ? 'Vedere și unelte' : '';
+  if (k !== 'set' && k !== 'view') {
+    const g = (DOCK[currentPage] || []).find(x => x[0] === k); if (!g) return; title = g[2];
+    document.querySelectorAll('#menu [data-sec]').forEach(e => { e.style.display = g[3].some(p => e.dataset.sec.indexOf(p) === 0) ? '' : 'none'; });
+  }
+  document.getElementById('ptitle').textContent = title; markDock();
+  document.getElementById('sidebar').scrollTop = 0;
+}
+function closePanel() { panelKey = null; document.body.classList.remove('panel'); delete document.body.dataset.panel; markDock(); }
+function toggleDock() { closePanel(); closeX(); document.body.classList.toggle('dockoff'); }
+function exportMenu() { document.getElementById('xmenu').classList.toggle('show'); }
+function closeX() { document.getElementById('xmenu').classList.remove('show'); }
+document.addEventListener('pointerdown', e => { if (!e.target.closest || (!e.target.closest('#xmenu') && !e.target.closest('#tr'))) closeX(); });
 function setFocus(on) {
   document.body.classList.toggle('focus', on);
   document.body.classList.remove('tbhid');
@@ -1279,7 +1395,7 @@ function setFocus(on) {
 }
 function toggleFocus() { setFocus(!document.body.classList.contains('focus')); }
 window.addEventListener('resize', autoMode);
-function hideMenu() { if (document.body.classList.contains('small')) setFocus(true); else document.getElementById('sidebar').style.display = 'none'; }   // tabletă: după ce alegi unealta rămâne doar foaia
+function hideMenu() { if (document.body.classList.contains('dockui')) closePanel(); else if (document.body.classList.contains('small')) setFocus(true); else document.getElementById('sidebar').style.display = 'none'; }   // tabletă: după ce alegi unealta rămâne doar foaia
 function toggleMenu() { const sb = document.getElementById('sidebar'); sb.style.display = sb.style.display === 'none' ? '' : 'none'; }
 function rotate() { rot = (rot + 1) % 4; setMode(md); if (mouse) redraw(ghostAt(mouse)); }
 /* ---------- Generare automată a unifilarului din plan ---------- */
@@ -2898,7 +3014,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 10:40)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 14:20)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2948,7 +3064,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 10:40';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 14:20';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
