@@ -668,6 +668,7 @@ let circCfg = {};                                // per circuit: { A:{cab:'VOB 3
 let cabPlace = '';                               // pozarea cablului (pagina 1): '', subteran, aerian, incastrat, perete
 const PLACE = [['','Nedeterminat'],['subteran','Subteran'],['aerian','Aerian'],['incastrat','Încastrat în perete'],['perete','Pe perete']];
 const PLN = { subteran:'subteran', aerian:'aerian', incastrat:'încastrat în perete', perete:'pe perete' };
+let selTxt = null;
 let hideLinks = false, TB = [], noRec = false, drag = null, hoverRec = null;     // casete de text (pentru „Mută text”)
 let startOpts = { brk:true, meter:true, sect:false, diff:true };   // ce conține lanțul de intrare
 let currentPage = 1, md = 'u_wire', rot = 0, start = null, mouse = null;
@@ -1016,7 +1017,8 @@ function drawItem(c, it) {
     if (it.pl) plSymbol(c, it);
     if (it.txt || it.pl) { style(c, 1); lineText(c, it); }
   } else if (it.t === 'text') {
-    c.font = (it.nb ? '' : 'bold ') + (it.sz || 14) + 'px Arial'; ftx(c, 'free', it, it.txt, it.x, it.y);
+    c.font = (it.nb ? '' : 'bold ') + (it.sz || 14) + 'px Arial';
+    if (it.a) { c.save(); c.translate(it.x, it.y); c.rotate(it.a * Math.PI / 2); ftx(c, 'free', it, it.txt, 0, 0); c.restore(); } else ftx(c, 'free', it, it.txt, it.x, it.y);
   } else if (it.t === 'sym') {
     c.save(); c.translate(it.x, it.y); c.rotate(it.a);
     if (currentPage === 2 && SS !== 1 && !STRUCT.includes(it.k)) { const wm = WALLMOUNT[it.k]; if (wm) { c.translate(wm[0], wm[1]); c.scale(SS, SS); c.translate(-wm[0], -wm[1]); } else c.scale(SS, SS); }   // simboluri de plan mai mici (stau lipite de perete)
@@ -1052,6 +1054,7 @@ function redraw(ghost) {
   pages[currentPage].filter(isSt).forEach(it => drawItem(ct, it));
   pages[currentPage].filter(it => !isSt(it)).forEach(it => drawItem(ct, it));
   if (linkFrom && U[linkFrom]) { ct.strokeStyle = '#c0392b'; ct.lineWidth = 2; ct.beginPath(); ct.arc(U[linkFrom].x, U[linkFrom].y, 18, 0, 7); ct.stroke(); }
+  if (selTxt && (md === 'move' || md === 'edit')) TB.forEach(q => { if (q.it === selTxt) { ct.save(); ct.strokeStyle = '#2980b9'; ct.lineWidth = 2; ct.strokeRect(q.x0 - 4, q.y0 - 4, q.x1 - q.x0 + 8, q.y1 - q.y0 + 8); ct.restore(); } });
   if (hoverRec) { const b = boxOf(hoverRec.it, hoverRec.tag); if (b) { ct.save(); ct.strokeStyle = '#2980b9'; ct.lineWidth = 1; ct.setLineDash([4,3]); ct.strokeRect(b.x0-3, b.y0-3, b.x1-b.x0+6, b.y1-b.y0+6); ct.restore(); } }
   if (cufar && currentPage === 2) drawCufarHL();
   if (md === 'resize' && currentPage === 2) drawHandles();
@@ -1104,7 +1107,7 @@ function setMode(m) {
   if (m !== 'wall') chain = null;
   if (m !== 'room') roomPending = null;
   document.body.classList.toggle('drawing', m === 'wall' || m === 'room' || m === 'resize');
-  md = m; lampDrag = null; start = null; linkFrom = null; hoverRec = null; drag = null; snapMark = null; cv.style.cursor = kindOf(m) === 'move' ? 'move' : 'crosshair'; redraw();
+  if (m !== 'move' && m !== 'edit') selTxt = null; md = m; lampDrag = null; start = null; linkFrom = null; hoverRec = null; drag = null; snapMark = null; cv.style.cursor = kindOf(m) === 'move' ? 'move' : 'crosshair'; redraw();
   document.querySelectorAll('.btn').forEach(b => b.classList.toggle('active', b.dataset.k === m));
 document.getElementById('chip').textContent = nameOf(m) + (rot && kindOf(m)==='sym' && m!=='text' && !WALLMOUNT[m] ? ' ' + rot*90 + '°' : '');
   document.getElementById('st').textContent = 'Mod: ' + nameOf(m) + (kindOf(m)==='sym' && m!=='text' && !WALLMOUNT[m] ? '  (rotire: ' + rot*90 + '°)' : '');
@@ -1424,7 +1427,8 @@ function toggleFocus() { setFocus(!document.body.classList.contains('focus')); }
 window.addEventListener('resize', autoMode);
 function hideMenu() { if (document.body.classList.contains('dockui')) closePanel(); else if (document.body.classList.contains('small')) setFocus(true); else document.getElementById('sidebar').style.display = 'none'; }   // tabletă: după ce alegi unealta rămâne doar foaia
 function toggleMenu() { const sb = document.getElementById('sidebar'); sb.style.display = sb.style.display === 'none' ? '' : 'none'; }
-function rotate() { rot = (rot + 1) % 4; setMode(md); if (mouse) redraw(ghostAt(mouse)); }
+function rotate() { if (selTxt && (md === 'move' || md === 'edit') && pages[currentPage].includes(selTxt)) { selTxt.a = ((selTxt.a || 0) + 1) % 4; if (!selTxt.a) delete selTxt.a; if (selTxt.gk) selTxt.edited = selTxt.edited; redraw(); save(); document.getElementById('help').textContent = 'Text rotit. Atinge ↻ din nou ca să-l rotești încă 90°.'; return; }
+  rot = (rot + 1) % 4; setMode(md); if (mouse) redraw(ghostAt(mouse)); }
 /* ---------- Generare automată a unifilarului din plan ---------- */
 const CAT = { lp_led:'l', sw_dk:'w', sw_det:'w', lp_x:'l', lp_spot:'l', lp_neon:'l', fan:'f', motor:'m', sk_1:'s', sk_2:'s', sk_ip:'s', sk_3:'s', sw_1:'w', sw_2:'w', sw_b:'w', sw_c:'w', sw_x:'w' };
 const EL = { sk_1:'e_sock', sk_2:'e_sock', sk_ip:'e_sockh', sk_3:'e_sock3' };
@@ -1572,6 +1576,7 @@ items.push({ t:'sym', k:'u_mcb', x:cx, y:Bc, a:0, L:ML, to:20, tp:26, id, gk:id+
   fresh.forEach(it => { const o = oldBy[it.gk]; if (!o) return;
     if (o.edited) { it.txt = o.txt; if (o.id !== undefined) it.id = o.id; it.edited = true; if (o.pl !== undefined) it.pl = o.pl; }
     if (o.off) it.off = o.off;
+    if (o.a && it.t === 'text') it.a = o.a;
     if (o.mv) { it.x = o.x; it.y = o.y; it.mv = true; } });   // textele editate rămân
   const manual = pages[1].filter(o => !o.gk);                              // tot ce ai adăugat tu rămâne
   {                                                                         // ... dar dacă un grup generat (ex. D2) a crescut peste ce ai pus manual, grupul tău manual se mută la dreapta
@@ -1896,7 +1901,7 @@ function hit(p) {
     if (it.t === 'sym' && it.k === 'door' && Math.hypot(p.x-(it.x+Math.cos(it.a)*((it.dw||40)/2)), p.y-(it.y+Math.sin(it.a)*((it.dw||40)/2))) < Math.max(30, (it.dw||40)/2 + 10)) return i;
     if (it.t === 'sym' && it.k === 'window' && distSeg(p, it, { x: it.x + Math.cos(it.a) * (it.len || 50), y: it.y + Math.sin(it.a) * (it.len || 50) }) < 12) return i;
     if (it.t === 'sym' && !STAIRS.includes(it.k) && Math.hypot(p.x-it.x, p.y-it.y) < 22) return i;
-    if (it.t === 'text' && p.x > it.x-4 && p.x < it.x + it.txt.length*8 && Math.abs(p.y-it.y+5) < 10) return i;
+    if (it.t === 'text' && (it.a ? TB.some(q => q.it === it && p.x >= q.x0 - 4 && p.x <= q.x1 + 4 && p.y >= q.y0 - 4 && p.y <= q.y1 + 4) : (p.x > it.x-4 && p.x < it.x + it.txt.length*8 && Math.abs(p.y-it.y+5) < 10))) return i;
   }
   for (let i = L.length-1; i >= 0; i--) if (L[i].t === 'sym' && STAIRS.includes(L[i].k) && stairHit(L[i], p, 4)) return i;
   return -1;
@@ -1911,7 +1916,7 @@ function onDown(e) {
     if (it && it.t === 'sym') { drag = { sym:true, it, sx:r.x, sy:r.y, o:[it.x, it.y] }; cv.setPointerCapture(e.pointerId); }
     return;
   }
-  if (k === 'move') { const r = rawPos(e), h = textAt(r); if (h) { drag = { ...h, sx:r.x, sy:r.y, o: h.tag === 'free' ? [h.it.x, h.it.y] : (offOf(h.it, h.tag) || [0,0]).slice() }; hoverRec = h; cv.setPointerCapture(e.pointerId); } return; }
+  if (k === 'move') { const r = rawPos(e), h = textAt(r); if (h) { if (h.it.t === 'text') selTxt = h.it; else selTxt = null; drag = { ...h, sx:r.x, sy:r.y, o: h.tag === 'free' ? [h.it.x, h.it.y] : (offOf(h.it, h.tag) || [0,0]).slice() }; hoverRec = h; cv.setPointerCapture(e.pointerId); } return; }
   if (k === 'line' && md === 'wall' && currentPage === 2) { wallDown(e); return; }
   if (k === 'room') { wallDown(e); return; }
   if (k === 'line') { start = p; cv.setPointerCapture(e.pointerId); }
@@ -1941,9 +1946,10 @@ function onDown(e) {
       };
       if (it.k === 'u_mcb') ask('ID circuit:', it.id || '', v => { it.id = v; fin(); }); else fin();
     };
-    if (it.t === 'sym') editLines(it.txt, v => { it.txt = v; rest(); });
+    if (it.t === 'sym' && it.k === 'u_diff_g' && currentPage === 1) diffDlg(it, rest);
+    else if (it.t === 'sym') editLines(it.txt, v => { it.txt = v; rest(); });
     else if (it.t === 'line') ask('Text cablu:', it.txt || '', v => { it.txt = v; rest(); });
-    else ask('Text:', it.txt, v => { it.txt = v; rest(); });
+    else { selTxt = it; ask('Text:', it.txt, v => { it.txt = v; rest(); }); }
   }
   else if (k === 'link') {
     const t = hitSym(p);
@@ -2224,6 +2230,24 @@ function buildFav() {
     g.appendChild(b); preview(pv, k, kind);
   });
   el.insertAdjacentHTML('beforeend', '<div class="nt">★ = fixat de tine · ☆ = pus automat (cele mai folosite). Atinge steaua ca să fixezi sau să scoți.</div>');
+}
+
+/* ---------- Diferențial în unifilar: poli, curent, sensibilitate, tip, marcă (nu doar text) ---------- */
+function diffDlg(it, done) {
+  const L = String(it.txt || '').split('|').map(x => x.trim());
+  const m1 = (L[0] || '').match(/^(\d)\s*P(?:\s*\+\s*N)?\s*-?\s*(\d+(?:[.,]\d+)?)\s*A/i), m2 = (L[1] || '').match(/(\d+)\s*mA/i), m3 = (L[1] || '').match(/tip\s*([A-Z]+)/i);
+  const poles = m1 ? m1[1] + 'P' : '2P', amp = m1 ? m1[2] : '40', ma = m2 ? m2[1] : '30', tip = m3 ? m3[1].toUpperCase() : 'A', brand = L.slice(2).join(' ');
+  const sel = (arr, d) => arr.map(v => '<option' + (String(v) === String(d) ? ' selected' : '') + '>' + v + '</option>').join('');
+  const html = '<div class="row"><label>Poli:<select class="fp">' + sel(['1P','2P','3P','4P'], poles) + '</select></label><label>Curent (A):<input class="fa" list="famps" value="' + escA(amp) + '" style="width:80px"><datalist id="famps">' + [16,20,25,32,40,63,80,100,125].map(v => '<option value="' + v + '">').join('') + '</datalist></label></div>' +
+    '<div class="row"><label>Sensibilitate (mA):<select class="fm">' + sel([10,30,100,300,500], ma) + '</select></label><label>Tip:<select class="ft">' + sel(['AC','A','F','B','A-S'], tip) + '</select></label></div>' +
+    '<label>Marcă / model:<input class="fb full" value="' + escA(brand) + '" placeholder="ex. LEGRAND"></label>';
+  dlg('Diferențial ' + (it.gk && /^G\|/.test(it.gk) ? it.gk.split('|')[1] : ''), html, d => {
+    const q = x => d.querySelector(x).value.trim();
+    const v = q('.fp') + ' - ' + (q('.fa') || '40') + 'A|Δ' + q('.fm') + 'mA - tip ' + q('.ft') + (q('.fb') ? '|' + q('.fb') : '');
+    it.txt = v;
+    const g = it.gk && /^G\|/.test(it.gk) ? it.gk.split('|')[1] : null; if (g) gc[g] = Object.assign(gc[g] || {}, { app: v });
+    done();
+  });
 }
 function fab2Active() { railActive(); ['Wall:wall', 'Room:room', 'Res:resize', 'Nav:nav'].forEach(q => { const [id, m] = q.split(':'), b = document.getElementById('fb' + id); if (b) b.classList.toggle('on', md === m); }); }
 
@@ -3162,7 +3186,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 23:00)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 23:50)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3213,7 +3237,7 @@ buildFab2();
 iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 23:00';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 23:50';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
