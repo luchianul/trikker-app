@@ -30,6 +30,11 @@ num = os.environ.get('BUILD_NUM', '1')
 g = open('android/app/build.gradle').read()
 g2 = re.sub(r'versionCode \d+', 'versionCode ' + num, g)
 g2 = re.sub(r'versionName "[^"]*"', 'versionName "1.0.' + num + '"', g2)
+# semnare explicita cu cheia din depozit (altfel Gradle isi face alta cheie la fiecare build => 'conflict cu aplicatia existenta')
+ks = os.path.abspath('android-keystore/debug.keystore').replace('\\', '/')
+sc = "signingConfigs {\n        debug {\n            storeFile file('" + ks + "')\n            storePassword 'android'\n            keyAlias 'androiddebugkey'\n            keyPassword 'android'\n        }\n    }\n    buildTypes {"
+assert 'buildTypes {' in g2
+g2 = g2.replace('buildTypes {', sc, 1)
 assert g2 != g or num == '1'
 open('android/app/build.gradle', 'w').write(g2)
 print('Android pregatit, versionCode', num)

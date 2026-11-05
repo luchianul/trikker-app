@@ -42,6 +42,10 @@ jobs:
           ./gradlew assembleDebug --no-daemon
       - name: Redenumeste
         run: cp android/app/build/outputs/apk/debug/app-debug.apk Trikker-${{ github.run_number }}.apk
+      - name: Verifica semnatura stabila
+        run: |
+          keytool -printcert -jarfile Trikker-${{ github.run_number }}.apk | tee cert.txt
+          grep -q "78:BA:60:CC:FF:D8:0F:F3:67:11:6A:D2:01:A3:04:58:82:3D:F3:38:84:DB:3B:89:F5:E9:EF:74:77:0D:C9:09" cert.txt
       - uses: actions/upload-artifact@v4
         with:
           name: Trikker-Android
