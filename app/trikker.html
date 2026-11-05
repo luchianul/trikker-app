@@ -1146,8 +1146,8 @@ function buildLevels() {
   mk('🗑 Șterge nivelul', 'lv', delLevel);
 }
 function setLevel(i) { lvl = i; linkFrom = null; start = null; buildLevels(); setMode(md); redraw(); save(); }
-function addLevel() { const n = prompt('Numele nivelului nou:', 'Etaj ' + plans.length); if (!n || !n.trim()) return; plans.push({ name:n.trim(), items:[] }); setLevel(plans.length - 1); }
-function renameLevel() { const n = prompt('Numele nivelului:', plans[lvl].name); if (n && n.trim()) { plans[lvl].name = n.trim(); buildLevels(); save(); } }
+function addLevel() { ask('Numele nivelului nou:', 'Etaj ' + plans.length, n => { if (!n || !n.trim()) return; plans.push({ name:n.trim(), items:[] }); setLevel(plans.length - 1); }); }
+function renameLevel() { ask('Numele nivelului:', plans[lvl].name, n => { if (n && n.trim()) { plans[lvl].name = n.trim(); buildLevels(); save(); } }); }
 function delLevel() {
   if (plans.length < 2) { alert('Trebuie să rămână cel puțin un nivel.'); return; }
   if (!confirm('Ștergi nivelul „' + plans[lvl].name + '” cu tot ce conține?')) return;
@@ -1191,6 +1191,10 @@ function dlg(title, html, ok) {
   o.addEventListener('pointerdown', e => { if (e.target === o) close(); });
   setTimeout(() => { const f = o.querySelector('input,textarea'); if (f && !o.querySelector('.nofocus')) { f.focus(); if (f.select) f.select(); } }, 0);
   return o;
+}
+/* întrebare cu text (prompt() nu există în aplicația de Windows, așa că folosim fereastra noastră) */
+function ask(title, def, cb) {
+  dlg(title, '<input class="aq" type="text" style="width:100%;box-sizing:border-box;font:15px Arial;margin-top:6px" value="' + escA(def == null ? '' : def).replace(/</g, '&lt;') + '">', d => { cb(d.querySelector('.aq').value); });
 }
 function editLines(txt, cb) {         // text pe mai multe rânduri: Enter = rând nou (se salvează intern cu |)
   const v = String(txt == null ? '' : txt).split('|').join('\n');
@@ -1325,7 +1329,7 @@ function togglePan() {
 }
 let wasSmall = null;
 function autoMode() {                       // tabletă / ecran mic = atingere SAU fereastră sub 1000 px
-  const small = isCoarse() || innerWidth < 1000;
+  const small = true;           // aceeași interfață (dock jos + panouri) pe tabletă și pe PC
   if (small === wasSmall) return;           // nu s-a schimbat nimic
   wasSmall = small;
 document.body.classList.toggle('small', small); document.body.classList.toggle('pc', !small);
@@ -1910,20 +1914,22 @@ function onDown(e) {
     if (currentPage === 2 && it.t === 'sym' && QTY.includes(it.k)) { askSock(it, () => { redraw(); save(); if (it.uid) circDlg(it.uid); }); return; }
     if (currentPage === 2 && it.t === 'sym') {
       if (it.uid && IDSYM.includes(it.k)) { circDlg(it.uid); return; }
-      const v = prompt('ID circuit:', it.id || ''); if (v !== null) { if (it.uid) setComponentId(it.uid, v); else it.id = v; } redraw(); save(); return;
+      ask('ID circuit:', it.id || '', v => { if (it.uid) setComponentId(it.uid, v); else it.id = v; redraw(); save(); }); return;
     }
     const rest = () => {
-      if (it.k === 'u_mcb') { const v = prompt('ID circuit:', it.id || ''); if (v !== null) it.id = v; }
-      it.edited = true;
-      redraw(); save();
-      if (it.t === 'line' && (it.k === 'u_wire' || it.k === 'u_feed')) {
-        dlg('Pozare cablu', '<label>Cum e pozat cablul: <select class="dp">' + PLACE.map(([v,t]) => '<option value="' + v + '"' + (v === (it.pl || '') ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>',
-          d => { it.pl = d.querySelector('.dp').value; it.edited = true; redraw(); save(); });
-      }
+      const fin = () => {
+        it.edited = true;
+        redraw(); save();
+        if (it.t === 'line' && (it.k === 'u_wire' || it.k === 'u_feed')) {
+          dlg('Pozare cablu', '<label>Cum e pozat cablul: <select class="dp">' + PLACE.map(([v,t]) => '<option value="' + v + '"' + (v === (it.pl || '') ? ' selected' : '') + '>' + t + '</option>').join('') + '</select></label>',
+            d => { it.pl = d.querySelector('.dp').value; it.edited = true; redraw(); save(); });
+        }
+      };
+      if (it.k === 'u_mcb') ask('ID circuit:', it.id || '', v => { it.id = v; fin(); }); else fin();
     };
     if (it.t === 'sym') editLines(it.txt, v => { it.txt = v; rest(); });
-    else if (it.t === 'line') { const v = prompt('Text cablu:', it.txt || ''); if (v !== null) it.txt = v; rest(); }
-    else { const v = prompt('Text:', it.txt); if (v !== null) it.txt = v; rest(); }
+    else if (it.t === 'line') ask('Text cablu:', it.txt || '', v => { it.txt = v; rest(); });
+    else ask('Text:', it.txt, v => { it.txt = v; rest(); });
   }
   else if (k === 'link') {
     const t = hitSym(p);
@@ -1947,7 +1953,7 @@ function onDown(e) {
     resizing = { it, drag:true }; cv.setPointerCapture(e.pointerId); redraw();
   }
   else if (k === 'erase') { const i = hit(p); if (i >= 0) { const g = pages[currentPage][i].gk; if (currentPage === 1 && g) (pages.del = pages.del || []).push(g); pages[currentPage].splice(i,1); redraw(); save(); } }
-  else if (md === 'text') { const t = prompt('Text:'); if (t) { pages[currentPage].push({t:'text', x:p.x, y:p.y, txt:t}); redraw(); save(); autoNav(); } }
+  else if (md === 'text') { ask('Text:', '', t => { if (t) { pages[currentPage].push({t:'text', x:p.x, y:p.y, txt:t}); redraw(); save(); autoNav(); } }); }
   else {
     const it = ghostAt(p); it.uid = newUid(); const L = pages[currentPage];
     if (currentPage === 2 && QTY.includes(md)) { askSock(it, () => { L.push(it); redraw(); save(); autoNav(); }); return; }
@@ -2156,7 +2162,7 @@ function buildCufar() {
   el.innerHTML = h + '<div class="nt">Atinge un circuit sau un diferențial: componentele lui se colorează în albastru pe plan.</div></div>';
   el.querySelectorAll('.cr').forEach(r => r.onclick = ev => {
     const id = r.dataset.c;
-    if (ev.target.closest('.e')) { const v = prompt('Nume circuit ' + id + ' (ex. Salon):', (circCfg[id] || {}).nm || ''); if (v !== null) { circCfg[id] = Object.assign(circCfg[id] || {}, { nm: v.trim() }); save(); buildCufar(); } return; }
+    if (ev.target.closest('.e')) { ask('Nume circuit ' + id + ' (ex. Salon):', (circCfg[id] || {}).nm || '', v => { circCfg[id] = Object.assign(circCfg[id] || {}, { nm: v.trim() }); save(); buildCufar(); }); return; }
     cufar = cufar && cufar.key === 'c:' + id ? null : { key: 'c:' + id, ids: [id] }; buildCufar(); redraw();
   });
   el.querySelectorAll('.gh').forEach(r => r.onclick = () => { const g = r.dataset.g; cufar = cufar && cufar.key === 'g:' + g ? null : { key: 'g:' + g, ids: d.groups[g] || [] }; buildCufar(); redraw(); });
@@ -2461,23 +2467,25 @@ function pendingUI(err) {                  // ecran „se descarcă din Drive”
   o.querySelector('#pendback').onclick = () => { o.remove(); showHome(); };
 }
 function newProject() {
-  const v = prompt('Numele proiectului nou (de ex. adresa casei):'); if (!v || !v.trim()) return;
+  ask('Numele proiectului nou (de ex. adresa casei):', '', v => { if (!v || !v.trim()) return;
   if (current) { makeThumb(); save(); cloudFlush(); }
   clearTimeout(thumbT);
   const nm = uniqueName(v.trim()); projList.push(nm); current = nm; resetState(); saveList(); showProject(); save(); hideHome();
+});
 }
 function copyProject(name) {
   name = name || current;
-  const v = prompt('Copie sub numele:', name + ' (copie)'); if (!v || !v.trim()) return;
+  ask('Copie sub numele:', name + ' (copie)', v => { if (!v || !v.trim()) return;
   if (name === current) { makeThumb(); save(); }
   const dat = lsGet(lsKey(name)); if (!dat) { alert('Proiectul nu e încă pe acest dispozitiv. Deschide-l o dată, apoi îl poți copia.'); return; }
   const nm = uniqueName(v.trim());
   lsSet(lsKey(nm), dat); lsSet('proiect_data:' + nm, new Date().toISOString()); const th = lsGet('proiect_thumb:' + name); if (th) lsSet('proiect_thumb:' + nm, th);
   projList.push(nm); saveList(); cloudPut(nm, dat); renderHome();
+});
 }
 function renameProject(name) {
   name = name || current;
-  const v = prompt('Numele nou al proiectului:', name); if (!v || !v.trim() || v.trim() === name) return;
+  ask('Numele nou al proiectului:', name, v => { if (!v || !v.trim() || v.trim() === name) return;
   const nm = v.trim(); if (projList.includes(nm)) { alert('Există deja un proiect cu acest nume.'); return; }
   if (name === current) { makeThumb(); clearTimeout(cloudT); }
   const dat = name === current ? snap() : lsGet(lsKey(name));
@@ -2486,6 +2494,7 @@ function renameProject(name) {
   lsDel(lsKey(name)); projList[projList.indexOf(name)] = nm; if (name === current) current = nm; saveList();
   if (HAS_CLOUD()) { pushOp({ op:'rename', a:name, b:nm }); setDirty(name, false); setDirty(nm, true); const ls = lsGet('proiect_sync:' + name); if (ls) { lsSet('proiect_sync:' + nm, ls); lsDel('proiect_sync:' + name); } syncNow(); }
   renderHome();
+});
 }
 function deleteProject(name) {
   name = name || current;
@@ -3112,7 +3121,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 21:40)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 22:10)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3162,7 +3171,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 21:40';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 22:10';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
