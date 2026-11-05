@@ -42,7 +42,7 @@ body.small #chrome { display: none !important; }
 @media print { #chrome, #tl, #tr, #dock, #dockshow, #xmenu { display: none !important; } }
 /* ---- Interfață tabletă: bara de jos (dock) deschide panouri în stânga ---- */
 #tl, #tr, #dock, #dockshow, #phead, #xmenu { display: none; }
-#settings, #viewp { display: none; }
+#settings, #viewp, #favp { display: none; }
 .ib { width: 40px; height: 40px; border: none; background: transparent; font-size: 20px; border-radius: 10px; cursor: pointer; padding: 0; flex: none; }
 .ib:active { background: rgba(0,0,0,.08); }
 body.dockui #tl { display: flex; position: fixed; top: 8px; left: 10px; z-index: 60; align-items: center; gap: 2px; background: rgba(255,255,255,.96); padding: 4px 6px; border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.28); max-width: 62vw; }
@@ -67,8 +67,10 @@ body.dockui #sidebar { display: none !important; }
 html body.dockui.panel #sidebar { display: block !important; position: fixed; left: 10px; top: 64px; bottom: 90px; width: 300px; border: none; border-radius: 20px; z-index: 58; box-shadow: 0 6px 28px rgba(0,0,0,.35); background: rgba(250,250,252,.98); overflow-y: auto; -webkit-backdrop-filter: none; backdrop-filter: none; }
 body.dockui #phead { display: flex; position: sticky; top: 0; z-index: 2; align-items: center; justify-content: space-between; padding: 10px 14px; background: #2c3e50; color: #fff; font-size: 15px; }
 body.dockui #phead button { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
-body.dockui.panel[data-panel="set"] #settings, body.dockui.panel[data-panel="view"] #viewp { display: block; }
-body.dockui.panel[data-panel="set"] #menu, body.dockui.panel[data-panel="view"] #menu { display: none; }
+body.dockui.panel[data-panel="set"] #settings, body.dockui.panel[data-panel="view"] #viewp, body.dockui.panel[data-panel="fav"] #favp { display: block; }
+body.dockui.panel[data-panel="set"] #menu, body.dockui.panel[data-panel="view"] #menu, body.dockui.panel[data-panel="fav"] #menu { display: none; }
+body.dockui #favp { padding: 6px 8px 14px; }
+#favp .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 body.dockui #settings { padding: 6px 8px 14px; }
 body.dockui #settings #tbmore { display: flex !important; flex-direction: column; align-items: stretch; gap: 10px; padding: 8px 4px; border: none; font-size: 14px; }
 body.dockui #settings input:not([type=checkbox]), body.dockui #settings select { width: 100%; padding: 9px; font-size: 15px; }
@@ -602,6 +604,7 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
   <div id="menu"></div>
   <div id="settings"></div>
   <div id="viewp"></div>
+  <div id="favp"></div>
 </div>
 <div id="tl"><button class="ib" onclick="showHome()" title="Proiecte" data-ic="home"></button><div id="tlmid"></div><button class="ib" onclick="cloudDlg()" title="Sincronizare Drive" data-ic="cloud"></button><button class="ib" onclick="undo()" title="Anulează" data-ic="undo"></button></div>
 <div id="tr"><button class="ib" onclick="exportMenu()" title="Export / tipărire" data-ic="export"></button></div>
@@ -1069,7 +1072,8 @@ function buildMenu() {
       const b = document.createElement('button'); b.className = 'btn' + (kind==='erase' ? ' danger' : ''); b.dataset.k = k;
       const pv = document.createElement('canvas'); pv.width = pv.height = 72; b.appendChild(pv);
       b.appendChild(document.createTextNode(label));
-      b.onclick = () => { setMode(k); if (document.body.classList.contains('small') && k !== 'lib_add' && k !== 'lib_del') hideMenu(); }; g.appendChild(b);
+      if (['sym','line','room'].includes(kind) && k !== 'lib_add' && k !== 'lib_del') { const st = document.createElement('button'); st.className = 'pin'; const pinned = favGet().pin.includes(k); st.title = pinned ? 'Scoate din favorite' : 'Fixează în Favorite'; st.innerHTML = ic(pinned ? 'starf' : 'star'); st.onclick = ev => { ev.stopPropagation(); favTogglePin(k); }; b.appendChild(st); }
+      b.onclick = () => { favCount(k); setMode(k); if (document.body.classList.contains('small') && k !== 'lib_add' && k !== 'lib_del') hideMenu(); }; g.appendChild(b);
       preview(pv, k, kind);
     });
   });
@@ -1144,6 +1148,7 @@ function buildLevels() {
   mk('+ Adaugă nivel', 'lv lvadd', addLevel, 'Adaugă etaj, mansardă, subsol etc.');
   mk('✎ Redenumește', 'lv', renameLevel);
   mk('🗑 Șterge nivelul', 'lv', delLevel);
+  iconize();
 }
 function setLevel(i) { lvl = i; linkFrom = null; start = null; buildLevels(); setMode(md); redraw(); save(); }
 function addLevel() { ask('Numele nivelului nou:', 'Etaj ' + plans.length, n => { if (!n || !n.trim()) return; plans.push({ name:n.trim(), items:[] }); setLevel(plans.length - 1); }); }
@@ -1336,9 +1341,16 @@ document.body.classList.toggle('small', small); document.body.classList.toggle('
   if (small) { setFocus(false); enterDock(); } else { exitDock(); setFocus(false); }       // tabletă: bara de jos (dock) cu panouri în stânga
 }
 /* ---------- Tabletă: bara de jos deschide panouri în stânga ---------- */
-const ICONS = {"home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/><path d=\"M10 20v-6h4v6\"/>", "plan": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"1\"/><path d=\"M3 12h8M15 12h6M11 3v5M11 12v9\"/>", "unif": "<path d=\"M12 3v6M12 9H5v6M12 9h7v6M5 15v6M19 15v6\"/>", "cloud": "<path d=\"M7 18a4 4 0 010-8 5 5 0 019.6-1A4.500 4.500 0 0117 18z\"/>", "undo": "<path d=\"M9 14L4 9l5-5\"/><path d=\"M4 9h10a6 6 0 010 12h-3\"/>", "export": "<path d=\"M12 16V4M7 9l5-5 5 5\"/><path d=\"M5 14v6h14v-6\"/>", "intrare": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M6 8h12v4a6 6 0 01-12 0z\"/><path d=\"M12 18v3\"/>", "circ": "<circle cx=\"6\" cy=\"5\" r=\"2\"/><circle cx=\"6\" cy=\"19\" r=\"2\"/><circle cx=\"18\" cy=\"12\" r=\"2\"/><path d=\"M6 7v10M6 12h10\"/>", "txt": "<text x=\"12\" y=\"17\" font-size=\"14\" font-weight=\"700\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Arial,sans-serif\">Aa</text>", "struct": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\"/><path d=\"M3 10h18M3 15h18M9 4v6M15 10v5M9 15v5\"/>", "light": "<path d=\"M9 18h6M10 21h4\"/><path d=\"M12 3a6 6 0 00-4 10.500c.8.8 1 1.500 1 2.500h6c0-1 .2-1.700 1-2.500A6 6 0 0012 3z\"/>", "sock": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"4\"/><path d=\"M9 10v2M15 10v2M10 16h4\"/>", "link": "<path d=\"M10 14a4 4 0 005.700 0l3-3a4 4 0 00-5.700-5.700l-1 1\"/><path d=\"M14 10a4 4 0 00-5.700 0l-3 3a4 4 0 005.700 5.700l1-1\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "lib": "<path d=\"M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z\"/><path d=\"M5 17a3 3 0 013-3h11\"/>", "cufar": "<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M4 9h16M4 15h16M10 6h4M10 12h4M10 18h4\"/>", "gen": "<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\" fill=\"currentColor\"/>", "set": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v3M12 19v3M2 12h3M19 12h3M4.900 4.900l2.100 2.100M17 17l2.100 2.100M4.900 19.100L7 17M17 7l2.100-2.100\"/>", "view": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-5-5\"/>", "hide": "<path d=\"M6 9l6 6 6-6\"/>", "menu": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>", "nav": "<path d=\"M5 3l14 7-6 2-2 6z\"/>", "move": "<path d=\"M12 2v20M2 12h20M12 2l-3 3M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3\"/>", "swap": "<path d=\"M4 8h14l-3-3M20 16H6l3 3\"/>", "edit": "<path d=\"M4 20l1-5L16 4l4 4L9 19z\"/><path d=\"M14 6l4 4\"/>", "resize": "<path d=\"M4 20L20 4M14 4h6v6M10 20H4v-6\"/>", "erase": "<path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13\"/>", "rot": "<path d=\"M20 12a8 8 0 11-3-6.200\"/><path d=\"M20 4v5h-5\"/>", "room": "<rect x=\"4\" y=\"6\" width=\"16\" height=\"12\"/>", "check": "<path d=\"M5 12l5 5 9-10\"/>", "magnet": "<path d=\"M5 4v8a7 7 0 0014 0V4h-4v8a3 3 0 01-6 0V4z\"/>", "png": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><circle cx=\"9\" cy=\"10\" r=\"2\"/><path d=\"M3 18l6-5 4 3 3-2 5 4\"/>", "print": "<path d=\"M7 9V3h10v6\"/><rect x=\"4\" y=\"9\" width=\"16\" height=\"8\" rx=\"2\"/><path d=\"M7 14h10v7H7z\"/>", "clip": "<rect x=\"6\" y=\"4\" width=\"12\" height=\"17\" rx=\"2\"/><path d=\"M9 4h6v3H9zM9 12h6M9 16h6\"/>"};
+const ICONS = {"home": "<path d=\"M3 11l9-8 9 8\"/><path d=\"M5 10v10h14V10\"/><path d=\"M10 20v-6h4v6\"/>", "plan": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"1\"/><path d=\"M3 12h8M15 12h6M11 3v5M11 12v9\"/>", "unif": "<path d=\"M12 3v6M12 9H5v6M12 9h7v6M5 15v6M19 15v6\"/>", "cloud": "<path d=\"M7 18a4 4 0 010-8 5 5 0 019.6-1A4.500 4.500 0 0117 18z\"/>", "undo": "<path d=\"M9 14L4 9l5-5\"/><path d=\"M4 9h10a6 6 0 010 12h-3\"/>", "export": "<path d=\"M12 16V4M7 9l5-5 5 5\"/><path d=\"M5 14v6h14v-6\"/>", "intrare": "<path d=\"M9 3v5M15 3v5\"/><path d=\"M6 8h12v4a6 6 0 01-12 0z\"/><path d=\"M12 18v3\"/>", "circ": "<circle cx=\"6\" cy=\"5\" r=\"2\"/><circle cx=\"6\" cy=\"19\" r=\"2\"/><circle cx=\"18\" cy=\"12\" r=\"2\"/><path d=\"M6 7v10M6 12h10\"/>", "txt": "<text x=\"12\" y=\"17\" font-size=\"14\" font-weight=\"700\" text-anchor=\"middle\" fill=\"currentColor\" stroke=\"none\" font-family=\"Arial,sans-serif\">Aa</text>", "struct": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\"/><path d=\"M3 10h18M3 15h18M9 4v6M15 10v5M9 15v5\"/>", "light": "<path d=\"M9 18h6M10 21h4\"/><path d=\"M12 3a6 6 0 00-4 10.500c.8.8 1 1.500 1 2.500h6c0-1 .2-1.700 1-2.500A6 6 0 0012 3z\"/>", "sock": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"4\"/><path d=\"M9 10v2M15 10v2M10 16h4\"/>", "link": "<path d=\"M10 14a4 4 0 005.700 0l3-3a4 4 0 00-5.700-5.700l-1 1\"/><path d=\"M14 10a4 4 0 00-5.700 0l-3 3a4 4 0 005.700 5.700l1-1\"/>", "plus": "<path d=\"M12 5v14M5 12h14\"/>", "lib": "<path d=\"M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z\"/><path d=\"M5 17a3 3 0 013-3h11\"/>", "cufar": "<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M4 9h16M4 15h16M10 6h4M10 12h4M10 18h4\"/>", "gen": "<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\" fill=\"currentColor\"/>", "set": "<path d=\"M12 15a3 3 0 100-6 3 3 0 000 6z\"/><path d=\"M19.400 15a1.650 1.650 0 00.330 1.820l.060.060a2 2 0 11-2.830 2.830l-.060-.060a1.650 1.650 0 00-1.820-.330 1.650 1.650 0 00-1 1.510V21a2 2 0 11-4 0v-.090A1.650 1.650 0 009 19.400a1.650 1.650 0 00-1.820.330l-.060.060a2 2 0 11-2.830-2.830l.060-.060a1.650 1.650 0 00.330-1.820 1.650 1.650 0 00-1.510-1H3a2 2 0 110-4h.090A1.650 1.650 0 004.600 9a1.650 1.650 0 00-.330-1.820l-.060-.060a2 2 0 112.830-2.830l.060.060a1.650 1.650 0 001.820.330H9a1.650 1.650 0 001-1.510V3a2 2 0 114 0v.090a1.650 1.650 0 001 1.510 1.650 1.650 0 001.820-.330l.060-.060a2 2 0 112.830 2.830l-.060.060a1.650 1.650 0 00-.330 1.820V9a1.650 1.650 0 001.510 1H21a2 2 0 110 4h-.090a1.650 1.650 0 00-1.510 1z\"/>", "view": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-5-5\"/>", "hide": "<path d=\"M6 9l6 6 6-6\"/>", "menu": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>", "nav": "<path d=\"M5 3l14 7-6 2-2 6z\"/>", "move": "<path d=\"M12 2v20M2 12h20M12 2l-3 3M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3\"/>", "swap": "<path d=\"M4 8h14l-3-3M20 16H6l3 3\"/>", "edit": "<path d=\"M4 20l1-5L16 4l4 4L9 19z\"/><path d=\"M14 6l4 4\"/>", "resize": "<path d=\"M4 20L20 4M14 4h6v6M10 20H4v-6\"/>", "erase": "<path d=\"M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13\"/>", "rot": "<path d=\"M20 12a8 8 0 11-3-6.200\"/><path d=\"M20 4v5h-5\"/>", "room": "<rect x=\"4\" y=\"6\" width=\"16\" height=\"12\"/>", "check": "<path d=\"M5 12l5 5 9-10\"/>", "magnet": "<path d=\"M5 4v8a7 7 0 0014 0V4h-4v8a3 3 0 01-6 0V4z\"/>", "png": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><circle cx=\"9\" cy=\"10\" r=\"2\"/><path d=\"M3 18l6-5 4 3 3-2 5 4\"/>", "print": "<path d=\"M7 9V3h10v6\"/><rect x=\"4\" y=\"9\" width=\"16\" height=\"8\" rx=\"2\"/><path d=\"M7 14h10v7H7z\"/>", "clip": "<rect x=\"6\" y=\"4\" width=\"12\" height=\"17\" rx=\"2\"/><path d=\"M9 4h6v3H9zM9 12h6M9 16h6\"/>", "star": "<path d=\"M12 3l2.800 5.700 6.200.900-4.500 4.400 1.100 6.200L12 17.200 6.400 20.200l1.100-6.200L3 9.600l6.200-.900z\"/>", "starf": "<path fill=\"currentColor\" d=\"M12 3l2.800 5.700 6.200.900-4.500 4.400 1.100 6.200L12 17.200 6.400 20.200l1.100-6.200L3 9.600l6.200-.900z\"/>", "zoomin": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-5-5M11 8v6M8 11h6\"/>", "zoomout": "<circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"M21 21l-5-5M8 11h6\"/>", "fit": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>", "lock": "<rect x=\"5\" y=\"11\" width=\"14\" height=\"10\" rx=\"2\"/><path d=\"M8 11V8a4 4 0 018 0v3\"/>", "hand": "<path d=\"M8 13V5a1.500 1.500 0 013 0v6M11 11V3.500a1.500 1.500 0 013 0V11M14 11V5a1.500 1.500 0 013 0v8M8 13l-1.500-2a1.500 1.500 0 00-2.500 1.500L7.500 18a5 5 0 004 3h2a5 5 0 005-5v-3\"/>", "full": "<path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\"/>"}
 const ic = k => ICONS[k] ? '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICONS[k] + '</svg>' : k;
-(function () { const st = document.createElement('style'); st.textContent = '.ic{width:26px;height:26px;display:block;margin:0 auto}.ib .ic{width:24px;height:24px}#xmenu .ic{display:inline-block;width:20px;height:20px;vertical-align:middle;margin:0 8px 0 0}#dockshow .ic{width:24px;height:24px}#cufar .ch .ic{display:inline-block;width:20px;height:20px;vertical-align:-4px;margin-right:6px}'; document.head.appendChild(st);
+const GLYPH = { '✎':'edit', '🗑':'erase', '⚙':'set', '☰':'menu', '🖼️':'png', '📋':'clip', '🖨️':'print', '🏠':'home', '＋':'zoomin', '－':'zoomout', '⤢':'fit', '↶':'undo', '↻':'rot', '🔗':'link', '⚡':'gen', '☝':'nav', '🔒':'lock', '✋':'hand', '⛶':'full', '+':'plus' };
+function iconize(root) {                          // înlocuiește emoji-ul de la începutul butoanelor cu iconiță desenată
+  (root || document).querySelectorAll('#settings button, #viewp button').forEach(b => {
+    if (b.children.length) return; const t = b.textContent.trim(); const g = Object.keys(GLYPH).find(x => t.startsWith(x)); if (!g) return;
+    const rest = t.slice(g.length).trim(); b.innerHTML = ic(GLYPH[g]) + (rest ? '<span class="it">' + rest + '</span>' : '');
+  });
+}
+(function () { const st = document.createElement('style'); st.textContent = '#settings button .ic,#settings label .ic{display:inline-block;width:18px;height:18px;vertical-align:-3px;margin:0 6px 0 0}#viewp #fab button .ic{width:26px;height:26px;margin:0 auto}#menu .btn{position:relative}.pin{position:absolute;top:2px;right:2px;width:30px;height:30px;border:0;background:none;color:#b8860b;padding:3px;cursor:pointer}.pin .ic{width:20px;height:20px}#favp .nt{font-size:12px;color:#666;padding:10px 6px}.ic{width:26px;height:26px;display:block;margin:0 auto}.ib .ic{width:24px;height:24px}#xmenu .ic{display:inline-block;width:20px;height:20px;vertical-align:middle;margin:0 8px 0 0}#dockshow .ic{width:24px;height:24px}#cufar .ch .ic{display:inline-block;width:20px;height:20px;vertical-align:-4px;margin-right:6px}'; document.head.appendChild(st);
   document.querySelectorAll('[data-ic]').forEach(e => { e.insertAdjacentHTML('afterbegin', ic(e.dataset.ic)); }); })();
 const DOCK = {
   1: [['intrare','intrare','Intrare',['INTRARE']], ['circ','circ','Circuite',['CIRCUITE (A','PE RÂND']], ['txt','txt','Text',['TEXT','NAVIGARE']]],
@@ -1372,6 +1384,7 @@ function buildDock() {
   sep();
   (DOCK[currentPage] || []).forEach(([k, ico, txt, pre]) => add('', ico, txt, () => togglePanel(k), k));
   sep();
+  add('', 'star', 'Favorite', () => togglePanel('fav'), 'fav');
   add('', 'cufar', 'Cufăr', () => toggleCufar(), 'cufar');
   add('gen', 'gen', 'Generează', () => { closePanel(); generate(); });
   add('', 'set', 'Setări', () => togglePanel('set'), 'set');
@@ -1384,9 +1397,10 @@ function markDock() { document.querySelectorAll('#dock .dk[data-k]').forEach(b =
 function togglePanel(k) { if (panelKey === k) closePanel(); else openPanel(k); }
 function openPanel(k) {
   if (document.getElementById('cufar')) toggleCufar(false);
-  panelKey = k; document.body.classList.add('panel'); document.body.dataset.panel = (k === 'set' || k === 'view') ? k : 'tools';
-  let title = k === 'set' ? 'Setări circuit și cablu' : k === 'view' ? 'Vedere și unelte' : '';
-  if (k !== 'set' && k !== 'view') {
+  panelKey = k; document.body.classList.add('panel'); document.body.dataset.panel = (k === 'set' || k === 'view' || k === 'fav') ? k : 'tools';
+  let title = k === 'set' ? 'Setări circuit și cablu' : k === 'view' ? 'Vedere și unelte' : k === 'fav' ? 'Favorite' : '';
+  if (k === 'fav') buildFav();
+  if (k !== 'set' && k !== 'view' && k !== 'fav') {
     const g = (DOCK[currentPage] || []).find(x => x[0] === k); if (!g) return; title = g[2];
     document.querySelectorAll('#menu [data-sec]').forEach(e => { e.style.display = g[3].some(p => e.dataset.sec.indexOf(p) === 0) ? '' : 'none'; });
   }
@@ -2183,6 +2197,33 @@ function drawCufarHL() {
     ct.save(); ct.fillStyle = 'rgba(41,128,185,.35)'; ct.strokeStyle = '#2980b9'; ct.lineWidth = 2;
     const r = 20; ct.beginPath(); ct.roundRect ? ct.roundRect(it.x - r, it.y - r, 2 * r, 2 * r, 6) : ct.rect(it.x - r, it.y - r, 2 * r, 2 * r); ct.fill(); ct.stroke(); ct.restore();
   });
+}
+
+/* ---------- Favorite: simbolurile cele mai folosite (automat) + cele fixate de tine cu ★ ---------- */
+function favGet() { try { const f = JSON.parse(localStorage.getItem('vt_fav') || '{}'); return { pin: f.pin || [], use: f.use || {} }; } catch (_) { return { pin: [], use: {} }; } }
+function favSet(f) { try { localStorage.setItem('vt_fav', JSON.stringify(f)); } catch (_) {} }
+function favCount(k) { if (!['sym','line','room'].includes(kindOf(k)) || k === 'lib_add' || k === 'lib_del') return; const f = favGet(); f.use[k] = (f.use[k] || 0) + 1; favSet(f); }
+function favTogglePin(k) { const f = favGet(), i = f.pin.indexOf(k); if (i >= 0) f.pin.splice(i, 1); else f.pin.push(k); favSet(f); buildMenu(); if (panelKey === 'fav') buildFav(); }
+function favList() {                              // fixate întâi, apoi cele mai folosite (până la 12), doar ce există pe pagina curentă
+  const f = favGet(), have = new Set(); TOOLS[currentPage].forEach(s => s[1].forEach(t => have.add(t[0])));
+  const pins = f.pin.filter(k => have.has(k)), auto = Object.keys(f.use).filter(k => have.has(k) && !pins.includes(k) && ['sym','line','room'].includes(kindOf(k))).sort((a, b) => f.use[b] - f.use[a]).slice(0, Math.max(0, 12 - pins.length));
+  return pins.map(k => [k, true]).concat(auto.map(k => [k, false]));
+}
+function buildFav() {
+  const el = document.getElementById('favp'); if (!el) return; el.innerHTML = '';
+  const L = favList();
+  if (!L.length) { el.innerHTML = '<div class="nt">Nimic aici încă. Simbolurile pe care le folosești cel mai des apar singure. Poți fixa unul cu ☆ din orice meniu (Structură, Iluminat, Prize…).</div>'; return; }
+  const g = document.createElement('div'); g.className = 'grid'; el.appendChild(g);
+  L.forEach(([k, pinned]) => {
+    let kind = ''; let label = k; TOOLS[currentPage].forEach(s => s[1].forEach(t => { if (t[0] === k && !kind) { kind = t[2]; label = t[1]; } }));
+    const b = document.createElement('button'); b.className = 'btn'; b.dataset.k = k;
+    const pv = document.createElement('canvas'); pv.width = pv.height = 72; b.appendChild(pv); b.appendChild(document.createTextNode(label));
+    b.onclick = () => { favCount(k); setMode(k); hideMenu(); };
+    const st = document.createElement('button'); st.className = 'pin'; st.title = pinned ? 'Scoate din favorite' : 'Fixează'; st.innerHTML = ic(pinned ? 'starf' : 'star');
+    st.onclick = ev => { ev.stopPropagation(); favTogglePin(k); }; b.appendChild(st);
+    g.appendChild(b); preview(pv, k, kind);
+  });
+  el.insertAdjacentHTML('beforeend', '<div class="nt">★ = fixat de tine · ☆ = pus automat (cele mai folosite). Atinge steaua ca să fixezi sau să scoți.</div>');
 }
 function fab2Active() { railActive(); ['Wall:wall', 'Room:room', 'Res:resize', 'Nav:nav'].forEach(q => { const [id, m] = q.split(':'), b = document.getElementById('fb' + id); if (b) b.classList.toggle('on', md === m); }); }
 
@@ -3121,7 +3162,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 22:10)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 23:00)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3169,9 +3210,10 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   if (top && back) { top.insertBefore(mk('📲 Instalează / ecran complet'), back); const d = mk('🔍 Verifică instalarea'); d.onclick = installDiag; d.title = 'Arată ce lipsește ca să se poată instala'; top.insertBefore(d, back); }
 })();
 buildFab2();
+iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 22:10';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 23:00';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
