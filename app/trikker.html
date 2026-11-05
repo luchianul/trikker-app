@@ -1884,6 +1884,11 @@ function onDown(e) {
   const p = pos(e), k = kindOf(md);
     if (k === 'nav') return;
   if (isLampMode(md) && k === 'sym') { startLampDrag(e); return; }                 // lampă: trage până o vezi pe ghidaje, ridici degetul = o pune
+  if (k === 'move' && currentPage === 2 && !textAt(rawPos(e))) {          // plan: „Mută” trage și simbolurile (lămpi, prize, uși...)
+    const r = rawPos(e), i = hit(r), it = i >= 0 ? pages[2][i] : null;
+    if (it && it.t === 'sym') { drag = { sym:true, it, sx:r.x, sy:r.y, o:[it.x, it.y] }; cv.setPointerCapture(e.pointerId); }
+    return;
+  }
   if (k === 'move') { const r = rawPos(e), h = textAt(r); if (h) { drag = { ...h, sx:r.x, sy:r.y, o: h.tag === 'free' ? [h.it.x, h.it.y] : (offOf(h.it, h.tag) || [0,0]).slice() }; hoverRec = h; cv.setPointerCapture(e.pointerId); } return; }
   if (k === 'line' && md === 'wall' && currentPage === 2) { wallDown(e); return; }
   if (k === 'room') { wallDown(e); return; }
@@ -2091,7 +2096,7 @@ function buildFab2() {
 /* ---------- Bara de editare (dreapta): toate uneltele de modificat la un loc ---------- */
 const ERAIL = {
   1: [['nav','☝','Mută'],['move','⇄','Mută text'],['edit','✎','Editează'],['erase','🗑','Șterge'],['@rot','↻','Rotește'],['@undo','↶','Înapoi']],
-  2: [['nav','☝','Mută'],['edit','✎','Întoarce / Editează'],['resize','⤢','Mărime'],['move','⇄','Mută text'],['erase','🗑','Șterge'],['@rot','↻','Rotește'],['@undo','↶','Înapoi']]
+  2: [['nav','☝','Mută'],['edit','✎','Întoarce / Editează'],['resize','⤢','Mărime'],['move','⇄','Mută simbol / text'],['erase','🗑','Șterge'],['@rot','↻','Rotește'],['@undo','↶','Înapoi']]
 };
 function buildRail() {
   let r = document.getElementById('erail');
@@ -2210,6 +2215,7 @@ cv.addEventListener('pointermove', e => {
   if (lampDrag) { updateLamp(e); return; }
   if (drag) {
     const r = rawPos(e), dx = Math.round(r.x - drag.sx), dy = Math.round(r.y - drag.sy), it = drag.it;
+    if (drag.sym) { it.x = Math.round((drag.o[0] + dx) / 5) * 5; it.y = Math.round((drag.o[1] + dy) / 5) * 5; redraw(); return; }
     if (drag.tag === 'free') { it.x = drag.o[0] + dx; it.y = drag.o[1] + dy; it.mv = true; }
     else { it.off = it.off || {}; it.off[drag.tag] = [drag.o[0] + dx, drag.o[1] + dy]; }
     redraw(); return;
@@ -3102,7 +3108,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 20:40)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 21:10)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3152,7 +3158,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 20:40';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 21:10';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
