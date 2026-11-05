@@ -1353,7 +1353,7 @@ function exitDock() {
   dockMoved.reverse().forEach(m => m.parent.insertBefore(m.el, m.next && m.next.parentNode === m.parent ? m.next : null)); dockMoved = [];
 }
 function buildDock() {
-  const d = document.getElementById('dock'); if (!d) return; d.innerHTML = '';
+  const d = document.getElementById('dock'); if (!d) return; d.innerHTML = ''; buildRail();
   const add = (cls, ico, txt, fn, key) => { const b = document.createElement('button'); b.className = 'dk ' + cls; if (key) b.dataset.k = key; b.innerHTML = '<b>' + ico + '</b>' + txt; b.onclick = fn; d.appendChild(b); return b; };
   const sep = () => { const x = document.createElement('div'); x.className = 'sep'; d.appendChild(x); };
   add('pgb' + (currentPage === 1 ? ' on' : ''), '📐', 'Unifilar', () => switchPage(1));
@@ -2081,7 +2081,33 @@ function buildFab2() {
   document.body.appendChild(d); chainUI();
   document.body.classList.toggle('touchui', isCoarse());
 }
-function fab2Active() { ['Wall:wall', 'Room:room', 'Res:resize', 'Nav:nav'].forEach(q => { const [id, m] = q.split(':'), b = document.getElementById('fb' + id); if (b) b.classList.toggle('on', md === m); }); }
+
+/* ---------- Bara de editare (dreapta): toate uneltele de modificat la un loc ---------- */
+const ERAIL = {
+  1: [['nav','☝','Mută'],['move','⇄','Mută text'],['edit','✎','Editează'],['erase','🗑','Șterge'],['@rot','↻','Rotește'],['@undo','↶','Înapoi']],
+  2: [['nav','☝','Mută'],['edit','✎','Întoarce / Editează'],['resize','⤢','Mărime'],['move','⇄','Mută text'],['erase','🗑','Șterge'],['@rot','↻','Rotește'],['@undo','↶','Înapoi']]
+};
+function buildRail() {
+  let r = document.getElementById('erail');
+  if (!r) {
+    const st = document.createElement('style');
+    st.textContent = '#erail{position:fixed;right:8px;top:50%;transform:translateY(-50%);display:none;flex-direction:column;gap:6px;z-index:61;padding:6px;background:rgba(255,255,255,.95);border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.3)}' +
+      '#erail button{width:62px;min-height:54px;font-size:11px;line-height:1.1;border-radius:12px;border:1px solid #888;background:#fff;cursor:pointer;padding:2px}#erail button b{display:block;font-size:22px}' +
+      '#erail button.on{background:#2980b9;color:#fff;border-color:#1f6391}#erail button.dg{color:#c0392b}#erail button.dg.on{color:#fff;background:#c0392b}' +
+      'body.dockui.small #erail{display:flex}body.dockui.dockoff #erail,body.dockui.panel #erail{display:none}@media print{#erail{display:none!important}}';
+    document.head.appendChild(st);
+    r = document.createElement('div'); r.id = 'erail'; document.body.appendChild(r);
+  }
+  r.innerHTML = '';
+  (ERAIL[currentPage] || []).forEach(([k, ico, txt]) => {
+    const b = document.createElement('button'); b.dataset.k = k; b.innerHTML = '<b>' + ico + '</b>' + txt; if (k === 'erase') b.className = 'dg';
+    b.onclick = () => { if (k === '@rot') rotate(); else if (k === '@undo') undo(); else setMode(k); };
+    r.appendChild(b);
+  });
+  railActive();
+}
+function railActive() { document.querySelectorAll('#erail button').forEach(b => b.classList.toggle('on', b.dataset.k === md)); }
+function fab2Active() { railActive(); ['Wall:wall', 'Room:room', 'Res:resize', 'Nav:nav'].forEach(q => { const [id, m] = q.split(':'), b = document.getElementById('fb' + id); if (b) b.classList.toggle('on', md === m); }); }
 
 /* ---------- Atingere: un deget desenează, două degete mută pagina și măresc/micșorează ---------- */
 const touches = new Map(), down0 = new Map(); let pend = null, gest = null, navLast = null;
@@ -3014,7 +3040,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 14:20)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 18:40)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3064,7 +3090,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 14:20';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 18:40';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
