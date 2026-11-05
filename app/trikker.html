@@ -32,7 +32,13 @@ body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; hei
 #tbmore { padding-top: 6px; border-top: 1px solid #ddd; }
 #toolbar.compact #tbmore { display: none; }
 #tbshow { display: none; position: fixed; top: 6px; right: 10px; z-index: 60; padding: 8px 14px; border-radius: 18px; border: 1px solid #555; background: rgba(255,255,255,.95); box-shadow: 0 2px 6px rgba(0,0,0,.4); font-weight: bold; cursor: pointer; }
-body.tbhid #tbshow { display: block; }
+body.tbhid #tbshow { display: block; right: 62px; }
+#chrome { position: fixed; top: 8px; right: 10px; z-index: 95; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #555; background: rgba(255,255,255,.94); box-shadow: 0 2px 8px rgba(0,0,0,.4); font-size: 21px; line-height: 1; cursor: pointer; padding: 0; }
+body.focus #chrome { opacity: .55; }
+body.focus #sidebar, body.focus #toolbar, body.focus #levels, body.focus #fab, body.focus #help, body.focus #tbshow { display: none !important; }
+body.focus:not(.drawing) #fab2 { display: none !important; }
+body:not(.focus) #toolbar { padding-right: 64px; }
+@media print { #chrome { display: none !important; } }
 body.tbhid #help { display: none; }
 body.p2 .p1only { display: none !important; }
 .p2only { display: none; }
@@ -579,6 +585,7 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
     </div>
   </div>
   <button id="tbshow" onclick="toggleBar()" title="Arată bara de sus">▼ Bara</button>
+  <button id="chrome" onclick="toggleFocus()" title="Arată / ascunde meniurile (rămâne doar foaia de lucru)">☰</button>
   <div id="levels"></div>
   <div id="canvas-wrap"><canvas id="c" width="1100" height="900"></canvas></div>
   <div id="pa"></div>
@@ -988,7 +995,8 @@ function redraw(ghost) {
   if (chain && currentPage === 2) markPoint(chain);
   if (roomPending && currentPage === 2) markPoint(roomPending);
   if (snapMark) { ct.save(); ct.strokeStyle = '#e67e22'; ct.lineWidth = 3; ct.beginPath(); ct.arc(snapMark.x, snapMark.y, 9, 0, 7); ct.stroke(); ct.restore(); }
-  if (ghost) { noRec = true; ct.globalAlpha = .45; drawItem(ct, ghost); ct.globalAlpha = 1; noRec = false; }
+  if (ghost) { if (ghost._g) drawGuides(ghost._g, ghost); noRec = true; ct.globalAlpha = .45; drawItem(ct, ghost); ct.globalAlpha = 1; noRec = false; }
+  else if (flashG) drawGuides(flashG.g, flashG.p);
 }
 
 /* ---------- Interfață ---------- */
@@ -1031,7 +1039,8 @@ function setMode(m) {
   if (m === 'lib_del') { libDelDlg(); return; }
   if (m !== 'wall') chain = null;
   if (m !== 'room') roomPending = null;
-  md = m; start = null; linkFrom = null; hoverRec = null; drag = null; snapMark = null; cv.style.cursor = kindOf(m) === 'move' ? 'move' : 'crosshair'; redraw();
+  document.body.classList.toggle('drawing', m === 'wall' || m === 'room' || m === 'resize');
+  md = m; lampDrag = null; start = null; linkFrom = null; hoverRec = null; drag = null; snapMark = null; cv.style.cursor = kindOf(m) === 'move' ? 'move' : 'crosshair'; redraw();
   document.querySelectorAll('.btn').forEach(b => b.classList.toggle('active', b.dataset.k === m));
 document.getElementById('chip').textContent = nameOf(m) + (rot && kindOf(m)==='sym' && m!=='text' && !WALLMOUNT[m] ? ' ' + rot*90 + '°' : '');
   document.getElementById('st').textContent = 'Mod: ' + nameOf(m) + (kindOf(m)==='sym' && m!=='text' && !WALLMOUNT[m] ? '  (rotire: ' + rot*90 + '°)' : '');
@@ -1040,6 +1049,7 @@ document.getElementById('chip').textContent = nameOf(m) + (rot && kindOf(m)==='s
     m === 'nav' ? 'Navigare: un deget mută pagina, două degete măresc/micșorează. Alege o unealtă din meniu ca să desenezi.' :
     m === 'wall' && currentPage === 2 ? 'PERETE: atinge punctele pe rând (sau trage de la un punct la altul). Se lipește singur de colțurile și pereții existenți; ultimul punct rămâne activ ca să continui. Atinge din nou primul punct ca să închizi camera sau apasă ✓ Gata.' :
     m === 'room' ? 'CAMERĂ: trage din colț în colț (sau atinge două colțuri opuse). Se creează cei 4 pereți, lipiți de pereții existenți. Poți face cameră după cameră.' :
+    isLampMode(m) ? 'LAMPĂ: liniile albastre arată mijlocul camerei, cele roz alinierea cu celelalte lămpi (portocaliu = simetric). Trage degetul / mouse-ul: se lipește singură de ghidaje (verde = centrat). Ridici degetul = o pune.' :
     k === 'line' ? 'Trage cu mouse-ul de la un punct la altul. Liniile sunt drepte și aliniate la grilă; ține Alt apăsat pentru linie oblică.' :
     m === 'u_start' ? 'Click pe locul unde începe lanțul. Apare o fereastră unde bifezi ce conține: disjunctor, contor kWh, separator (sectioner), diferențial 300 mA. Apoi poți șterge sau edita orice piesă.' :
     m === 'u_sect' ? 'Click ca să plasezi un separator (sectioner) pe lanțul de intrare, de ex. între contor și diferențial. Datele se scriu în câmpul „Aparat”.' :
@@ -1257,12 +1267,19 @@ function autoMode() {                       // tabletă / ecran mic = atingere S
   if (small === wasSmall) return;           // nu s-a schimbat nimic
   wasSmall = small;
 document.body.classList.toggle('small', small); document.body.classList.toggle('pc', !small);
-  const hid = document.body.classList.contains('tbhid');
-  if (small) { document.getElementById('sidebar').style.display = 'none'; if (!hid) toggleBar(); }
-  else { document.getElementById('sidebar').style.display = ''; if (hid) toggleBar(); }
+  setFocus(small);                          // tabletă: pornește doar cu foaia; meniurile se deschid din butonul ☰
 }
+function setFocus(on) {
+  document.body.classList.toggle('focus', on);
+  document.body.classList.remove('tbhid');
+  document.getElementById('toolbar').style.display = '';
+  document.getElementById('sidebar').style.display = on ? 'none' : '';
+  const b = document.getElementById('chrome'); if (b) b.textContent = on ? '☰' : '✕';
+  try { redraw(); } catch (_) {}
+}
+function toggleFocus() { setFocus(!document.body.classList.contains('focus')); }
 window.addEventListener('resize', autoMode);
-function hideMenu() { document.getElementById('sidebar').style.display = 'none'; }
+function hideMenu() { if (document.body.classList.contains('small')) setFocus(true); else document.getElementById('sidebar').style.display = 'none'; }   // tabletă: după ce alegi unealta rămâne doar foaia
 function toggleMenu() { const sb = document.getElementById('sidebar'); sb.style.display = sb.style.display === 'none' ? '' : 'none'; }
 function rotate() { rot = (rot + 1) % 4; setMode(md); if (mouse) redraw(ghostAt(mouse)); }
 /* ---------- Generare automată a unifilarului din plan ---------- */
@@ -1557,6 +1574,78 @@ function presetItems(x, y, o) {
 }
 // Simbolurile care se montează pe perete: [jumătate din lățime, distanța față de axa peretelui]
 const WALLMOUNT = { sw_dk:[0,12], door:[20,0], window:[25,0], sk_1:[0,17], sk_2:[0,17], sk_ip:[0,17], sk_3:[0,47], sw_1:[0,27], sw_2:[0,27], sw_b:[0,27], sw_c:[0,27], sw_x:[0,27] };
+/* ---------- Ghidaje pentru lămpi: mijlocul camerei + aliniere cu celelalte lămpi ---------- */
+let lampDrag = null, flashG = null;
+const isLampMode = m => currentPage === 2 && CAT[m] === 'l';
+function roomBoxAt(p) {                          // „camera” în care e punctul: cei mai apropiați pereți în cele 4 direcții
+  let xl = -Infinity, xr = Infinity, yt = -Infinity, yb = Infinity;
+  pages[2].forEach(w => {
+    if (w.t !== 'line' || w.k !== 'wall') return;
+    if (Math.abs(w.x1 - w.x2) < 2) {             // perete vertical
+      const lo = Math.min(w.y1, w.y2) - 2, hi = Math.max(w.y1, w.y2) + 2;
+      if (p.y >= lo && p.y <= hi) { const x = (w.x1 + w.x2) / 2; if (x <= p.x && x > xl) xl = x; if (x >= p.x && x < xr) xr = x; }
+    } else if (Math.abs(w.y1 - w.y2) < 2) {      // perete orizontal
+      const lo = Math.min(w.x1, w.x2) - 2, hi = Math.max(w.x1, w.x2) + 2;
+      if (p.x >= lo && p.x <= hi) { const y = (w.y1 + w.y2) / 2; if (y <= p.y && y > yt) yt = y; if (y >= p.y && y < yb) yb = y; }
+    }
+  });
+  const okx = isFinite(xl) && isFinite(xr) && xr - xl < 2500, oky = isFinite(yt) && isFinite(yb) && yb - yt < 2500;
+  return { xl, xr, yt, yb, okx, oky, ok: okx && oky };
+}
+function lampPlace(r) {                          // r = coordonate brute; întoarce poziția „lipită” + ghidajele de desenat
+  const R = (isCoarse() ? 26 : 14) / zoom, box = roomBoxAt(r);
+  let x = Math.round(r.x / G) * G, y = Math.round(r.y / G) * G;
+  const g = { box: box.ok ? box : null, cx: box.okx ? (box.xl + box.xr) / 2 : null, cy: box.oky ? (box.yt + box.yb) / 2 : null, sx: null, sy: null };
+  const inRoom = i => box.ok && i.x > box.xl && i.x < box.xr && i.y > box.yt && i.y < box.yb;
+  const others = pages[2].filter(i => i.t === 'sym' && CAT[i.k] === 'l' && inRoom(i));
+  const candX = [], candY = [];
+  if (g.cx !== null) { candX.push({ v: g.cx, t: 'c' }); }
+  if (g.cy !== null) candY.push({ v: g.cy, t: 'c' });
+  others.forEach(o => {
+    candX.push({ v: o.x, t: 'a', o }); candY.push({ v: o.y, t: 'a', o });
+    if (g.cx !== null) candX.push({ v: 2 * g.cx - o.x, t: 'm', o });          // simetricul față de mijloc
+    if (g.cy !== null) candY.push({ v: 2 * g.cy - o.y, t: 'm', o });
+  });
+  const pick = (cands, val) => { let b = null, bs = Infinity; cands.forEach(c => { const d = Math.abs(c.v - val); if (d <= R && d - (c.t === 'c' ? 3 : 0) < bs) { bs = d - (c.t === 'c' ? 3 : 0); b = c; } }); return b; };   // mijlocul camerei are prioritate
+  const bx = pick(candX, r.x), by = pick(candY, r.y);
+  if (bx) { x = Math.round(bx.v); g.sx = bx; }
+  if (by) { y = Math.round(by.v); g.sy = by; }
+  return { x, y, g };
+}
+function lampGhost(r) { const s = lampPlace(r), it = ghostAt({ x: s.x, y: s.y }); it._g = s.g; return it; }
+function drawGuides(g, p) {
+  if (!g) return;
+  ct.save(); ct.lineCap = 'round';
+  if (g.box) {                                   // mijlocul camerei
+    const b = g.box, sxC = g.sx && g.sx.t === 'c', syC = g.sy && g.sy.t === 'c';
+    ct.setLineDash([8, 6]);
+    ct.strokeStyle = sxC ? '#27ae60' : 'rgba(41,128,185,.6)'; ct.lineWidth = sxC ? 2.5 : 1.2; if (sxC) ct.setLineDash([]);
+    ct.beginPath(); ct.moveTo(g.cx, b.yt + 4); ct.lineTo(g.cx, b.yb - 4); ct.stroke();
+    ct.setLineDash([8, 6]); ct.strokeStyle = syC ? '#27ae60' : 'rgba(41,128,185,.6)'; ct.lineWidth = syC ? 2.5 : 1.2; if (syC) ct.setLineDash([]);
+    ct.beginPath(); ct.moveTo(b.xl + 4, g.cy); ct.lineTo(b.xr - 4, g.cy); ct.stroke();
+    ct.setLineDash([]); ct.strokeStyle = (sxC && syC) ? '#27ae60' : '#2980b9'; ct.lineWidth = 2;
+    ct.beginPath(); ct.arc(g.cx, g.cy, 6, 0, 7); ct.stroke();                // centrul camerei
+    ct.beginPath(); ct.moveTo(g.cx - 10, g.cy); ct.lineTo(g.cx + 10, g.cy); ct.moveTo(g.cx, g.cy - 10); ct.lineTo(g.cx, g.cy + 10); ct.stroke();
+  }
+  const al = (c, vertical) => {                  // aliniere cu altă lampă (roz) sau simetric (portocaliu)
+    if (!c || c.t === 'c') return;
+    ct.strokeStyle = c.t === 'a' ? '#e91e63' : '#e67e22'; ct.lineWidth = 1.8; ct.setLineDash([5, 4]);
+    ct.beginPath();
+    if (vertical) { ct.moveTo(c.v, Math.min(c.o.y, p.y) - 14); ct.lineTo(c.v, Math.max(c.o.y, p.y) + 14); } else { ct.moveTo(Math.min(c.o.x, p.x) - 14, c.v); ct.lineTo(Math.max(c.o.x, p.x) + 14, c.v); }
+    ct.stroke(); ct.setLineDash([]);
+    ct.beginPath(); ct.arc(c.o.x, c.o.y, 14, 0, 7); ct.stroke();           // lampa cu care se aliniază
+  };
+  al(g.sx, true); al(g.sy, false);
+  ct.restore();
+}
+function startLampDrag(e) { lampDrag = { pid: e.pointerId }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} updateLamp(e); }
+function updateLamp(e) { const it = lampGhost(rawPos(e)); redraw(it); showLoupe(e, { x: it.x, y: it.y }); }
+function commitLamp(e) {
+  const it = lampGhost(rawPos(e)); lampDrag = null; hideLoupe();
+  const g = it._g; delete it._g; it.uid = newUid(); pages[currentPage].push(it);
+  flashG = { g, p: { x: it.x, y: it.y } }; setTimeout(() => { flashG = null; redraw(); }, 1500);
+  redraw(); save(); autoNav();
+}
 function ghostAt(p) {
   if (md === 'u_start') return { t:'group', items: presetItems(p.x, p.y) };
   const it = { t:'sym', k:md, x:p.x, y:p.y, a:rot*Math.PI/2, id: currentPage === 2 ? '' : document.getElementById('cid').value };
@@ -1672,6 +1761,7 @@ function hit(p) {
 function onDown(e) {
   const p = pos(e), k = kindOf(md);
     if (k === 'nav') return;
+  if (isLampMode(md) && k === 'sym') { startLampDrag(e); return; }                 // lampă: trage până o vezi pe ghidaje, ridici degetul = o pune
   if (k === 'move') { const r = rawPos(e), h = textAt(r); if (h) { drag = { ...h, sx:r.x, sy:r.y, o: h.tag === 'free' ? [h.it.x, h.it.y] : (offOf(h.it, h.tag) || [0,0]).slice() }; hoverRec = h; cv.setPointerCapture(e.pointerId); } return; }
   if (k === 'line' && md === 'wall' && currentPage === 2) { wallDown(e); return; }
   if (k === 'room') { wallDown(e); return; }
@@ -1882,7 +1972,7 @@ const touches = new Map(), down0 = new Map(); let pend = null, gest = null, navL
 const cp = e => ({ clientX:e.clientX, clientY:e.clientY, pointerId:e.pointerId, altKey:e.altKey, pointerType:e.pointerType });
 function gPts() { return [...touches.values()].slice(0, 2); }
 function startGesture() {
-  start = null; drag = null; resizing = null; redraw();
+  lampDrag = null; hideLoupe(); start = null; drag = null; resizing = null; redraw();
   const p = gPts(), w = document.getElementById('canvas-wrap');
   gest = { d0: Math.hypot(p[0].clientX - p[1].clientX, p[0].clientY - p[1].clientY) || 1, mx0:(p[0].clientX + p[1].clientX)/2, my0:(p[0].clientY + p[1].clientY)/2, z0:zoom, sl0:w.scrollLeft, st0:w.scrollTop };
 }
@@ -1904,7 +1994,7 @@ cv.addEventListener('pointerdown', e => {
     if (md === 'nav' || penSeen) { navLast = { x:e.clientX, y:e.clientY }; return; }
   pend = setTimeout(() => { pend = null; const t = down0.get(e.pointerId); if (t && touches.size === 1 && !gest) onDown(t); }, 110);   // așteptăm să vedem dacă vine al doilea deget
 });
-cv.addEventListener('pointercancel', e => { hideLoupe(); touches.delete(e.pointerId); down0.delete(e.pointerId); navLast = null; if (!touches.size) { gest = null; clearTimeout(pend); pend = null; start = null; drag = null; resizing = null; redraw(); } });
+cv.addEventListener('pointercancel', e => { lampDrag = null; hideLoupe(); touches.delete(e.pointerId); down0.delete(e.pointerId); navLast = null; if (!touches.size) { gest = null; clearTimeout(pend); pend = null; start = null; drag = null; resizing = null; redraw(); } });
 cv.addEventListener('pointermove', e => {
   if (e.pointerType === 'touch') { if (touches.has(e.pointerId)) touches.set(e.pointerId, cp(e)); if (gest) { moveGesture(); return; } }
     if ((md === 'nav' || penSeen) && e.pointerType === 'touch' && navLast && touches.size === 1) {
@@ -1913,6 +2003,7 @@ cv.addEventListener('pointermove', e => {
     navLast = { x:e.clientX, y:e.clientY }; return;
   }
   const p = pos(e); mouse = p;
+  if (lampDrag) { updateLamp(e); return; }
   if (drag) {
     const r = rawPos(e), dx = Math.round(r.x - drag.sx), dy = Math.round(r.y - drag.sy), it = drag.it;
     if (drag.tag === 'free') { it.x = drag.o[0] + dx; it.y = drag.o[1] + dy; it.mv = true; }
@@ -1926,7 +2017,7 @@ cv.addEventListener('pointermove', e => {
     const q = endPoint(p, e);
     redraw({ t:'line', k:md, x1:start.x, y1:start.y, x2:q.x, y2:q.y, txt:lineLabel() });
   } else if (linkFrom) redraw({ t:'link', from:linkFrom, pt:p });
-  else if (kindOf(md) === 'sym' && md !== 'text') redraw(ghostAt(p));
+  else if (kindOf(md) === 'sym' && md !== 'text') redraw(isLampMode(md) ? lampGhost(rawPos(e)) : ghostAt(p));
 });
 cv.addEventListener('pointerup', e => {
   if (e.pointerType === 'touch') {
@@ -1934,6 +2025,7 @@ cv.addEventListener('pointerup', e => {
     touches.delete(e.pointerId); down0.delete(e.pointerId); navLast = null;
     if (gest) { if (!touches.size) gest = null; return; }
   }
+  if (lampDrag) { commitLamp(e); return; }
   if (drag) { drag = null; redraw(); save(); return; }
   if (resizing) { resizing = null; redraw(); save(); autoNav(); return; }
   if (!start) return;
@@ -1947,7 +2039,7 @@ cv.addEventListener('pointerleave', () => { mouse = null; if (!start) redraw(); 
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if (e.key === 'r' || e.key === 'R') rotate();
-  if (e.key === 'Escape') { start = null; linkFrom = null; redraw(); }
+  if (e.key === 'Escape') { start = null; linkFrom = null; lampDrag = null; hideLoupe(); redraw(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
 });
 
@@ -2806,7 +2898,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 03.11 17:58)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 10:40)');
   else {
     try {
       const m = await get(link.href, true);
@@ -2856,7 +2948,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 03.11 17:58';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 10:40';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
