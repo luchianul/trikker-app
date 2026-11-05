@@ -619,6 +619,7 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
       <button onclick="generate()" style="background:#27ae60;color:#fff;font-weight:bold" title="Generează unifilar din plan">⚡ Generează</button>
       <button onclick="undo()" title="Anulează (Ctrl+Z)">↶</button>
       <button onclick="rotate()" title="Rotește (R)">↻</button>
+      <button onclick="toggleCufar()" title="Cufărul: diferențiale și circuite">🗄 Cufăr</button>
 <button onclick="zoomBy(0.8)" title="Micșorează">－</button><button onclick="zoomBy(1.25)" title="Mărește">＋</button><button onclick="zoomFit()" title="Încadrează pagina">⤢</button>
       <button id="bpan" onclick="togglePan()" title="Când e pornit, atingi și tragi ca să muți pagina / ciupești ca să mărești (nu desenezi)">✋ Deplasare: OFF</button>
       <button id="bmore" onclick="toggleMore()">▾ Mai multe</button>
@@ -1049,6 +1050,7 @@ function redraw(ghost) {
   pages[currentPage].filter(it => !isSt(it)).forEach(it => drawItem(ct, it));
   if (linkFrom && U[linkFrom]) { ct.strokeStyle = '#c0392b'; ct.lineWidth = 2; ct.beginPath(); ct.arc(U[linkFrom].x, U[linkFrom].y, 18, 0, 7); ct.stroke(); }
   if (hoverRec) { const b = boxOf(hoverRec.it, hoverRec.tag); if (b) { ct.save(); ct.strokeStyle = '#2980b9'; ct.lineWidth = 1; ct.setLineDash([4,3]); ct.strokeRect(b.x0-3, b.y0-3, b.x1-b.x0+6, b.y1-b.y0+6); ct.restore(); } }
+  if (cufar && currentPage === 2) drawCufarHL();
   if (md === 'resize' && currentPage === 2) drawHandles();
   if (chain && currentPage === 2) markPoint(chain);
   if (roomPending && currentPage === 2) markPoint(roomPending);
@@ -1125,6 +1127,7 @@ document.getElementById('chip').textContent = nameOf(m) + (rot && kindOf(m)==='s
     'Click ca să plasezi simbolul. Apasă R ca să-l rotești. Ușile, ferestrele, prizele și întrerupătoarele se aliniază singure pe cel mai apropiat perete, pe partea unde ții cursorul.';
 }
 function switchPage(p) {
+  if (p !== 2 && cufar) toggleCufar(false);
   currentPage = p; start = null; rot = 0;
   document.body.classList.toggle('p2', p === 2);
   document.getElementById('t1').classList.toggle('active', p===1);
@@ -1260,7 +1263,7 @@ function circDlg(uid) {
     const id = d.querySelector('.did').value.trim();
     if (!id) { alert('Scrie circuitul (ex. A).'); return false; }
     const gr = d.querySelector('.dgr').value.trim();
-    circCfg[id] = { cab:d.querySelector('.dcab').value.trim(), app:d.querySelector('.dapp').value.trim(), pl:d.querySelector('.dpl').value };
+    circCfg[id] = { cab:d.querySelector('.dcab').value.trim(), app:d.querySelector('.dapp').value.trim(), pl:d.querySelector('.dpl').value, nm:(circCfg[id] || {}).nm || '' };
     if (gr) { circCfg[id].grp = gr; gc[gr] = { app:d.querySelector('.dga').value.trim() || GDEF }; }
     setComponentId(uid, id); redraw(); save();
     document.getElementById('help').textContent = 'Circuit ' + id + ' setat: ' + circCfg[id].cab + ' • ' + circCfg[id].app.replace(/\|/g, ' ') + (circCfg[id].pl ? ' • ' + PLN[circCfg[id].pl] : '') + (gr ? ' • grup ' + gr : '') + '. Apasă ⚡ Generează când ai terminat.';
@@ -1361,6 +1364,7 @@ function buildDock() {
   sep();
   (DOCK[currentPage] || []).forEach(([k, ico, txt, pre]) => add('', ico, txt, () => togglePanel(k), k));
   sep();
+  add('', '🗄', 'Cufăr', () => toggleCufar(), 'cufar');
   add('gen', '⚡', 'Generează', () => { closePanel(); generate(); });
   add('', '⚙️', 'Setări', () => togglePanel('set'), 'set');
   add('', '🔍', 'Vedere', () => togglePanel('view'), 'view');
@@ -1371,6 +1375,7 @@ function buildDock() {
 function markDock() { document.querySelectorAll('#dock .dk[data-k]').forEach(b => b.classList.toggle('on', b.dataset.k === panelKey)); }
 function togglePanel(k) { if (panelKey === k) closePanel(); else openPanel(k); }
 function openPanel(k) {
+  if (document.getElementById('cufar')) toggleCufar(false);
   panelKey = k; document.body.classList.add('panel'); document.body.dataset.panel = (k === 'set' || k === 'view') ? k : 'tools';
   let title = k === 'set' ? 'Setări circuit și cablu' : k === 'view' ? 'Vedere și unelte' : '';
   if (k !== 'set' && k !== 'view') {
@@ -2108,6 +2113,62 @@ function buildRail() {
   railActive();
 }
 function railActive() { document.querySelectorAll('#erail button').forEach(b => b.classList.toggle('on', b.dataset.k === md)); }
+
+/* ---------- Cufăr: diferențiale și circuite; atingi un circuit și apar evidențiate pe plan ---------- */
+let cufar = null;                                // { ids:[...circuite evidențiate], key:'c:A' | 'g:D1' }
+function cufarData() {
+  const cnt = {}; ALLP().forEach(i => { if (i.t === 'sym' && CAT[i.k]) { const id = (i.id || '?').trim() || '?'; cnt[id] = (cnt[id] || 0) + 1; } });
+  Object.keys(circCfg).forEach(k => { if (circCfg[k] && (circCfg[k].spare || circCfg[k].grp || circCfg[k].nm) && cnt[k] === undefined) cnt[k] = 0; });
+  const ids = Object.keys(cnt).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0)), groups = {};
+  ids.forEach(id => { const g = ((circCfg[id] || {}).grp || '').trim(); (groups[g] = groups[g] || []).push(id); });
+  return { cnt, groups, names: Object.keys(groups).sort((a, b) => (a === '') - (b === '') || (a < b ? -1 : a > b ? 1 : 0)) };
+}
+function buildCufar() {
+  let el = document.getElementById('cufar');
+  if (!el) {
+    const st = document.createElement('style');
+    st.textContent = '#cufar{position:fixed;left:0;top:0;bottom:0;width:290px;max-width:80vw;background:#fff;z-index:66;box-shadow:2px 0 12px rgba(0,0,0,.3);display:none;flex-direction:column;font-family:system-ui,Arial,sans-serif}#cufar.show{display:flex}' +
+      '#cufar .ch{display:flex;align-items:center;gap:8px;padding:12px;border-bottom:1px solid #ddd;font-weight:bold;font-size:16px}#cufar .ch span{flex:1}#cufar .ch button{font-size:18px;border:0;background:none;cursor:pointer;padding:4px 8px}' +
+      '#cufar .cb{overflow:auto;padding:8px;flex:1}#cufar .gh{margin:10px 0 4px;padding:10px;border-left:4px solid #2980b9;background:#eef4fa;font-weight:bold;font-size:14px;cursor:pointer;border-radius:4px}#cufar .gh small{display:block;font-weight:normal;color:#555;font-size:11px}' +
+      '#cufar .cr{display:flex;align-items:center;gap:10px;margin:4px 0 4px 14px;padding:12px 10px;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px}#cufar .cr b{min-width:26px;font-size:16px}#cufar .cr .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#cufar .cr .k{color:#777;font-size:12px}#cufar .cr .e{border:0;background:none;font-size:16px;cursor:pointer}' +
+      '#cufar .cr.on,#cufar .gh.on{background:#2980b9;color:#fff;border-color:#1f6391}#cufar .gh.on small{color:#dfeaf5}#cufar .cr.on .k{color:#dfeaf5}#cufar .nt{font-size:12px;color:#666;padding:6px 4px}@media print{#cufar{display:none!important}}';
+    document.head.appendChild(st);
+    el = document.createElement('div'); el.id = 'cufar'; document.body.appendChild(el);
+  }
+  const d = cufarData(), GDEF = '2P - 40A|Δ30mA - tip A|LEGRAND';
+  let h = '<div class="ch"><span>🗄 Cufăr (tablou)</span><button onclick="toggleCufar(false)" title="Închide">✕</button></div><div class="cb">';
+  if (!d.names.length) h += '<div class="nt">Nu ai încă circuite. Leagă simbolurile de pe plan cu 🔗 și dă-le o literă (A, B, C…).</div>';
+  d.names.forEach(g => {
+    const ids = d.groups[g], on = cufar && cufar.key === 'g:' + g;
+    h += '<div class="gh' + (on ? ' on' : '') + '" data-g="' + escA(g) + '">' + (g ? 'Diferențial ' + escH(g) : 'Fără diferențial') + (g ? '<small>' + escH(((gc[g] && gc[g].app) || GDEF).replace(/\|/g, ' · ')) + '</small>' : '') + '</div>';
+    ids.forEach(id => { const nm = (circCfg[id] || {}).nm || '';
+      h += '<div class="cr' + (cufar && cufar.key === 'c:' + id ? ' on' : '') + '" data-c="' + escA(id) + '"><b>' + escH(id) + '</b><span class="n">' + escH(nm) + '</span><span class="k">' + d.cnt[id] + ' buc.</span><button class="e" data-e="' + escA(id) + '" title="Dă un nume">✎</button></div>'; });
+  });
+  el.innerHTML = h + '<div class="nt">Atinge un circuit sau un diferențial: componentele lui se colorează în albastru pe plan.</div></div>';
+  el.querySelectorAll('.cr').forEach(r => r.onclick = ev => {
+    const id = r.dataset.c;
+    if (ev.target.closest('.e')) { const v = prompt('Nume circuit ' + id + ' (ex. Salon):', (circCfg[id] || {}).nm || ''); if (v !== null) { circCfg[id] = Object.assign(circCfg[id] || {}, { nm: v.trim() }); save(); buildCufar(); } return; }
+    cufar = cufar && cufar.key === 'c:' + id ? null : { key: 'c:' + id, ids: [id] }; buildCufar(); redraw();
+  });
+  el.querySelectorAll('.gh').forEach(r => r.onclick = () => { const g = r.dataset.g; cufar = cufar && cufar.key === 'g:' + g ? null : { key: 'g:' + g, ids: d.groups[g] || [] }; buildCufar(); redraw(); });
+}
+function toggleCufar(on) {
+  const el = document.getElementById('cufar'), show = on === undefined ? !(el && el.classList.contains('show')) : on;
+  if (show) {
+    if (currentPage !== 2) switchPage(2);
+    if (document.body.classList.contains('dockui')) closePanel();
+    buildCufar(); document.getElementById('cufar').classList.add('show');
+  } else { if (el) el.classList.remove('show'); cufar = null; redraw(); }
+  document.querySelectorAll('#dock .dk[data-k=cufar]').forEach(b => b.classList.toggle('on', show));
+}
+function drawCufarHL() {
+  const set = new Set(cufar.ids);
+  pages[2].forEach(it => {
+    if (it.t !== 'sym' || !CAT[it.k] || !set.has((it.id || '?').trim() || '?')) return;
+    ct.save(); ct.fillStyle = 'rgba(41,128,185,.35)'; ct.strokeStyle = '#2980b9'; ct.lineWidth = 2;
+    const r = 20; ct.beginPath(); ct.roundRect ? ct.roundRect(it.x - r, it.y - r, 2 * r, 2 * r, 6) : ct.rect(it.x - r, it.y - r, 2 * r, 2 * r); ct.fill(); ct.stroke(); ct.restore();
+  });
+}
 function fab2Active() { railActive(); ['Wall:wall', 'Room:room', 'Res:resize', 'Nav:nav'].forEach(q => { const [id, m] = q.split(':'), b = document.getElementById('fb' + id); if (b) b.classList.toggle('on', md === m); }); }
 
 /* ---------- Atingere: un deget desenează, două degete mută pagina și măresc/micșorează ---------- */
@@ -3041,7 +3102,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 19:30)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 20:10)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3091,7 +3152,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 19:30';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 20:10';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
