@@ -33,3 +33,11 @@ g2 = re.sub(r'versionName "[^"]*"', 'versionName "1.0.' + num + '"', g2)
 assert g2 != g or num == '1'
 open('android/app/build.gradle', 'w').write(g2)
 print('Android pregatit, versionCode', num)
+
+# permisiunea de a porni instalarea .apk-ului descarcat
+mf = 'android/app/src/main/AndroidManifest.xml'
+m = open(mf).read()
+if 'REQUEST_INSTALL_PACKAGES' not in m:
+    m = m.replace('<application', '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <application', 1)
+    open(mf, 'w').write(m)
+print('Manifest: REQUEST_INSTALL_PACKAGES')

@@ -690,10 +690,10 @@ const TOOLS = {
       ['wall','Perete','line'], ['room','Cameră','room'], ['door','Ușă','sym'], ['window','Fereastră','sym'],
       ['stair','Scară dreaptă','sym'], ['stair_r','Scară rotundă','sym'], ['resize','Redimensionează','resize'] ]],
     ['ILUMINAT', [
-      ['lp_x','Lampă','sym'], ['lp_led','LED','sym'], ['lp_spot','Spot','sym'], ['lp_neon','Neon','sym'], ['fan','Ventilator','sym'] ]],
-    ['PRIZE ȘI COMUTARE', [
-      ['sk_1','Priză','sym'], ['sk_2','Priză dublă','sym'], ['sk_ip','Priză IP44','sym'], ['sk_3','Priză trifazată','sym'],
+      ['lp_x','Lampă','sym'], ['lp_led','LED','sym'], ['lp_spot','Spot','sym'], ['lp_neon','Neon','sym'], ['fan','Ventilator','sym'],
       ['sw_1','Întrerup.','sym'], ['sw_2','Întrerup. dublu','sym'], ['sw_b','Bipolar','sym'], ['sw_c','Vai-vien','sym'], ['sw_x','Cruce','sym'], ['sw_dk','Buton','sym'], ['sw_det','Detector','sym'] ]],
+    ['PRIZE', [
+      ['sk_1','Priză','sym'], ['sk_2','Priză dublă','sym'], ['sk_ip','Priză IP44','sym'], ['sk_3','Priză trifazată','sym'] ]],
     ['ALTELE', [
       ['panel','Tablou','sym'], ['jb','Doză','sym'], ['motor','Motor','sym'], ['text','Text','sym'], ['move','Mută text','move'], ['erase','Șterge','erase'] ]]
   ]
@@ -1581,6 +1581,7 @@ function undo() {
 function clearAll() { if (confirm(currentPage === 2 ? 'Ștergi nivelul curent (' + plans[lvl].name + ')?' : 'Ștergi pagina curentă?')) { pages[currentPage] = []; if (currentPage === 1) pages.del = []; redraw(); save(); } }
 /* ---------- Aplicația instalată (Android/Windows): salvare fișiere și tipărire ---------- */
 const NATIVE = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+if (NATIVE && 'serviceWorker' in navigator) { try { navigator.serviceWorker.getRegistrations().then(r => r.forEach(x => x.unregister())); if (window.caches) caches.keys().then(k => k.forEach(n => caches.delete(n))); } catch (_) {} }   // în aplicație nu folosim service worker: nu are voie să țină versiuni vechi
 function saveBlobAs(blob, name) {                      // în aplicația Android: fișierul se salvează/trimite prin „Distribuie”; altfel descărcare normală
   if (NATIVE && Capacitor.Plugins && Capacitor.Plugins.Filesystem && Capacitor.Plugins.Share) {
     const r = new FileReader();
@@ -3040,7 +3041,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 18:40)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 19:30)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3090,7 +3091,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
 buildFab2();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 18:40';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 19:30';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
