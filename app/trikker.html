@@ -1088,6 +1088,11 @@ function textAt(r) {                       // ultimul text desenat sub cursor
 }
 function rawPos(e) { const r = cv.getBoundingClientRect(); return { x:(e.clientX - r.left) * cv.width / r.width, y:(e.clientY - r.top) * cv.height / r.height }; }
 function redraw(ghost) {
+  if (currentPage === 1 && pages[1].length) {      // ce iese în sus/stânga foii nu se vede: coborâm tot desenul ca să încapă
+    let my = Infinity, mx = Infinity; pages[1].forEach(i => { [i.y, i.y1, i.y2].forEach(v => { if (typeof v === 'number' && v < my) my = v; }); [i.x, i.x1, i.x2].forEach(v => { if (typeof v === 'number' && v < mx) mx = v; }); });
+    const dy = my < 20 ? 40 - my : 0, dx = mx < 10 ? 20 - mx : 0;
+    if (dy || dx) { pages[1].forEach(i => { ['y', 'y1', 'y2'].forEach(k => { if (typeof i[k] === 'number') i[k] += dy; }); ['x', 'x1', 'x2'].forEach(k => { if (typeof i[k] === 'number') i[k] += dx; }); }); if (current) save(); }
+  }
   { let mw = 0, mh = 0; pages[currentPage].forEach(i => { mw = Math.max(mw, i.x || 0, i.x1 || 0, i.x2 || 0); mh = Math.max(mh, i.y || 0, i.y1 || 0, i.y2 || 0); });
     const w = Math.max(1100, mw + 90), h = Math.max(900, mh + (currentPage === 1 ? 130 : 90)); if (cv.width !== w) cv.width = w; if (cv.height !== h) cv.height = h; }
   applyZoom();
@@ -3485,7 +3490,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 18:20)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 19:00)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3536,7 +3541,7 @@ buildFab2();
 iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 18:20';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 19:00';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
