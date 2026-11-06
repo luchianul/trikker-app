@@ -1046,10 +1046,12 @@ function textAt(r) {                       // ultimul text desenat sub cursor
 function rawPos(e) { const r = cv.getBoundingClientRect(); return { x:(e.clientX - r.left) * cv.width / r.width, y:(e.clientY - r.top) * cv.height / r.height }; }
 function redraw(ghost) {
   { let mw = 0, mh = 0; pages[currentPage].forEach(i => { mw = Math.max(mw, i.x || 0, i.x1 || 0, i.x2 || 0); mh = Math.max(mh, i.y || 0, i.y1 || 0, i.y2 || 0); });
+    { const _b = currentPage === 2 && bgCur(); if (_b && _b.show) { mw = Math.max(mw, _b.x + _b.w * _b.s); mh = Math.max(mh, _b.y + _b.h * _b.s); } }
     const w = Math.max(1100, mw + 90), h = Math.max(900, mh + (currentPage === 1 ? 130 : 90)); if (cv.width !== w) cv.width = w; if (cv.height !== h) cv.height = h; }
   applyZoom();
   ct.clearRect(0,0,cv.width,cv.height); TB = []; noRec = false;
   U = {}; pages[currentPage].forEach(i => { if (i.uid) U[i.uid] = i; });
+  if (currentPage === 2) drawBg();
   const isSt = it => it.t === 'sym' && STAIRS.includes(it.k);   // scările se desenează primele, sub restul
   pages[currentPage].filter(isSt).forEach(it => drawItem(ct, it));
   pages[currentPage].filter(it => !isSt(it)).forEach(it => drawItem(ct, it));
@@ -2249,6 +2251,112 @@ function diffDlg(it, done) {
     done();
   });
 }
+
+/* ---------- Fundal PDF / poză: planul arhitectului în spatele foii, cu pereți detectați automat ---------- */
+var BGS = {}, BGIMG = {};                             // BGS[id] = { src, w, h, x, y, s, s0, op, show }; id se ține în plans[nivel].bgk
+function bgLoad() { try { BGS = JSON.parse(lsGet('vt_bg:' + current) || '{}'); } catch (_) { BGS = {}; } BGIMG = {}; }
+function bgSave() { lsSet('vt_bg:' + current, JSON.stringify(BGS)); }
+function bgCur() { const id = plans[lvl] && plans[lvl].bgk; return id && BGS[id] || null; }
+function drawBg() {
+  const b = bgCur(); if (!b || !b.show) return; const id = plans[lvl].bgk; let c = BGIMG[id];
+  if (!c || c.src0 !== b.src) { const im = new Image(); im.onload = () => redraw(); im.src = b.src; c = BGIMG[id] = { im, src0: b.src }; }
+  if (!c.im.complete || !c.im.naturalWidth) return;
+  ct.save(); ct.globalAlpha = b.op; ct.drawImage(c.im, b.x, b.y, b.w * b.s, b.h * b.s); ct.restore();
+}
+function loadScript(src) { return new Promise((res, rej) => { const e = document.createElement('script'); e.src = src; e.onload = res; e.onerror = () => rej(new Error('Nu s-a putut încărca ' + src)); document.head.appendChild(e); }); }
+async function pdfLib() {                              // pdf.js se încarcă doar când ai nevoie de el
+  if (window.pdfjsLib && window.pdfjsLib.__ready) return window.pdfjsLib;
+  await loadScript('pdfjs/pdf.min.js'); await loadScript('pdfjs/pdfworker.js');
+  const bytes = Uint8Array.from(atob(window.__PDFW), c => c.charCodeAt(0));
+  pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(URL.createObjectURL(new Blob([bytes], { type: 'text/javascript' })));
+  pdfjsLib.__ready = 1; window.__PDFW = null; return pdfjsLib;
+}
+function pickBgFile(cb) { const f = document.createElement('input'); f.type = 'file'; f.accept = 'application/pdf,image/*'; f.onchange = () => { if (f.files[0]) cb(f.files[0]); }; f.click(); }
+function helpMsg(t) { const h = document.getElementById('help'); if (h) h.textContent = t; }
+async function bgRead(file) {                          // -> canvas cu pagina/poza (lățime ~2000 px)
+  if (/pdf/i.test(file.type) || /\.pdf$/i.test(file.name)) {
+    const lib = await pdfLib(); const doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    let pn = 1;
+    if (doc.numPages > 1) pn = await new Promise(res => { const o = dlg('Ce pagină din PDF?', '<label>Pagina cu planul (de obicei 1):<select class="pp" style="font-size:16px;margin-left:8px">' + Array.from({ length: doc.numPages }, (_, i) => '<option>' + (i + 1) + '</option>').join('') + '</select></label><small>PDF-ul are ' + doc.numPages + ' pagini.</small>', d => res(+d.querySelector('.pp').value)); o.querySelector('.dc').addEventListener('click', () => res(0)); });
+    if (!pn) return null;
+    const pgx = await doc.getPage(pn), v0 = pgx.getViewport({ scale: 1 }), vp = pgx.getViewport({ scale: 2200 / v0.width });
+    const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); await pgx.render({ canvasContext: g, viewport: vp }).promise; return c;
+  }
+  const url = URL.createObjectURL(file), im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Nu e o imagine validă')); i.src = url; });
+  const k = Math.min(1, 2200 / im.naturalWidth), c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url); return c;
+}
+function detectWalls(gray, W, H, region) {             // linii drepte lungi (orizontale/verticale) din imagine
+  const thr = 140, minLen = Math.max(30, Math.round(W * 0.025)), x0 = region[0], y0 = region[1], x1 = region[2], y1 = region[3];
+  const runs = (vert) => { const out = [], A = vert ? W : H, B = vert ? H : W;
+    for (let c = (vert ? x0 : y0); c < (vert ? x1 : y1); c++) { let t = vert ? y0 : x0; const e = vert ? y1 : x1;
+      while (t < e) { const d = vert ? gray[t * W + c] < thr : gray[c * W + t] < thr; if (d) { let k = t; while (k < e && (vert ? gray[k * W + c] < thr : gray[c * W + k] < thr)) k++; if (k - t >= minLen) out.push([c, t, k]); t = k; } else t++; } }
+    return out; };
+  const merge = rs => { const segs = []; rs.forEach(([c, a, b]) => { const s = segs.find(q => c - q.c1 <= 2 && Math.abs(q.a - a) <= 4 && Math.abs(q.b - b) <= 4); if (s) s.c1 = c; else segs.push({ c0: c, c1: c, a, b }); });
+    const L = segs.map(q => ({ c: (q.c0 + q.c1) / 2, a: q.a, b: q.b })).sort((p, q) => p.c - q.c || p.a - q.a), out = [];
+    L.forEach(q => { const m = out.find(o => Math.abs(o.c - q.c) <= 3 && q.a <= o.b + 8 && q.b >= o.a - 8); if (m) { m.a = Math.min(m.a, q.a); m.b = Math.max(m.b, q.b); } else out.push({ ...q }); }); return out; };
+  return { h: merge(runs(false)), v: merge(runs(true)) };
+}
+function bgOptions(canvas, newName, cb) {
+  const bgx = bgCur();
+  const html = (newName !== null ? '<label>Nume proiect:<input class="pn full" value="' + escA(newName) + '"></label>' : '') +
+    '<label><input type="checkbox" class="oc" checked> Ignoră chenarul și cartușul (marginile și banda de jos)</label>' +
+    '<label><input type="checkbox" class="ow" checked> Desenează automat pereții găsiți în imagine</label>' +
+    '<label>Cât de vizibil e fundalul: <input type="range" class="oo" min="15" max="100" value="45" style="vertical-align:middle"></label>' +
+    '<small>Pereții detectați sunt linii drepte lungi; verifică-i și șterge/ajustează ce nu e bine. Pentru plan din poză sau scanat poate fi nevoie să-i desenezi tu.</small>';
+  dlg('Fundal din PDF / imagine', html, d => { cb({ name: newName !== null ? d.querySelector('.pn').value.trim() : null, crop: d.querySelector('.oc').checked, walls: d.querySelector('.ow').checked, op: d.querySelector('.oo').value / 100 }); });
+}
+function bgApply(canvas, o) {
+  let W = canvas.width, H = canvas.height; const g = canvas.getContext('2d'), img = g.getImageData(0, 0, W, H).data, gray = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) gray[i] = (img[4 * i] * 0.3 + img[4 * i + 1] * 0.59 + img[4 * i + 2] * 0.11) | 0;
+  const region = o.crop ? [Math.round(W * 0.03), Math.round(H * 0.03), Math.round(W * 0.97), Math.round(H * 0.78)] : [0, 0, W, H];
+  const det = detectWalls(gray, W, H, region), all = det.h.concat(det.v);
+  let bx0 = 0, by0 = 0, bx1 = W, by1 = H;
+  if (o.crop && all.length) { bx0 = W; by0 = H; bx1 = 0; by1 = 0; det.h.forEach(q => { bx0 = Math.min(bx0, q.a); bx1 = Math.max(bx1, q.b); by0 = Math.min(by0, q.c); by1 = Math.max(by1, q.c); }); det.v.forEach(q => { by0 = Math.min(by0, q.a); by1 = Math.max(by1, q.b); bx0 = Math.min(bx0, q.c); bx1 = Math.max(bx1, q.c); });
+    const m = 40; bx0 = Math.max(0, Math.floor(bx0 - m)); by0 = Math.max(0, Math.floor(by0 - m)); bx1 = Math.min(W, Math.ceil(bx1 + m)); by1 = Math.min(H, Math.ceil(by1 + m)); }
+  const c2 = document.createElement('canvas'); c2.width = bx1 - bx0; c2.height = by1 - by0; c2.getContext('2d').drawImage(canvas, bx0, by0, c2.width, c2.height, 0, 0, c2.width, c2.height);
+  const k = Math.min(1, 1500 / c2.width), c3 = document.createElement('canvas'); c3.width = Math.round(c2.width * k); c3.height = Math.round(c2.height * k); const g3 = c3.getContext('2d'); g3.fillStyle = '#fff'; g3.fillRect(0, 0, c3.width, c3.height); g3.drawImage(c2, 0, 0, c3.width, c3.height);
+  const id = plans[lvl].bgk || (plans[lvl].bgk = newUid()), s = 1000 / c3.width;
+  BGS[id] = { src: c3.toDataURL('image/jpeg', 0.72), w: c3.width, h: c3.height, x: 40, y: 40, s, s0: s, op: o.op, show: true }; delete BGIMG[id]; bgSave();
+  let n = 0;
+  if (o.walls) {
+    const f = s * k, X = px => Math.round((40 + (px - bx0) * f) / 5) * 5, Y = py => Math.round((40 + (py - by0) * f) / 5) * 5, L = plans[lvl].items;
+    det.h.forEach(q => { L.push({ t: 'line', k: 'wall', x1: X(q.a), y1: Y(q.c), x2: X(q.b), y2: Y(q.c), fromPdf: 1 }); n++; });
+    det.v.forEach(q => { L.push({ t: 'line', k: 'wall', x1: X(q.c), y1: Y(q.a), x2: X(q.c), y2: Y(q.b), fromPdf: 1 }); n++; });
+  }
+  save(); if (currentPage !== 2) switchPage(2); else redraw();
+  helpMsg('Fundal pus' + (n ? ', ' + n + ' pereți detectați (verifică-i; cu Setări → Fundal îi poți șterge dintr-o dată)' : '') + '.');
+  return n;
+}
+async function bgImport(newProj) {
+  pickBgFile(async file => {
+    try {
+      helpMsg('Se citește fișierul…'); const c = await bgRead(file); if (!c) return;
+      bgOptions(c, newProj ? file.name.replace(/\.[^.]+$/, '') : null, o => {
+        if (newProj) { if (!o.name) { alert('Scrie un nume pentru proiect.'); return false; }
+          if (current) { makeThumb(); save(); cloudFlush(); } clearTimeout(thumbT);
+          const nm = uniqueName(o.name); projList.push(nm); current = nm; resetState(); saveList(); showProject(); save(); hideHome(); }
+        bgApply(c, o); });
+    } catch (e) { alert('Nu am putut citi fișierul: ' + (e && e.message || e)); }
+  });
+}
+function bgMenu() {
+  const b = bgCur();
+  if (!b) { bgImport(false); return; }
+  const html = '<label><input type="checkbox" class="bs"' + (b.show ? ' checked' : '') + '> Arată fundalul</label>' +
+    '<label>Cât de vizibil: <input type="range" class="bo" min="10" max="100" value="' + Math.round(b.op * 100) + '" style="vertical-align:middle"></label>' +
+    '<label>Mărime fundal: <input type="range" class="bz" min="40" max="250" value="' + Math.round(b.s / b.s0 * 100) + '" style="vertical-align:middle"> <span class="bzv"></span></label>' +
+    '<div class="row"><button type="button" data-m="-10,0">◀</button><button type="button" data-m="10,0">▶</button><button type="button" data-m="0,-10">▲</button><button type="button" data-m="0,10">▼</button><span style="margin-left:6px">mută fundalul</span></div>' +
+    '<div class="row" style="flex-wrap:wrap"><button type="button" class="bw">🗑 Șterge pereții din PDF</button><button type="button" class="bn">🖼️ Alt fișier…</button><button type="button" class="bx" style="color:#c0392b">Șterge fundalul</button></div>';
+  const o = dlg('Fundal PDF / plan', html + '<span class="nofocus"></span>', () => true), q = x => o.querySelector(x);
+  const live = () => { b.show = q('.bs').checked; b.op = q('.bo').value / 100; b.s = b.s0 * q('.bz').value / 100; q('.bzv').textContent = q('.bz').value + '%'; bgSave(); redraw(); };
+  ['.bs', '.bo', '.bz'].forEach(x => q(x).addEventListener('input', live)); live();
+  o.querySelectorAll('[data-m]').forEach(bt => bt.onclick = () => { const [dx, dy] = bt.dataset.m.split(',').map(Number); b.x += dx; b.y += dy; bgSave(); redraw(); });
+  q('.bw').onclick = () => { const L = plans[lvl].items, n = L.filter(i => i.fromPdf).length; if (!n) { alert('Nu sunt pereți din PDF.'); return; } if (confirm('Ștergi ' + n + ' pereți puși automat din PDF?')) { plans[lvl].items = L.filter(i => !i.fromPdf); save(); redraw(); } };
+  q('.bn').onclick = () => { o.remove(); bgImport(false); };
+  q('.bx').onclick = () => { if (confirm('Ștergi fundalul?')) { delete BGS[plans[lvl].bgk]; delete plans[lvl].bgk; bgSave(); o.remove(); save(); redraw(); } };
+}
 function fab2Active() { railActive(); ['Wall:wall', 'Room:room', 'Res:resize', 'Nav:nav'].forEach(q => { const [id, m] = q.split(':'), b = document.getElementById('fb' + id); if (b) b.classList.toggle('on', md === m); }); }
 
 /* ---------- Atingere: un deget desenează, două degete mută pagina și măresc/micșorează ---------- */
@@ -2467,14 +2575,14 @@ function applyData(d) {
   const all = [pages[1]].concat(plans.map(p => p.items));
   all.forEach(L => L.forEach(it => { if (typeof it.k === 'string' && /^img_sym_\d+$/.test(it.k) && natDef['ar_' + it.k.slice(8)]) it.k = 'ar_' + it.k.slice(8); if (it.id === 'undefined') it.id = ''; if (it.t === 'sym' && !it.uid) it.uid = newUid(); if (it.t === 'sym' && it.a === undefined) it.a = (it.r||0)*Math.PI/2; }));
 }
-function showProject() { buildMenu(); buildLevels(); setMode(md); redraw(); fillPlace(); }
+function showProject() { bgLoad(); buildMenu(); buildLevels(); setMode(md); redraw(); fillPlace(); }
 function readLocal(name) { try { applyData(JSON.parse(lsGet(lsKey(name)))); } catch (_) {} }
 function load() {                          // la pornire
   try { projList = JSON.parse(lsGet('proiecte_lista')) || []; } catch (_) { projList = []; }
   const old = lsGet('proiect_electric');   // proiectul salvat înainte să existe lista (rămâne ca rezervă)
   if (old && !projList.length) { projList = ['Proiect 1']; lsSet(lsKey('Proiect 1'), old); }
   current = lsGet('proiect_nume') || ''; if (!projList.includes(current)) current = projList[0] || '';
-  if (current) readLocal(current);
+  if (current) { readLocal(current); bgLoad(); }
   if (current && HAS_CLOUD() && !lsGet(lsKey(current))) cloudPending = current;
   saveList();
 }
@@ -2497,6 +2605,7 @@ function renderHome() {
   add('⟳', 'Sincronizează acum', 'Aduce proiectele din Drive', syncAllNow);
   add('⬇', 'Importă proiect', 'Dintr-un fișier .json', importProject);
   add('⬇', 'Importă din Trikker', 'Dintr-un fișier .trik', importTrik);
+  add('📄', 'Proiect din PDF', 'Planul arhitectului ca fundal', () => bgImport(true));
   if (NATIVE || window.trikkerElectron) add('⟳', 'Caută actualizări', 'Versiunea instalată: ' + (APP_BUILD || 'dev'), () => checkUpdate(true));
 }
 function setView(list) { document.getElementById('hgrid').classList.toggle('list', list); document.getElementById('bgrid').classList.toggle('on', !list); document.getElementById('blist').classList.toggle('on', list); }
@@ -2544,7 +2653,7 @@ function copyProject(name) {
   if (name === current) { makeThumb(); save(); }
   const dat = lsGet(lsKey(name)); if (!dat) { alert('Proiectul nu e încă pe acest dispozitiv. Deschide-l o dată, apoi îl poți copia.'); return; }
   const nm = uniqueName(v.trim());
-  lsSet(lsKey(nm), dat); lsSet('proiect_data:' + nm, new Date().toISOString()); const th = lsGet('proiect_thumb:' + name); if (th) lsSet('proiect_thumb:' + nm, th);
+  lsSet(lsKey(nm), dat); lsSet('proiect_data:' + nm, new Date().toISOString()); const th = lsGet('proiect_thumb:' + name); if (th) lsSet('proiect_thumb:' + nm, th); const bgd = lsGet('vt_bg:' + name); if (bgd) lsSet('vt_bg:' + nm, bgd);
   projList.push(nm); saveList(); cloudPut(nm, dat); renderHome();
 });
 }
@@ -2555,7 +2664,7 @@ function renameProject(name) {
   if (name === current) { makeThumb(); clearTimeout(cloudT); }
   const dat = name === current ? snap() : lsGet(lsKey(name));
   if (dat) lsSet(lsKey(nm), dat);
-  [['proiect_thumb:'], ['proiect_data:']].forEach(([p]) => { const x = lsGet(p + name); if (x) lsSet(p + nm, x); lsDel(p + name); });
+  [['proiect_thumb:'], ['proiect_data:'], ['vt_bg:']].forEach(([p]) => { const x = lsGet(p + name); if (x) lsSet(p + nm, x); lsDel(p + name); });
   lsDel(lsKey(name)); projList[projList.indexOf(name)] = nm; if (name === current) current = nm; saveList();
   if (HAS_CLOUD()) { pushOp({ op:'rename', a:name, b:nm }); setDirty(name, false); setDirty(nm, true); const ls = lsGet('proiect_sync:' + name); if (ls) { lsSet('proiect_sync:' + nm, ls); lsDel('proiect_sync:' + name); } syncNow(); }
   renderHome();
@@ -2564,7 +2673,7 @@ function renameProject(name) {
 function deleteProject(name) {
   name = name || current;
   if (!confirm('Ștergi proiectul „' + name + '” cu tot ce conține?')) return;
-  lsDel(lsKey(name)); lsDel('proiect_thumb:' + name); lsDel('proiect_data:' + name); projList = projList.filter(n => n !== name);
+  lsDel(lsKey(name)); lsDel('proiect_thumb:' + name); lsDel('proiect_data:' + name); lsDel('vt_bg:' + name); projList = projList.filter(n => n !== name);
   if (name === current) { clearTimeout(cloudT); clearTimeout(thumbT); }
   if (HAS_CLOUD()) { pushOp({ op:'delete', a:name }); setDirty(name, false); lsDel('proiect_sync:' + name); syncNow(); }
   if (name === current) { current = ''; resetState(); showProject(); }
@@ -3186,7 +3295,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 23:50)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 10:30)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3234,10 +3343,11 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   if (top && back) { top.insertBefore(mk('📲 Instalează / ecran complet'), back); const d = mk('🔍 Verifică instalarea'); d.onclick = installDiag; d.title = 'Arată ce lipsește ca să se poată instala'; top.insertBefore(d, back); }
 })();
 buildFab2();
+(function () { const st = document.getElementById('settings'); if (st && !document.getElementById('bgbtn')) { const b = document.createElement('button'); b.id = 'bgbtn'; b.textContent = '🖼️ Fundal PDF / plan…'; b.style.cssText = 'display:block;width:100%;margin:8px 0;padding:12px;font-size:14px;border:1px solid #888;border-radius:6px;background:#fff;cursor:pointer;text-align:left'; b.onclick = bgMenu; st.insertBefore(b, st.firstChild); } })();
 iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 23:50';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 10:30';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
