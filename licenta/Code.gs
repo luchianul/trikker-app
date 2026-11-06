@@ -1,6 +1,8 @@
 /* VerTech – server de licențe (Google Apps Script, lipit într-un Google Sheet NOU, doar al tău).
    Foaia „Licente” se creează singură. Coloane: Cod | Nume | Activ | Expiră | Max dispozitive | Dispozitive | Ultima verificare */
 var FOAIA = 'Licente';
+/* PAROLA de administrare (pentru pagina ?admin=1). SCHIMB-O înainte de folosire! */
+var PAROLA = 'schimba-ma';
 
 function foaie_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet(), s = ss.getSheetByName(FOAIA);
@@ -53,6 +55,8 @@ function raspuns_(o) { return ContentService.createTextOutput(JSON.stringify(o))
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.action == 'ping') return raspuns_({ ok: true });
+  if (p.admin) return HtmlService.createHtmlOutputFromFile('Admin').setTitle('VerTech – Licențe')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   return raspuns_(verifica_(p.code, p.dev));
 }
 
@@ -82,3 +86,43 @@ function verifica_(cod, dev) {
     return { ok: false, reason: 'Cod necunoscut.' };
   } finally { lock.releaseLock(); }
 }
+
+
+/* ---------------- Administrare (apelată din pagina Admin) ---------------- */
+function auth_(p) {
+  if (!PAROLA || PAROLA == 'schimba-ma') throw new Error('Mai întâi schimbă PAROLA din Code.gs (prima linie), apoi publică din nou.');
+  if (String(p) !== PAROLA) { Utilities.sleep(1500); throw new Error('Parolă greșită.'); }
+}
+function dat_(d) { return d instanceof Date ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd') : ''; }
+function dt_(d) { return d instanceof Date ? Utilities.formatDate(d, Session.getScriptTimeZone(), 'dd.MM.yyyy HH:mm') : ''; }
+function gasesteRand_(s, cod) {
+  var v = s.getDataRange().getValues(); cod = String(cod).trim().toUpperCase();
+  for (var i = 1; i < v.length; i++) if (String(v[i][0]).trim().toUpperCase() == cod) return i + 1;
+  throw new Error('Cod negăsit.');
+}
+function admList(p) {
+  auth_(p);
+  var v = foaie_().getDataRange().getValues(), o = [];
+  for (var i = 1; i < v.length; i++) {
+    if (!String(v[i][0]).trim()) continue;
+    o.push({ code: String(v[i][0]).trim(), name: String(v[i][1]), active: String(v[i][2]).trim().toUpperCase() == 'DA',
+      exp: dat_(v[i][3]), max: parseInt(v[i][4], 10) || 1, devs: String(v[i][5] || '').split(',').filter(function (x) { return x.trim(); }).length, last: dt_(v[i][6]) });
+  }
+  return o;
+}
+function admNew(p, nume, luni, max) {
+  auth_(p); nume = String(nume || '').trim(); if (!nume) throw new Error('Scrie numele persoanei.');
+  var exp = ''; luni = parseInt(luni, 10); if (luni > 0) { exp = new Date(); exp.setMonth(exp.getMonth() + luni); }
+  var cod = cod_(); foaie_().appendRow([cod, nume, 'DA', exp, parseInt(max, 10) || 1, '', '']);
+  return cod;
+}
+function admSet(p, cod, o) {
+  auth_(p); var s = foaie_(), r = gasesteRand_(s, cod);
+  if (o.active !== undefined) s.getRange(r, 3).setValue(o.active ? 'DA' : 'NU');
+  if (o.exp !== undefined) { if (!o.exp) s.getRange(r, 4).setValue(''); else { var d = new Date(o.exp + 'T12:00:00'); if (isNaN(d)) throw new Error('Dată invalidă.'); s.getRange(r, 4).setValue(d); } }
+  if (o.max !== undefined) s.getRange(r, 5).setValue(parseInt(o.max, 10) || 1);
+  if (o.name !== undefined) s.getRange(r, 2).setValue(String(o.name).trim());
+  return true;
+}
+function admReset(p, cod) { auth_(p); var s = foaie_(); s.getRange(gasesteRand_(s, cod), 6).setValue(''); return true; }
+function admDel(p, cod) { auth_(p); var s = foaie_(); s.deleteRow(gasesteRand_(s, cod)); return true; }

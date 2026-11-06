@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ro"><head><base target="_top"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,Segoe UI,Roboto,sans-serif;background:#f1f4f9;color:#14304f}
+header{background:linear-gradient(135deg,#10233f,#1e73d8);color:#fff;padding:16px 18px;position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px}
+header h1{font-size:19px;margin:0;flex:1}header button{background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer}
+main{max-width:760px;margin:0 auto;padding:14px}
+.card{background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(20,48,79,.1)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{flex:1}
+.nm{font-weight:700;font-size:16px}.code{font-family:ui-monospace,Consolas,monospace;font-size:18px;letter-spacing:2px;background:#eef3fb;border-radius:8px;padding:4px 10px}
+.meta{font-size:12.5px;color:#667;margin:6px 0}.badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px}
+.on{background:#d9f5e3;color:#16794a}.off{background:#fde1df;color:#b3261e}.exp{background:#fff0cf;color:#8a5a00}
+button.b{border:1px solid #cfd6e0;background:#fff;border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer}
+button.p{background:#1e73d8;color:#fff;border:none;font-weight:700}button.d{color:#b3261e}
+input{width:100%;padding:11px;font-size:16px;border:1.5px solid #cfd6e0;border-radius:10px;margin:4px 0 10px}
+label{font-size:13px;color:#556}.msg{min-height:20px;font-size:14px;margin:6px 0}.err{color:#b3261e}.ok{color:#16794a}
+#login{max-width:380px;margin:12vh auto 0}
+.big{font-size:26px;letter-spacing:3px;text-align:center;margin:10px 0}
+</style></head><body>
+<header><h1>⚡ VerTech – Licențe</h1><button id="bnew" style="display:none">➕ Cod nou</button><button id="bout" style="display:none">Ieșire</button></header>
+<main>
+ <div id="login" class="card"><b>Parola de administrare</b><input id="pw" type="password" autocomplete="current-password" placeholder="Parola"><button class="b p" id="go" style="width:100%;padding:13px">Intră</button><div id="lmsg" class="msg err"></div></div>
+ <div id="app" style="display:none">
+  <div class="card"><input id="q" placeholder="Caută după nume sau cod…" style="margin:0"></div>
+  <div id="msg" class="msg"></div><div id="list"></div>
+ </div>
+</main>
+<script>
+var PW='',DATA=[];
+var $=function(i){return document.getElementById(i)};
+function run(fn){var a=[].slice.call(arguments,1);return new Promise(function(res,rej){google.script.run.withSuccessHandler(res).withFailureHandler(function(e){rej(new Error(String(e&&e.message||e).replace(/^Error:\s*/,'')))})[fn].apply(null,[PW].concat(a))})}
+function say(t,err){var m=$('msg');m.className='msg '+(err?'err':'ok');m.textContent=t||''}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function load(){return run('admList').then(function(d){DATA=d;draw()}).catch(function(e){say(e.message,1)})}
+function draw(){
+  var f=$('q').value.trim().toLowerCase(),h='',az=new Date().toISOString().slice(0,10);
+  DATA.filter(function(x){return !f||x.name.toLowerCase().indexOf(f)>=0||x.code.toLowerCase().indexOf(f)>=0}).forEach(function(x){
+    var expd=x.exp&&x.exp<az,b=!x.active?'<span class="badge off">dezactivată</span>':expd?'<span class="badge exp">expirată</span>':'<span class="badge on">activă</span>';
+    h+='<div class="card" data-c="'+esc(x.code)+'"><div class="row"><span class="nm">'+esc(x.name)+'</span>'+b+'<span class="sp"></span><span class="code">'+esc(x.code)+'</span></div>'+
+      '<div class="meta">Dispozitive: '+x.devs+' / '+x.max+' · Expiră: '+(x.exp||'fără limită')+' · Ultima verificare: '+(x.last||'—')+'</div>'+
+      '<div class="row"><button class="b" data-a="share">📤 Trimite codul</button><button class="b" data-a="tog">'+(x.active?'⏸ Dezactivează':'▶ Activează')+'</button>'+
+      '<button class="b" data-a="exp">📅 Expirare</button><button class="b" data-a="max">📱 Max disp.</button><button class="b" data-a="rst">♻ Șterge dispozitive</button><button class="b d" data-a="del">🗑</button></div></div>';});
+  $('list').innerHTML=h||'<div class="card">Niciun cod încă. Apasă „➕ Cod nou”.</div>';
+}
+function ask(t,d){var v=prompt(t,d||'');return v===null?null:v.trim()}
+$('list').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;var c=b.closest('.card').getAttribute('data-c'),x=DATA.filter(function(y){return y.code===c})[0],a=b.getAttribute('data-a'),p;
+  if(a==='share'){var t='Codul tău de licență VerTech: '+c;if(navigator.share)navigator.share({text:t}).catch(function(){});else{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){say('Copiat: '+c)},function(){prompt('Copiază codul:',c)})}return}
+  if(a==='tog')p=run('admSet',c,{active:!x.active});
+  else if(a==='exp'){var v=ask('Data de expirare (AAAA-LL-ZZ). Gol = fără limită:',x.exp);if(v===null)return;p=run('admSet',c,{exp:v})}
+  else if(a==='max'){var m=ask('Câte dispozitive poate folosi codul?',x.max);if(m===null)return;p=run('admSet',c,{max:m})}
+  else if(a==='rst'){if(!confirm('Ștergi dispozitivele lui '+x.name+'? Va putea activa din nou pe dispozitive noi.'))return;p=run('admReset',c)}
+  else if(a==='del'){if(!confirm('ȘTERGI definitiv codul lui '+x.name+'? Aplicația lui se va bloca.'))return;p=run('admDel',c)}
+  say('Se salvează…');p.then(function(){say('Gata.');return load()}).catch(function(e){say(e.message,1)});
+});
+$('q').oninput=draw;
+$('bnew').onclick=function(){
+  var n=ask('Numele persoanei (apare pe documentele ei):');if(!n)return;var l=ask('Câte luni e valabil? (gol = fără limită)','');if(l===null)return;var m=ask('Câte dispozitive poate folosi?','1');if(m===null)return;
+  say('Se creează…');run('admNew',n,l,m).then(function(cod){say('');return load().then(function(){
+    var t='Codul tău de licență VerTech: '+cod;if(navigator.share)navigator.share({text:t}).catch(function(){});else prompt('Cod creat – copiază-l:',cod);say('Cod creat: '+cod)})}).catch(function(e){say(e.message,1)});
+};
+function login(){PW=$('pw').value;$('lmsg').textContent='Se verifică…';
+  run('admList').then(function(d){DATA=d;$('login').style.display='none';$('app').style.display='block';$('bnew').style.display=$('bout').style.display='';draw()}).catch(function(e){$('lmsg').textContent=e.message})}
+$('go').onclick=login;$('pw').addEventListener('keydown',function(e){if(e.key==='Enter')login()});
+$('bout').onclick=function(){location.reload()};
+</script></body></html>
