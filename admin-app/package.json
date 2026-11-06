@@ -1,10 +1,28 @@
 {
   "name": "vertech-admin",
   "version": "1.0.0",
+  "description": "VerTech Admin - administrare licente",
+  "main": "electron/main.js",
+  "author": "Diaz Electricite",
   "private": true,
+  "scripts": { "start": "electron ." },
   "dependencies": {
+    "electron-updater": "6.3.9"
+  },
+  "devDependencies": {
     "@capacitor/android": "6.2.0",
     "@capacitor/cli": "6.2.0",
-    "@capacitor/core": "6.2.0"
+    "@capacitor/core": "6.2.0",
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.diazelectricite.vertechadmin",
+    "productName": "VerTech Admin",
+    "files": ["electron/**", "www/**", "package.json"],
+    "directories": { "output": "dist", "buildResources": "build" },
+    "win": { "target": "nsis", "icon": "build/icon.png" },
+    "nsis": { "oneClick": true, "perMachine": false, "createDesktopShortcut": true, "createStartMenuShortcut": true, "artifactName": "VerTech-Admin-Setup.exe" },
+    "publish": [{ "provider": "generic", "url": "https://github.com/luchianul/trikker-app/releases/download/admin-latest" }]
   }
 }

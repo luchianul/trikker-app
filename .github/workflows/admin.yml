@@ -1,4 +1,4 @@
-name: Construieste VerTech Admin (Android)
+name: Construieste VerTech Admin (Android + Windows)
 
 on:
   workflow_dispatch:
@@ -9,10 +9,8 @@ on:
       - '.github/workflows/admin.yml'
 
 jobs:
-  admin:
+  android:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,9 +23,12 @@ jobs:
       - name: Pregatire
         working-directory: admin-app
         run: |
+          sed -i "s/const APP_BUILD = 0;/const APP_BUILD = ${{ github.run_number }};/" www/index.html
+          grep -c "const APP_BUILD = ${{ github.run_number }};" www/index.html
+          pip install pillow
+          python3 make_icon.py
           npm install --no-audit --no-fund --ignore-scripts
           npx cap add android
-          pip install pillow
           BUILD_NUM=${{ github.run_number }} python3 prepare.py
           npx cap sync android
       - name: Construieste APK
@@ -37,10 +38,63 @@ jobs:
           ./gradlew assembleDebug --no-daemon
       - name: Redenumeste
         run: cp admin-app/android/app/build/outputs/apk/debug/app-debug.apk VerTech-Admin.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Admin-Android
+          path: VerTech-Admin.apk
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pregatire si construire
+        working-directory: admin-app
+        shell: bash
+        run: |
+          sed -i "s/const APP_BUILD = 0;/const APP_BUILD = ${{ github.run_number }};/" www/index.html
+          grep -c "const APP_BUILD = ${{ github.run_number }};" www/index.html
+          pip install pillow
+          python make_icon.py
+          npm version 1.0.${{ github.run_number }} --no-git-tag-version --allow-same-version
+          npm install --no-audit --no-fund
+          npx electron-builder --win --x64 --publish never
+          ls dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Admin-Windows
+          path: |
+            admin-app/dist/VerTech-Admin-Setup.exe
+            admin-app/dist/latest.yml
+            admin-app/dist/VerTech-Admin-Setup.exe.blockmap
+
+  release:
+    needs: [android, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: "Sterge versiunea veche (tag fix admin-latest)"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete admin-latest --cleanup-tag -y || true
+          gh release delete admin-1 --cleanup-tag -y || true
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: admin-${{ github.run_number }}
+          tag_name: admin-latest
           name: VerTech Admin ${{ github.run_number }}
           prerelease: true
           make_latest: "false"
-          files: VerTech-Admin.apk
+          files: |
+            out/VerTech-Admin.apk
+            out/VerTech-Admin-Setup.exe
+            out/latest.yml
+            out/VerTech-Admin-Setup.exe.blockmap

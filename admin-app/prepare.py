@@ -1,17 +1,10 @@
 # Rulat dupa "npx cap add android", din folderul admin-app: iconita, cheia de semnare, numar de versiune.
 import os, re, shutil
-from PIL import Image, ImageDraw, ImageFont
+import shutil as _sh
+from PIL import Image, ImageDraw
 
 res = 'android/app/src/main/res'
-S = 1024
-im = Image.new('RGBA', (S, S), (16, 35, 63, 255)); d = ImageDraw.Draw(im)
-for y in range(S):                                   # degrade albastru
-    t = y / S; d.line([(0, y), (S, y)], fill=(int(16 + 14 * t), int(35 + 80 * t), int(63 + 150 * t), 255))
-bolt = [(560, 120), (270, 560), (470, 560), (400, 900), (760, 430), (550, 430), (640, 120)]
-d.polygon(bolt, fill=(255, 150, 40, 255))
-try: f = ImageFont.load_default(size=150)
-except TypeError: f = ImageFont.load_default()
-w = d.textlength('ADMIN', font=f); d.text(((S - w) / 2, 800), 'ADMIN', fill=(255, 255, 255, 255), font=f)
+im = Image.open('build/icon.png').convert('RGBA')
 
 def mask(px, circle):
     m = Image.new('L', (px * 4, px * 4), 0); dd = ImageDraw.Draw(m)
@@ -35,3 +28,14 @@ assert 'buildTypes {' in g
 g = g.replace('buildTypes {', sc, 1)
 open('android/app/build.gradle', 'w').write(g)
 print('Admin Android pregatit, versionCode', num)
+
+# actualizari: UpdatePlugin + MainActivity, si permisiunea de instalare
+pkg = 'android/app/src/main/java/com/diazelectricite/vertechadmin'
+for f in ('UpdatePlugin.java', 'MainActivity.java'):
+    shutil.copy('android-src/' + f, pkg + '/' + f)
+mf = 'android/app/src/main/AndroidManifest.xml'
+m = open(mf).read()
+if 'REQUEST_INSTALL_PACKAGES' not in m:
+    m = m.replace('<application', '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <application', 1)
+    open(mf, 'w').write(m)
+print('Admin: plugin de actualizare adaugat')

@@ -3335,7 +3335,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 14:00)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 15:00)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3386,7 +3386,7 @@ buildFab2();
 iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 14:00';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 15:00';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
@@ -3433,7 +3433,7 @@ let LIC_NAME = '';
   let dev = ls.get('vt_dev'); if (!dev) { dev = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); ls.set('vt_dev', dev); }
   let st = null; try { st = JSON.parse(ls.get(K) || 'null'); } catch (_) {}
   const okLocal = () => st && st.code && (Date.now() - st.at) < GRACE && (!st.exp || new Date(st.exp + 'T23:59:59') >= new Date());
-  const ask = async code => { const r = await fetch(LIC_URL + (LIC_URL.indexOf('?') < 0 ? '?' : '&') + 'code=' + encodeURIComponent(code) + '&dev=' + encodeURIComponent(dev), { redirect: 'follow' }); return r.json(); };
+  const ask = async code => { const r = await fetch(LIC_URL + (LIC_URL.indexOf('?') < 0 ? '?' : '&') + 'code=' + encodeURIComponent(code) + '&dev=' + encodeURIComponent(dev) + '&plat=' + (NATIVE ? 'android' : window.trikkerElectron ? 'windows' : 'web') + '&ver=' + (typeof APP_BUILD !== 'undefined' ? APP_BUILD : 0), { redirect: 'follow' }); return r.json(); };
   const ov = document.createElement('div'); ov.id = 'licov';
   ov.style.cssText = 'position:fixed;inset:0;z-index:2147483000;background:linear-gradient(160deg,#10233f,#1e73d8);display:none;align-items:center;justify-content:center;font-family:system-ui,sans-serif;padding:20px';
   ov.innerHTML = '<div style="background:#fff;border-radius:20px;padding:28px 26px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center">' +

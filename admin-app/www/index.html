@@ -1,16 +1,374 @@
 <!DOCTYPE html>
-<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10233f">
+<title>VerTech Admin</title>
 <style>
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#10233f,#1e73d8);color:#fff;text-align:center}
-.b{padding:24px}h1{font-size:26px;margin:0 0 6px}p{opacity:.85;margin:6px 0 18px}
-button{border:none;border-radius:12px;padding:13px 22px;font-size:16px;font-weight:700;background:#fff;color:#14304f}
-</style></head><body><div class="b"><h1>⚡ VerTech Admin</h1><p id="t">Se deschide…</p><button id="r" style="display:none" onclick="go()">Încearcă din nou</button></div>
-<script>
-var ADMIN_URL = 'https://script.google.com/macros/s/AKfycbw7F5iXdNSbKJwFduWSlQSaOefkO43K5z6Q74FzTeKTeWl1uESjmsgKOSyhjOO4HBTmew/exec?admin=1';
-function go(){
-  if (navigator.onLine === false) { document.getElementById('t').textContent = 'Fără internet. Conectează-te și încearcă din nou.'; document.getElementById('r').style.display = ''; return; }
-  document.getElementById('r').style.display = 'none'; document.getElementById('t').textContent = 'Se deschide…';
-  location.replace(ADMIN_URL);
+:root{--navy:#10233f;--blue:#1e73d8;--blue2:#1558a8;--bg:#f3f5fa;--card:#fff;--tx:#14233a;--mut:#6b7a90;--line:#e3e8f0;--ok:#138a52;--okbg:#dcf5e8;--bad:#c4301f;--badbg:#fde4e1;--warn:#9a6200;--warnbg:#fff0cc;--r:16px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:15px}
+button{font:inherit;cursor:pointer}
+svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.hide{display:none!important}
+
+/* ---------- login ---------- */
+#login{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,#0c1b33,#1e73d8)}
+.lbox{background:#fff;border-radius:24px;padding:34px 30px;width:100%;max-width:390px;box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center}
+.logo{width:64px;height:64px;border-radius:18px;margin:0 auto 14px;background:linear-gradient(135deg,#1e73d8,#10233f);display:flex;align-items:center;justify-content:center;color:#ffa43a}
+.logo svg{width:34px;height:34px;fill:#ffa43a;stroke:none}
+.lbox h1{font-size:22px;margin:0 0 4px}.lbox p{margin:0 0 22px;color:var(--mut);font-size:14px}
+.f{display:block;text-align:left;margin-bottom:14px}.f>span{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+input,select,textarea{width:100%;font:inherit;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--tx);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(30,115,216,.13)}
+.chk{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--mut);margin:2px 0 18px;text-align:left}.chk input{width:18px;height:18px;margin:0}
+.btn{border:none;border-radius:12px;padding:13px 18px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+.btn.p{background:var(--blue);color:#fff}.btn.p:hover{background:var(--blue2)}.btn.p:disabled{opacity:.6}
+.btn.g{background:#fff;color:var(--tx);border:1.5px solid var(--line)}.btn.g:hover{background:#f6f8fc}
+.btn.d{background:var(--badbg);color:var(--bad)}.btn.w{width:100%}.btn.s{padding:9px 13px;font-size:13.5px;border-radius:10px}
+.err{color:var(--bad);font-size:13.5px;min-height:20px;margin:10px 0 0}
+
+/* ---------- aplicația ---------- */
+#app{display:flex;min-height:100%}
+nav{background:var(--navy);color:#cdd8ea;display:flex;flex-direction:column;width:232px;padding:20px 14px;gap:4px;position:sticky;top:0;height:100vh}
+nav .brand{display:flex;align-items:center;gap:11px;color:#fff;font-weight:800;font-size:18px;padding:4px 10px 22px}
+nav .brand .logo{width:38px;height:38px;border-radius:11px;margin:0}.nav .brand .logo svg{width:20px;height:20px}
+nav .brand .logo svg{width:20px;height:20px}
+nav button.t{display:flex;align-items:center;gap:12px;background:none;border:none;color:inherit;padding:12px 14px;border-radius:12px;font-weight:600;text-align:left}
+nav button.t:hover{background:rgba(255,255,255,.07)}nav button.t.on{background:rgba(255,255,255,.14);color:#fff}
+nav .sp{flex:1}
+nav .ver{font-size:11.5px;color:#7f93b3;padding:6px 14px}
+main{flex:1;min-width:0;padding:26px 30px 90px;max-width:1100px;margin:0 auto;width:100%}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.top h2{margin:0;font-size:24px;flex:1}
+.ib{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:#fff;display:inline-flex;align-items:center;justify-content:center;color:var(--tx)}
+.ib:hover{background:#f6f8fc}.ib.spin svg{animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+.grid{display:grid;gap:14px}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:1fr 1fr}
+.card{background:var(--card);border-radius:var(--r);padding:18px 20px;box-shadow:0 1px 2px rgba(16,35,63,.06),0 4px 14px rgba(16,35,63,.04)}
+.card h3{margin:0 0 14px;font-size:15px;display:flex;align-items:center;gap:8px}
+.kpi .n{font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.1}.kpi .l{color:var(--mut);font-size:13px;margin-top:4px}
+.kpi .ic{float:right;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#e8f0fc;color:var(--blue)}
+.kpi.ok .ic{background:var(--okbg);color:var(--ok)}.kpi.wa .ic{background:var(--warnbg);color:var(--warn)}.kpi.pu .ic{background:#efe6fb;color:#6b3fc4}
+.bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:6px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px;font-size:10.5px;color:var(--mut)}
+.bars .b i{display:block;width:100%;background:linear-gradient(180deg,#4a9bff,#1e73d8);border-radius:6px 6px 3px 3px;min-height:3px}
+.bars .b.z i{background:#e3e8f0}.bars .b b{font-size:11px;color:var(--tx)}
+.row{display:flex;align-items:center;gap:10px}.sp{flex:1}
+.mut{color:var(--mut)}.small{font-size:13px}
+.pl{display:flex;flex-direction:column;gap:12px}.pl .r{display:flex;align-items:center;gap:10px}.pl .bar{flex:1;height:9px;background:#edf1f7;border-radius:9px;overflow:hidden}.pl .bar i{display:block;height:100%;background:var(--blue);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:6px 0}td{padding:9px 0;border-top:1px solid var(--line)}td.r,th.r{text-align:right}
+
+/* ---------- licențe ---------- */
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.tools .s{flex:1;min-width:200px;position:relative}.tools .s svg{position:absolute;left:13px;top:13px;color:var(--mut)}.tools .s input{padding-left:42px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--mut)}.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.lic{display:flex;gap:14px;align-items:center;padding:14px 16px;cursor:pointer;border-radius:var(--r);background:#fff;margin-bottom:10px;box-shadow:0 1px 2px rgba(16,35,63,.06)}.lic:hover{box-shadow:0 4px 16px rgba(16,35,63,.1)}
+.av{width:46px;height:46px;border-radius:14px;flex:none;background:#e8f0fc;color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+.lic.off .av{background:#f0f1f4;color:#98a2b3}
+.lic .mid{flex:1;min-width:0}.lic .nm{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lic .mt{color:var(--mut);font-size:13px;margin-top:3px}
+.code{font-family:ui-monospace,"SF Mono",Consolas,monospace;font-weight:700;letter-spacing:.08em;background:#eef3fb;border-radius:8px;padding:3px 9px;font-size:13.5px;color:#27456f}
+.bd{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px}.bd.ok{background:var(--okbg);color:var(--ok)}.bd.bad{background:var(--badbg);color:var(--bad)}.bd.wa{background:var(--warnbg);color:var(--warn)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#98a2b3;margin-right:7px}.dot.on{background:#1fb56a}
+.empty{text-align:center;color:var(--mut);padding:40px 10px}
+.ev{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start}.ev:first-child{border-top:none}
+.ev .ed{width:10px;height:10px;border-radius:50%;margin-top:5px;background:#98a2b3;flex:none}.ev .ed.a{background:#1fb56a}.ev .ed.r{background:var(--bad)}.ev .ed.v{background:var(--blue)}
+.ev .eb{flex:1;min-width:0}.ev .et{font-size:12.5px;color:var(--mut);white-space:nowrap}
+
+/* ---------- fereastră (formular) ---------- */
+.ov{position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:18px;animation:fi .15s}
+@keyframes fi{from{opacity:0}}
+.md{background:#fff;border-radius:22px;width:100%;max-width:480px;max-height:94vh;overflow:auto;box-shadow:0 30px 90px rgba(0,0,0,.4)}
+.mh{display:flex;align-items:center;padding:20px 22px 6px}.mh h3{margin:0;font-size:19px;flex:1}.mb{padding:8px 22px 22px}.mf{display:flex;gap:10px;padding:0 22px 22px}.mf .btn{flex:1}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{flex:1;min-width:58px;border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:10px 6px;font-weight:600;font-size:13.5px;color:var(--mut)}.seg button.on{border-color:var(--blue);background:#eaf2ff;color:var(--blue2)}
+.step{display:flex;align-items:center;gap:0;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;width:max-content}.step button{width:48px;height:46px;border:none;background:#f6f8fc;font-size:22px;color:var(--tx)}.step b{min-width:52px;text-align:center;font-size:17px}
+.sw{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;margin-bottom:14px}
+.tg{width:48px;height:28px;border-radius:99px;background:#cfd6e0;border:none;position:relative;transition:.15s}.tg::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}.tg.on{background:var(--ok)}.tg.on::after{left:23px}
+.done{text-align:center;padding:10px 0 4px}.done .big{font-family:ui-monospace,Consolas,monospace;font-size:34px;font-weight:800;letter-spacing:.1em;background:#eef3fb;border-radius:16px;padding:18px 10px;margin:16px 0;color:#1c3a66}
+.done .okc{width:58px;height:58px;border-radius:50%;background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:center;margin:0 auto 10px}.done .okc svg{width:30px;height:30px;stroke-width:2.4}
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 20px;border-radius:12px;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.3);font-weight:600;max-width:90%;text-align:center}
+.toast.bad{background:var(--bad)}
+.sk{background:linear-gradient(90deg,#eef1f6,#f7f9fc,#eef1f6);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:10px;height:18px}@keyframes sh{to{background-position:-200% 0}}
+
+/* ---------- telefon ---------- */
+@media(max-width:860px){
+ nav{position:fixed;bottom:0;left:0;right:0;top:auto;width:auto;height:auto;flex-direction:row;padding:6px 6px calc(6px + env(safe-area-inset-bottom));gap:2px;z-index:20;border-top:1px solid rgba(255,255,255,.1)}
+ nav .brand,nav .sp,nav .ver{display:none}
+ nav button.t{flex:1;flex-direction:column;gap:3px;font-size:11.5px;padding:8px 4px;justify-content:center;align-items:center}
+ main{padding:18px 14px 100px}.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.top h2{font-size:21px}
+ .kpi .n{font-size:27px}.toast{bottom:96px}
+ .ov{align-items:flex-end;padding:0}.md{border-radius:22px 22px 0 0;max-width:none;max-height:92vh}
 }
-window.addEventListener('online', go); go();
-</script></body></html>
+</style>
+</head>
+<body>
+
+<div id="login">
+ <form class="lbox" onsubmit="return doLogin(event)">
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div>
+  <h1>VerTech Admin</h1><p>Administrare licențe</p>
+  <label class="f"><span>Parola</span><input id="pw" type="password" autocomplete="current-password" placeholder="Parola de administrare"></label>
+  <label class="chk"><input id="rem" type="checkbox" checked> Ține-mă minte pe acest dispozitiv</label>
+  <button class="btn p w" id="lgo" type="submit">Intră</button>
+  <div class="err" id="lerr"></div>
+ </form>
+</div>
+
+<div id="app" class="hide">
+ <nav>
+  <div class="brand"><div class="logo"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg></div>VerTech Admin</div>
+  <button class="t on" data-v="home"><svg viewBox="0 0 24 24"><path d="M3 12 12 4l9 8M5 10v10h14V10"/></svg><span>Prezentare</span></button>
+  <button class="t" data-v="lic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M7 10h6M7 14h4"/></svg><span>Licențe</span></button>
+  <button class="t" data-v="act"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span>Activitate</span></button>
+  <button class="t" data-v="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2 1.2L10 21h4l.6-2.7a7 7 0 0 0 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg><span>Setări</span></button>
+  <div class="sp"></div><div class="ver" id="verl"></div>
+ </nav>
+ <main>
+  <section id="v-home">
+   <div class="top"><h2>Prezentare</h2><button class="ib" id="rf" title="Reîncarcă"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg></button></div>
+   <div class="grid g4" id="kpis"></div>
+   <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Dispozitive active pe zi <span class="mut small">· ultimele 14 zile</span></h3><div id="chart"></div></div>
+    <div class="card"><h3>Platforme folosite <span class="mut small">· ultimele 7 zile</span></h3><div id="plat"></div></div>
+   </div>
+   <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Descărcări</h3><div id="dl"><div class="sk"></div></div></div>
+    <div class="card"><h3>Ultima activitate</h3><div id="recent"></div></div>
+   </div>
+  </section>
+
+  <section id="v-lic" class="hide">
+   <div class="top"><h2>Licențe</h2><button class="btn p" id="newb"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Licență nouă</button></div>
+   <div class="tools"><div class="s"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" placeholder="Caută după nume, cod sau notă…"></div></div>
+   <div class="chips" id="chips"></div>
+   <div id="lics"></div>
+  </section>
+
+  <section id="v-act" class="hide">
+   <div class="top"><h2>Activitate</h2><button class="ib" id="rf2" title="Reîncarcă"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg></button></div>
+   <div class="card" id="log"></div>
+  </section>
+
+  <section id="v-set" class="hide">
+   <div class="top"><h2>Setări</h2></div>
+   <div class="card"><h3>Aplicația</h3>
+    <div class="row" style="padding:6px 0"><span>Versiune</span><span class="sp"></span><b id="verv"></b></div>
+    <div class="row" style="padding:10px 0;border-top:1px solid var(--line)"><span>Actualizări</span><span class="sp"></span><button class="btn g s" id="updb">Caută actualizări</button></div>
+    <div class="row" style="padding:10px 0;border-top:1px solid var(--line)"><span>Server licențe</span><span class="sp"></span><span class="mut small" id="srv"></span></div>
+   </div>
+   <div class="card" style="margin-top:14px"><h3>Cont</h3><button class="btn d w" id="outb">Ieșire din cont</button><p class="mut small" style="margin:10px 0 0">Parola se schimbă din scriptul Google (linia <code>PAROLA</code> din Code.gs).</p></div>
+  </section>
+ </main>
+</div>
+
+<script>
+const APP_BUILD = 0;                                        // înlocuit automat la construire
+const API = 'https://script.google.com/macros/s/AKfycbw7F5iXdNSbKJwFduWSlQSaOefkO43K5z6Q74FzTeKTeWl1uESjmsgKOSyhjOO4HBTmew/exec';
+const REPO = 'luchianul/trikker-app';
+const NATIVE = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const $ = i => document.getElementById(i);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ls = { get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }, del(k) { try { localStorage.removeItem(k); } catch (_) {} } };
+let PW = '', LIC = [], STATS = null, LOG = [], FILTER = 'all';
+
+/* ---------- server ---------- */
+async function api(fn, ...args) {
+  let r;
+  try { r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', body: JSON.stringify({ fn, args, pass: PW }) }); }
+  catch (_) { throw new Error('Nu pot contacta serverul. Verifică internetul.'); }
+  let j; try { j = await r.json(); } catch (_) { throw new Error('Răspuns invalid de la server. Ai publicat noul Code.gs cu „Versiune nouă”?'); }
+  if (j.error) throw new Error(j.error);
+  return j.data;
+}
+function toast(t, bad) { const d = document.createElement('div'); d.className = 'toast' + (bad ? ' bad' : ''); d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), bad ? 4200 : 2300); }
+
+/* ---------- utilitare ---------- */
+function ago(iso) {
+  if (!iso) return 'niciodată';
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 90) return 'acum un minut'; if (s < 3600) return 'acum ' + Math.round(s / 60) + ' min';
+  if (s < 86400) { const h = Math.round(s / 3600); return 'acum ' + h + (h == 1 ? ' oră' : ' ore'); }
+  const d = Math.round(s / 86400); if (d < 30) return 'acum ' + d + (d == 1 ? ' zi' : ' zile');
+  return new Date(iso).toLocaleDateString('ro-RO');
+}
+function fdate(d) { if (!d) return 'fără limită'; const [y, m, z] = d.split('-'); return z + '.' + m + '.' + y; }
+function status(l) { const az = new Date().toISOString().slice(0, 10); if (!l.active) return ['bad', 'Dezactivată']; if (l.exp && l.exp < az) return ['wa', 'Expirată']; return ['ok', 'Activă']; }
+const PLAT = { android: 'Android', windows: 'Windows', web: 'Web' };
+
+/* ---------- navigare ---------- */
+function go(v) {
+  document.querySelectorAll('nav .t').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  ['home', 'lic', 'act', 'set'].forEach(x => $('v-' + x).classList.toggle('hide', x !== v));
+  if (v === 'act') loadLog(); window.scrollTo(0, 0);
+}
+document.querySelectorAll('nav .t').forEach(b => b.onclick = () => go(b.dataset.v));
+
+/* ---------- autentificare ---------- */
+async function doLogin(e) {
+  if (e) e.preventDefault();
+  const pw = $('pw').value; if (!pw) { $('lerr').textContent = 'Scrie parola.'; return false; }
+  $('lerr').textContent = ''; $('lgo').disabled = true; $('lgo').textContent = 'Se verifică…'; PW = pw;
+  try { LIC = await api('admList'); if ($('rem').checked) ls.set('vta_pw', pw); else ls.del('vta_pw'); enter(); }
+  catch (er) { $('lerr').textContent = er.message; PW = ''; }
+  $('lgo').disabled = false; $('lgo').textContent = 'Intră'; return false;
+}
+function enter() { $('login').classList.add('hide'); $('app').classList.remove('hide'); $('verl').textContent = APP_BUILD ? 'Versiunea ' + APP_BUILD : ''; $('verv').textContent = APP_BUILD || 'test'; $('srv').textContent = API.replace(/^https:\/\//, '').slice(0, 30) + '…'; drawLic(); refreshAll(); }
+function logout() { ls.del('vta_pw'); PW = ''; location.reload(); }
+$('outb').onclick = logout;
+
+/* ---------- prezentare ---------- */
+const IC = {
+  key: '<svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3"/></svg>',
+  dev: '<svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></svg>',
+  pulse: '<svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>',
+  cal: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>'
+};
+function drawStats() {
+  const s = STATS; if (!s) return;
+  $('kpis').innerHTML =
+    '<div class="card kpi ok"><div class="ic">' + IC.key + '</div><div class="n">' + s.active + '</div><div class="l">Licențe active <span class="mut">din ' + s.total + '</span></div></div>' +
+    '<div class="card kpi"><div class="ic">' + IC.dev + '</div><div class="n">' + s.devices + '</div><div class="l">Dispozitive activate</div></div>' +
+    '<div class="card kpi pu"><div class="ic">' + IC.pulse + '</div><div class="n">' + s.last24 + '</div><div class="l">Folosit în ultimele 24 h</div></div>' +
+    '<div class="card kpi wa"><div class="ic">' + IC.cal + '</div><div class="n">' + (s.expired + s.off) + '</div><div class="l">Expirate / dezactivate</div></div>';
+  const mx = Math.max(1, ...s.days.map(d => d.n));
+  $('chart').innerHTML = '<div class="bars">' + s.days.map(d => '<div class="b' + (d.n ? '' : ' z') + '" title="' + fdate(d.d) + '"><b>' + (d.n || '') + '</b><i style="height:' + Math.max(3, d.n / mx * 80) + '%"></i><span>' + d.d.slice(8) + '</span></div>').join('') + '</div>';
+  const pk = Object.keys(s.plat), tot = pk.reduce((a, k) => a + s.plat[k], 0);
+  $('plat').innerHTML = pk.length ? '<div class="pl">' + pk.map(k => '<div class="r"><span style="width:76px">' + esc(PLAT[k] || k) + '</span><div class="bar"><i style="width:' + Math.round(s.plat[k] / tot * 100) + '%"></i></div><b>' + s.plat[k] + '</b></div>').join('') + '</div>' : '<div class="empty small">Încă nicio folosire în ultimele 7 zile.</div>';
+}
+function evCls(ev) { return ev.indexOf('refuz') === 0 ? 'r' : ev.indexOf('ACTIVARE') === 0 ? 'a' : 'v'; }
+function evHtml(l) { return '<div class="ev"><span class="ed ' + evCls(l.ev) + '"></span><div class="eb"><b>' + esc(l.name || '—') + '</b> <span class="mut">· ' + esc(l.ev) + '</span><div class="mut small">' + esc(PLAT[l.plat] || l.plat || '') + (l.ver && l.ver !== '0' ? ' v' + esc(l.ver) : '') + (l.code ? ' · ' + esc(l.code) : '') + '</div></div><span class="et">' + ago(l.t) + '</span></div>'; }
+async function loadDl() {
+  try {
+    const r = await fetch('https://api.github.com/repos/' + REPO + '/releases?per_page=100', { headers: { Accept: 'application/vnd.github+json' } });
+    if (!r.ok) throw 0; const rel = await r.json(); let apk = 0, exe = 0, adm = 0; const rows = [];
+    rel.forEach(R => { let a = 0, e = 0; (R.assets || []).forEach(x => { const n = x.name, c = x.download_count || 0;
+      if (/^Trikker-\d+\.apk$/.test(n)) a += c; else if (n === 'Trikker-Setup.exe') e += c; else if (/^VerTech-Admin/.test(n)) adm += c; });
+      apk += a; exe += e; if (/^versiunea-/.test(R.tag_name)) rows.push({ v: R.tag_name.replace(/\D+/g, ''), a, e, d: (R.published_at || '').slice(0, 10) }); });
+    $('dl').innerHTML = '<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px"><div><div class="mut small">Android (APK)</div><div style="font-size:26px;font-weight:800">' + apk + '</div></div><div><div class="mut small">Windows (EXE)</div><div style="font-size:26px;font-weight:800">' + exe + '</div></div></div>' +
+      '<table><tr><th>Versiune</th><th class="r">APK</th><th class="r">EXE</th></tr>' + rows.slice(0, 5).map(x => '<tr><td>v' + x.v + ' <span class="mut small">· ' + fdate(x.d) + '</span></td><td class="r">' + x.a + '</td><td class="r">' + x.e + '</td></tr>').join('') + '</table>' +
+      '<div class="mut small" style="margin-top:10px">Includ și actualizările automate. Admin: ' + adm + ' descărcări.</div>';
+  } catch (_) { $('dl').innerHTML = '<div class="empty small">Nu pot citi descărcările acum.</div>'; }
+}
+async function refreshAll(btn) {
+  const b = $('rf'); b.classList.add('spin');
+  try {
+    [STATS, LIC, LOG] = await Promise.all([api('admStats'), api('admList'), api('admLog', 12)]);
+    drawStats(); drawLic(); $('recent').innerHTML = LOG.length ? LOG.slice(0, 7).map(evHtml).join('') : '<div class="empty small">Nicio activitate încă.</div>';
+  } catch (e) { toast(e.message, 1); }
+  b.classList.remove('spin'); loadDl();
+}
+$('rf').onclick = () => refreshAll(); $('rf2').onclick = () => loadLog();
+async function loadLog() { try { const l = await api('admLog', 200); $('log').innerHTML = l.length ? l.map(evHtml).join('') : '<div class="empty">Nicio activitate încă.</div>'; } catch (e) { toast(e.message, 1); } }
+
+/* ---------- licențe ---------- */
+function drawLic() {
+  const f = $('q').value.trim().toLowerCase(), cnt = { all: LIC.length, ok: 0, wa: 0, bad: 0 }; LIC.forEach(l => cnt[status(l)[0]]++);
+  $('chips').innerHTML = [['all', 'Toate'], ['ok', 'Active'], ['wa', 'Expirate'], ['bad', 'Dezactivate']].map(c => '<button class="chip' + (FILTER === c[0] ? ' on' : '') + '" data-f="' + c[0] + '">' + c[1] + ' ' + cnt[c[0]] + '</button>').join('');
+  const list = LIC.filter(l => (FILTER === 'all' || status(l)[0] === FILTER) && (!f || (l.name + ' ' + l.code + ' ' + l.note).toLowerCase().indexOf(f) >= 0));
+  $('lics').innerHTML = list.length ? list.map(l => { const st = status(l), live = l.last && (Date.now() - new Date(l.last).getTime()) < 864e5;
+    return '<div class="lic' + (st[0] === 'bad' ? ' off' : '') + '" data-c="' + esc(l.code) + '"><div class="av">' + esc((l.name.trim()[0] || '?').toUpperCase()) + '</div><div class="mid"><div class="nm">' + esc(l.name) + '</div>' +
+      '<div class="mt"><span class="dot' + (live ? ' on' : '') + '"></span>' + (l.last ? 'văzut ' + ago(l.last) : 'neactivată încă') + ' · ' + l.devs + '/' + l.max + ' dispozitive' + (l.plat ? ' · ' + esc(PLAT[l.plat] || l.plat) + (l.ver && l.ver !== '0' ? ' v' + esc(l.ver) : '') : '') + '</div>' +
+      '<div class="mt">Expiră: ' + fdate(l.exp) + (l.note ? ' · ' + esc(l.note) : '') + '</div></div><div style="text-align:right"><span class="bd ' + st[0] + '">' + st[1] + '</span><div style="margin-top:8px"><span class="code">' + esc(l.code) + '</span></div></div></div>'; }).join('')
+    : '<div class="empty">' + (LIC.length ? 'Nicio licență pentru această căutare.' : 'Nicio licență încă. Apasă „Licență nouă”.') + '</div>';
+}
+$('q').oninput = drawLic;
+$('chips').onclick = e => { const b = e.target.closest('.chip'); if (b) { FILTER = b.dataset.f; drawLic(); } };
+$('lics').onclick = e => { const c = e.target.closest('.lic'); if (c) editDlg(LIC.find(l => l.code === c.dataset.c)); };
+$('newb').onclick = () => newDlg();
+
+function modal(html) { const o = document.createElement('div'); o.className = 'ov'; o.innerHTML = '<div class="md">' + html + '</div>'; o.addEventListener('mousedown', e => { if (e.target === o) o.remove(); }); document.body.appendChild(o); return o; }
+const X = '<button class="ib" data-x style="border:none"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+function seg(id, opts, cur) { return '<div class="seg" id="' + id + '">' + opts.map(o => '<button type="button" data-v="' + o[0] + '"' + (String(o[0]) === String(cur) ? ' class="on"' : '') + '>' + o[1] + '</button>').join('') + '</div>'; }
+function bindSeg(o, id, cb) { o.querySelector('#' + id).onclick = e => { const b = e.target.closest('button'); if (!b) return; o.querySelectorAll('#' + id + ' button').forEach(x => x.classList.toggle('on', x === b)); cb && cb(b.dataset.v); }; }
+function bindStep(o, st) { o.querySelector('[data-m]').onclick = () => { st.n = Math.max(1, st.n - 1); o.querySelector('[data-n]').textContent = st.n; }; o.querySelector('[data-p]').onclick = () => { st.n = Math.min(20, st.n + 1); o.querySelector('[data-n]').textContent = st.n; }; }
+const stepHtml = n => '<div class="step"><button type="button" data-m>−</button><b data-n>' + n + '</b><button type="button" data-p>+</button></div>';
+
+function newDlg() {
+  const st = { n: 1 }, o = modal('<div class="mh"><h3>Licență nouă</h3>' + X + '</div><div class="mb">' +
+    '<label class="f"><span>Nume persoană *</span><input id="fn" placeholder="ex. Ion Popescu" autocomplete="off"></label>' +
+    '<label class="f"><span>Notă (telefon, firmă…)</span><input id="fo" placeholder="opțional" autocomplete="off"></label>' +
+    '<div class="f"><span>Valabilitate</span>' + seg('fv', [['0', 'Fără limită'], ['1', '1 lună'], ['3', '3 luni'], ['6', '6 luni'], ['12', '1 an'], ['d', 'Dată']], '0') + '<input id="fd" type="date" class="hide" style="margin-top:8px"></div>' +
+    '<div class="f"><span>Dispozitive permise</span>' + stepHtml(1) + '</div><div class="err" id="fe"></div></div>' +
+    '<div class="mf"><button class="btn g" data-x>Anulează</button><button class="btn p" id="fs">Creează licența</button></div>');
+  let v = '0'; bindSeg(o, 'fv', x => { v = x; o.querySelector('#fd').classList.toggle('hide', x !== 'd'); }); bindStep(o, st);
+  o.querySelectorAll('[data-x]').forEach(b => b.onclick = () => o.remove()); o.querySelector('#fn').focus();
+  o.querySelector('#fs').onclick = async () => {
+    const name = o.querySelector('#fn').value.trim(); if (!name) { o.querySelector('#fe').textContent = 'Scrie numele persoanei.'; return; }
+    const f = { name, note: o.querySelector('#fo').value.trim(), max: st.n }; if (v === 'd') { f.exp = o.querySelector('#fd').value; if (!f.exp) { o.querySelector('#fe').textContent = 'Alege data.'; return; } } else f.months = parseInt(v, 10);
+    const b = o.querySelector('#fs'); b.disabled = true; b.textContent = 'Se creează…';
+    try { const code = await api('admNew', f); doneDlg(o, name, code); refreshAll(); } catch (e) { o.querySelector('#fe').textContent = e.message; b.disabled = false; b.textContent = 'Creează licența'; }
+  };
+}
+function shareText(code) { return 'Codul tău de licență VerTech: ' + code + '\nLa prima pornire a aplicației introdu codul (ai nevoie de internet doar la activare).'; }
+function doneDlg(o, name, code) {
+  o.querySelector('.md').innerHTML = '<div class="mb"><div class="done"><div class="okc"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></div><h3 style="margin:0;font-size:20px">Licență creată</h3><div class="mut" style="margin-top:4px">pentru ' + esc(name) + '</div><div class="big">' + esc(code) + '</div>' +
+    '<div class="row" style="gap:10px"><button class="btn g w" id="cp">Copiază</button><button class="btn p w" id="sh">Trimite</button></div></div></div><div class="mf"><button class="btn g" data-x>Gata</button></div>';
+  o.querySelector('[data-x]').onclick = () => o.remove();
+  o.querySelector('#cp').onclick = () => copy(shareText(code), 'Copiat');
+  o.querySelector('#sh').onclick = () => { if (navigator.share) navigator.share({ text: shareText(code) }).catch(() => {}); else copy(shareText(code), 'Copiat (trimite-l tu)'); };
+}
+function copy(t, msg) { (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast(msg || 'Copiat'), () => { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); toast(msg || 'Copiat'); } catch (_) {} a.remove(); }); }
+
+function editDlg(l) {
+  if (!l) return; const st = { n: l.max }, on = { v: l.active }, st0 = status(l);
+  const o = modal('<div class="mh"><h3>' + esc(l.name) + '</h3>' + X + '</div><div class="mb">' +
+    '<div class="row" style="margin:4px 0 14px"><span class="code" id="cc" style="cursor:pointer;font-size:16px" title="Copiază">' + esc(l.code) + '</span><span class="bd ' + st0[0] + '">' + st0[1] + '</span><span class="sp"></span><button class="btn g s" id="cs">Trimite</button></div>' +
+    '<div class="mut small" style="margin-bottom:14px">Creată ' + fdate(l.created) + ' · ' + l.checks + ' verificări · ' + (l.last ? 'văzută ' + ago(l.last) : 'neactivată încă') + '</div>' +
+    '<div class="sw"><b>Licență activă</b><button type="button" class="tg' + (l.active ? ' on' : '') + '" id="ta"></button></div>' +
+    '<label class="f"><span>Nume</span><input id="en" value="' + esc(l.name) + '"></label>' +
+    '<label class="f"><span>Notă</span><input id="eo" value="' + esc(l.note) + '"></label>' +
+    '<label class="f"><span>Expiră la</span><input id="ee" type="date" value="' + esc(l.exp) + '"></label>' +
+    '<div class="f"><span>Dispozitive permise <span style="text-transform:none;letter-spacing:0">(folosite: ' + l.devs + ')</span></span>' + stepHtml(l.max) + '</div>' +
+    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn g s" id="rs">Șterge dispozitivele</button><button class="btn d s" id="dl">Șterge licența</button></div><div class="err" id="ee2"></div></div>' +
+    '<div class="mf"><button class="btn g" data-x>Închide</button><button class="btn p" id="sv">Salvează</button></div>');
+  bindStep(o, st); o.querySelectorAll('[data-x]').forEach(b => b.onclick = () => o.remove());
+  o.querySelector('#ta').onclick = e => { on.v = !on.v; e.currentTarget.classList.toggle('on', on.v); };
+  o.querySelector('#cc').onclick = () => copy(l.code, 'Cod copiat');
+  o.querySelector('#cs').onclick = () => { if (navigator.share) navigator.share({ text: shareText(l.code) }).catch(() => {}); else copy(shareText(l.code), 'Copiat'); };
+  const run = async (fn, okmsg) => { try { await fn(); toast(okmsg); o.remove(); refreshAll(); } catch (e) { o.querySelector('#ee2').textContent = e.message; } };
+  o.querySelector('#sv').onclick = () => run(() => api('admSet', l.code, { active: on.v, name: o.querySelector('#en').value.trim() || l.name, note: o.querySelector('#eo').value.trim(), exp: o.querySelector('#ee').value, max: st.n }), 'Salvat');
+  const ask = (btn, txt, act, ok) => { btn.onclick = () => { if (btn.dataset.sure) return run(act, ok); btn.dataset.sure = 1; btn.textContent = txt; }; };
+  ask(o.querySelector('#rs'), 'Sigur? Apasă din nou', () => api('admReset', l.code), 'Dispozitive șterse');
+  ask(o.querySelector('#dl'), 'Sigur? Apasă din nou', () => api('admDel', l.code), 'Licență ștearsă');
+}
+
+/* ---------- actualizări (ca la VerTech) ---------- */
+function updBox(title, msg, yes, onYes) {
+  const o = modal('<div class="mb" style="text-align:center;padding-top:26px"><h3 style="margin:0 0 8px;font-size:19px">' + title + '</h3><div class="mut" style="line-height:1.5">' + msg + '</div></div><div class="mf"><button class="btn g" data-x>Mai târziu</button><button class="btn p" id="uy">' + yes + '</button></div>');
+  o.querySelector('[data-x]').onclick = () => o.remove(); o.querySelector('#uy').onclick = () => { o.remove(); onYes(); };
+}
+let manualUpd = false;
+if (window.trikkerElectron && window.trikkerElectron.onUpdate) window.trikkerElectron.onUpdate(d => {
+  if (d.state === 'downloaded') updBox('Actualizare gata', 'Versiunea ' + esc(d.version) + ' a fost descărcată. Repornești acum ca să se instaleze?', 'Repornește acum', () => window.trikkerElectron.installUpdate());
+  else if (d.state === 'available') { if (manualUpd) toast('Versiune nouă. Se descarcă în fundal…'); }
+  else if (d.state === 'none') { if (manualUpd) toast('Ai cea mai nouă versiune'); }
+  else if (d.state === 'error') { if (manualUpd) toast('Nu pot verifica: ' + d.message, 1); }
+  if (d.state !== 'available') manualUpd = false;
+});
+async function checkUpdate(manual) {
+  if (window.trikkerElectron && window.trikkerElectron.checkUpdate) { manualUpd = !!manual; try { const r = await window.trikkerElectron.checkUpdate(); if (manual && r.state === 'dev') toast('Variantă de test: fără actualizări'); } catch (e) { if (manual) toast('Nu pot verifica acum', 1); } return; }
+  if (!NATIVE) { if (manual) toast('Actualizările merg doar în aplicația instalată'); return; }
+  if (!APP_BUILD) { if (manual) toast('Variantă fără număr de versiune'); return; }
+  try {
+    const r = await fetch('https://api.github.com/repos/' + REPO + '/releases/tags/admin-latest', { headers: { Accept: 'application/vnd.github+json' } }); if (!r.ok) throw 0;
+    const j = await r.json(), n = parseInt(String(j.name || '').replace(/\D+/g, ''), 10) || 0;
+    if (n <= APP_BUILD) { if (manual) toast('Ai cea mai nouă versiune (' + APP_BUILD + ')'); return; }
+    const a = (j.assets || []).find(x => /\.apk$/i.test(x.name));
+    if (!a || a.browser_download_url.indexOf('https://github.com/' + REPO + '/') !== 0) { if (manual) toast('Versiunea nouă nu are încă fișierul', 1); return; }
+    updBox('Versiune nouă disponibilă', 'Ai versiunea ' + APP_BUILD + ', a apărut versiunea ' + n + '. Datele tale rămân. După descărcare, atinge notificarea și apasă „Instalează”.', 'Actualizează', () => {
+      const U = Capacitor.Plugins && Capacitor.Plugins.UpdatePlugin; if (!U) { window.open(a.browser_download_url, '_blank'); return; }
+      U.download({ url: a.browser_download_url, name: 'VerTech-Admin-' + n + '.apk' }).then(() => toast('Se descarcă… atinge notificarea când e gata')).catch(() => window.open(a.browser_download_url, '_blank'));
+    });
+  } catch (_) { if (manual) toast('Nu pot verifica acum. Ai internet?', 1); }
+}
+$('updb').onclick = () => checkUpdate(true);
+
+/* ---------- pornire ---------- */
+$('pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(e); });
+window.addEventListener('load', () => {
+  const saved = ls.get('vta_pw'); if (saved) { $('pw').value = saved; doLogin(); }
+  setTimeout(() => checkUpdate(false), 5000);
+});
+</script>
+</body>
+</html>
