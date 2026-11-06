@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ro"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;background:linear-gradient(160deg,#10233f,#1e73d8);color:#fff;text-align:center}
+.b{padding:24px}h1{font-size:26px;margin:0 0 6px}p{opacity:.85;margin:6px 0 18px}
+button{border:none;border-radius:12px;padding:13px 22px;font-size:16px;font-weight:700;background:#fff;color:#14304f}
+</style></head><body><div class="b"><h1>⚡ VerTech Admin</h1><p id="t">Se deschide…</p><button id="r" style="display:none" onclick="go()">Încearcă din nou</button></div>
+<script>
+var ADMIN_URL = 'https://script.google.com/macros/s/AKfycbw7F5iXdNSbKJwFduWSlQSaOefkO43K5z6Q74FzTeKTeWl1uESjmsgKOSyhjOO4HBTmew/exec?admin=1';
+function go(){
+  if (navigator.onLine === false) { document.getElementById('t').textContent = 'Fără internet. Conectează-te și încearcă din nou.'; document.getElementById('r').style.display = ''; return; }
+  document.getElementById('r').style.display = 'none'; document.getElementById('t').textContent = 'Se deschide…';
+  location.replace(ADMIN_URL);
+}
+window.addEventListener('online', go); go();
+</script></body></html>

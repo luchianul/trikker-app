@@ -1,0 +1,10 @@
+{
+  "appId": "com.diazelectricite.vertechadmin",
+  "appName": "VerTech Admin",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": ["script.google.com", "*.google.com", "*.googleusercontent.com", "*.gstatic.com"]
+  }
+}
