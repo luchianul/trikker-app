@@ -1518,11 +1518,13 @@ function buildRows(dev, edges) {
   groups.sort((p, r) => p.first - r.first);
   return groups.map(g => g.m.slice().sort((p, r) => (CAT[r.k] === 'w') - (CAT[p.k] === 'w')));   // întrerupătoarele primele
 }
+function btLeaves() { const o = []; const w = k => (k || []).forEach(el => { if (el.d) w(el.b && el.b.kids); else if (el.c) o.push(el.c); }); if (BT) w(BT.kids); return o; }
 function generate(auto) {
   const grp = {}, edges = {};
   ALLP().forEach(i => { if (i.t === 'sym' && CAT[i.k]) { const id = (i.id || '?').trim() || '?'; const g = grp[id] = grp[id] || { l:0, f:0, m:0, w:0, s:0, dev:[] }; g[CAT[i.k]] += qtyOf(i); g.dev.push(i); } });
   ALLP().forEach(l => { if (l.t === 'link') { (edges[l.from] = edges[l.from] || []).push(l.to); (edges[l.to] = edges[l.to] || []).push(l.from); } });
   Object.keys(circCfg).forEach(k => { if (circCfg[k] && circCfg[k].spare && !grp[k]) grp[k] = { l:0, f:0, m:0, w:0, s:0, dev:[], spare:true }; });   // rezerve (disjunctoare libere)
+  btLeaves().forEach(k => { if (!grp[k]) grp[k] = { l:0, f:0, m:0, w:0, s:0, dev:[], spare:true }; });   // circuite din Trikker fără nimic pe plan = rezerve (altfel dispar, ex. V)
   const ids = Object.keys(grp).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0));   // A…Z, AA, AB… (nu AA înaintea lui B)
   if (!ids.length) { if (!auto) alert('Pune întâi prize, lămpi sau întrerupătoare în planul casei (pagina 2, oricare nivel).'); return; }
   if (grp['?'] && !auto && !confirm(grp['?'].dev.length + ' simboluri nu au circuit (apar ca „?”). Folosește 🔗 Leagă / Circuit ca să le dai un circuit. Continui oricum?')) return;
@@ -2339,6 +2341,7 @@ let cufar = null;                                // { ids:[...circuite evidenți
 function cufarData() {
   const cnt = {}; ALLP().forEach(i => { if (i.t === 'sym' && CAT[i.k]) { const id = (i.id || '?').trim() || '?'; cnt[id] = (cnt[id] || 0) + 1; } });
   Object.keys(circCfg).forEach(k => { if (circCfg[k] && (circCfg[k].spare || circCfg[k].grp || circCfg[k].nm) && cnt[k] === undefined) cnt[k] = 0; });
+  btLeaves().forEach(k => { if (cnt[k] === undefined) cnt[k] = 0; });
   const ids = Object.keys(cnt).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0)), groups = {};
   ids.forEach(id => { const g = ((circCfg[id] || {}).grp || '').trim(); (groups[g] = groups[g] || []).push(id); });
   return { cnt, groups, names: Object.keys(groups).sort((a, b) => (a === '') - (b === '') || (a < b ? -1 : a > b ? 1 : 0)) };
@@ -3490,7 +3493,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 19:00)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 19:20)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3541,7 +3544,7 @@ buildFab2();
 iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 19:00';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 19:20';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
