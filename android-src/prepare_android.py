@@ -3,7 +3,7 @@ import os, re, shutil
 from PIL import Image, ImageDraw
 
 pkg = 'android/app/src/main/java/com/diazelectricite/trikker'
-for f in ('PrintPlugin.java', 'UpdatePlugin.java', 'MainActivity.java'):
+for f in ('PrintPlugin.java', 'UpdatePlugin.java', 'VtFileProvider.java', 'MainActivity.java'):
     shutil.copy('android-src/' + f, pkg + '/' + f)
 
 res = 'android/app/src/main/res'
@@ -46,3 +46,14 @@ if 'REQUEST_INSTALL_PACKAGES' not in m:
     m = m.replace('<application', '<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />\n    <application', 1)
     open(mf, 'w').write(m)
 print('Manifest: REQUEST_INSTALL_PACKAGES')
+
+# FileProvider pentru trimiterea PDF-ului pe email
+import os, shutil
+m = open(mf).read()
+if 'VtFileProvider' not in m:
+    prov = '<provider android:name=".VtFileProvider" android:authorities="${applicationId}.vtshare" android:exported="false" android:grantUriPermissions="true"><meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/vt_share_paths" /></provider>\n    </application>'
+    m = m.replace('</application>', prov, 1)
+    open(mf, 'w').write(m)
+os.makedirs('android/app/src/main/res/xml', exist_ok=True)
+open('android/app/src/main/res/xml/vt_share_paths.xml', 'w').write('<?xml version="1.0" encoding="utf-8"?>\n<paths><cache-path name="share" path="share/" /></paths>\n')
+print('FileProvider adaugat')

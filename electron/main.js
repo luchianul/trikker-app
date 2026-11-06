@@ -56,3 +56,12 @@ ipcMain.handle('check-update', async () => {
   try { await autoUpdater.checkForUpdates(); return { state: 'checking' }; } catch (e) { return { state: 'error', message: String((e && e.message) || e) }; }
 });
 ipcMain.handle('install-update', () => { autoUpdater.quitAndInstall(true, true); });
+
+ipcMain.handle('send-mail', async (_e, o) => {
+  const f = path.join(app.getPath('downloads'), String(o.name || 'copie.pdf').replace(/[\\/:*?"<>|]/g, '_'));
+  fs.writeFileSync(f, Buffer.from(o.data, 'base64'));
+  shell.showItemInFolder(f);
+  const q = 'mailto:' + encodeURIComponent(o.to || '') + '?subject=' + encodeURIComponent(o.subject || '') + '&body=' + encodeURIComponent(o.body || '');
+  setTimeout(() => shell.openExternal(q), 700);
+  return { file: f };
+});

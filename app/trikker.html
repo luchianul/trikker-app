@@ -585,15 +585,55 @@ html body #cmenu div:last-child:hover { background: var(--ios-red); color: #fff;
 
 }
 body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+
+/* ---------- Pagina de start (nouă) ---------- */
+html body #home { background: #f4f6fa; }
+html body #htop { background: #fff; border-bottom: 1px solid #e3e7ee; padding: 10px 22px; padding-top: calc(10px + env(safe-area-inset-top)); gap: 10px; }
+html body #htop .hlogo { display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 800; letter-spacing: -.02em; color: #14304f; }
+html body #htop .hbolt { width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(135deg,#2ecc71,#1a8f4d); position: relative; display: inline-block; }
+html body #htop .hbolt::after { content: ''; position: absolute; inset: 5px 7px; background: #fff; clip-path: polygon(60% 0, 10% 58%, 45% 58%, 35% 100%, 90% 38%, 55% 38%); }
+html body #htop button { display: inline-flex; align-items: center; gap: 6px; background: #eef2f8; color: #14304f; border-radius: 10px; padding: 9px 14px; font-weight: 600; }
+html body #htop button .ic { width: 18px; height: 18px; margin: 0; }
+html body #hcloud { font-size: 12px; color: #27ae60; margin-left: 6px; }
+html body #hwrap { padding: 0 22px 40px; }
+html body #hhero { max-width: 1100px; margin: 0 auto; padding: 28px 0 8px; }
+html body #hhero h1 { font-size: 28px; margin: 0 0 14px; color: #14304f; letter-spacing: -.02em; }
+html body .hrow { display: flex; gap: 12px; flex-wrap: wrap; }
+html body #hsearch { flex: 1; min-width: 200px; font-size: 16px; padding: 12px 16px; border: 1px solid #d4dbe6; border-radius: 12px; background: #fff; outline: none; }
+html body #hsearch:focus { border-color: #1e73d8; box-shadow: 0 0 0 3px rgba(30,115,216,.15); }
+html body #hnew { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; padding: 12px 22px; border: none; border-radius: 12px; background: #1e73d8; color: #fff; cursor: pointer; box-shadow: 0 4px 14px rgba(30,115,216,.35); }
+html body #hnew .ic { width: 20px; height: 20px; margin: 0; }
+html body #hact { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+html body #hact button { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 8px 14px; border: 1px solid #d4dbe6; border-radius: 999px; background: #fff; color: #14304f; cursor: pointer; }
+html body #hact button:hover { background: #eef2f8; }
+html body #hact .ic { width: 16px; height: 16px; margin: 0; }
+html body #hgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; padding: 20px 0 0; max-width: 1100px; margin: 0 auto; }
+html body .pj { background: #fff; border-radius: 16px; overflow: hidden; cursor: pointer; position: relative; box-shadow: 0 1px 2px rgba(20,48,79,.06), 0 6px 18px rgba(20,48,79,.07); transition: transform .15s, box-shadow .15s; }
+html body .pj:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(20,48,79,.16); }
+html body .pj .pth { height: 150px; background: #f0f3f8; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #e8ecf3; }
+html body .pj .pth img { max-width: 92%; max-height: 138px; border-radius: 6px; background: #fff; }
+html body .pj .pth svg { width: 56px; height: 56px; opacity: .35; }
+html body .pj .pnm { font-weight: 700; font-size: 15px; padding: 12px 44px 2px 14px; color: #14304f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body .pj .pdt { font-size: 12px; color: #7a8799; padding: 0 14px 13px; }
+html body .pj .dots { position: absolute; right: 8px; bottom: 8px; width: 34px; height: 34px; border-radius: 50%; border: none; background: #eef2f8; color: #14304f; font-size: 18px; cursor: pointer; }
+html body #hempty { grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: #7a8799; font-size: 15px; line-height: 1.6; }
+@media (max-width: 600px) { html body #hgrid { grid-template-columns: repeat(2, 1fr); gap: 12px; } html body #hhero h1 { font-size: 23px; } html body .pj .pth { height: 110px; } }
 </style>
 </head>
 <body>
 
 <div id="home">
-  <div id="htop"><b class="hlogo">⚡ VerTech</b><span class="htab">Proiecte</span><span id="hcloud" style="font-size:12px;color:#27ae60;margin-left:10px"></span><span style="flex:1"></span><button onclick="cloudDlg()" title="Sincronizare cu Drive">☁ Sincronizare</button>
-    <button id="bgrid" class="vb on" onclick="setView(false)" title="Cartonașe">▦</button><button id="blist" class="vb" onclick="setView(true)" title="Listă">☰</button>
-    <button id="hback" onclick="hideHome()">↩ Înapoi la desen</button></div>
-  <div id="hwrap"><div id="hgrid"></div></div>
+  <div id="htop"><b class="hlogo"><span class="hbolt"></span>VerTech</b><span id="hcloud"></span><span style="flex:1"></span>
+    <button onclick="cloudDlg()" data-ic="cloud"> Sincronizare</button>
+    <button id="hback" onclick="hideHome()" data-ic="undo"> Înapoi la desen</button></div>
+  <div id="hwrap">
+    <div id="hhero">
+      <h1>Proiectele mele</h1>
+      <div class="hrow"><input id="hsearch" type="search" placeholder="Caută un proiect…" oninput="renderHome()"><button id="hnew" onclick="newProject()" data-ic="plus"> Proiect nou</button></div>
+      <div id="hact"></div>
+    </div>
+    <div id="hgrid"></div>
+  </div>
 </div>
 <div id="sidebar">
   <div class="nav-tabs">
@@ -608,7 +648,7 @@ body.small * { -webkit-backdrop-filter: none !important; backdrop-filter: none !
 </div>
 <div id="tl"><button class="ib" onclick="showHome()" title="Proiecte" data-ic="home"></button><div id="tlmid"></div><button class="ib" onclick="cloudDlg()" title="Sincronizare Drive" data-ic="cloud"></button><button class="ib" onclick="undo()" title="Anulează" data-ic="undo"></button></div>
 <div id="tr"><button class="ib" onclick="exportMenu()" title="Export / tipărire" data-ic="export"></button></div>
-<div id="xmenu"><button onclick="closeX();exportPNG()" data-ic="png"> Salvează PNG</button><button onclick="closeX();printNow()" data-ic="print"> PDF / Tipărește</button><button onclick="closeX();editCartus()" data-ic="clip"> Cartuș (chenar)</button></div>
+<div id="xmenu"><button onclick="closeX();exportPNG()" data-ic="png"> Salvează PNG</button><button onclick="closeX();printNow()" data-ic="print"> PDF / Tipărește</button><button onclick="closeX();editCartus()" data-ic="clip"> Cartuș, semnătură, copie client</button></div>
 <div id="dock"></div>
 <button id="dockshow" onclick="toggleDock()" title="Arată meniurile" data-ic="menu"></button>
 
@@ -2357,21 +2397,108 @@ const K = Math.min(MAXW / lw, MAXH / lh, 3);   // fără minim forțat de 1
 }
 function cartGet() {
   let g = {}; try { g = JSON.parse(lsGet('cartus') || '{}'); } catch (_) {}
-  return { adr: lsGet('cartus_adr:' + current) || '', inst: g.inst || '', tens: g.tens || '2 x 230V ~ 50Hz', t1: g.t1 || 'Schéma unifilaire', t2: g.t2 || 'Plan de position' };
+  return { sig: lsGet('cartus_sig') || '', sigd: lsGet('cartus_sigd') || '', sigc: lsGet('cartus_sigc:' + current) || '', email: lsGet('cartus_email:' + current) || '', adr: lsGet('cartus_adr:' + current) || '', inst: g.inst || '', tens: g.tens || '2 x 230V ~ 50Hz', t1: g.t1 || 'Schéma unifilaire', t2: g.t2 || 'Plan de position' };
+}
+function sigPad(cv, initial) {                 // câmp de semnat cu degetul / mouse-ul; întoarce { get(), clear() }
+  const g = cv.getContext('2d'); g.lineWidth = 2.6; g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#111';
+  let down = false, last = null, dirty = false, has = !!initial;
+  if (initial) { const im = new Image(); im.onload = () => g.drawImage(im, 0, 0, cv.width, cv.height); im.src = initial; }
+  const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
+  cv.style.touchAction = 'none';
+  cv.addEventListener('pointerdown', e => { down = true; last = pt(e); cv.setPointerCapture(e.pointerId); g.beginPath(); g.arc(last[0], last[1], 1.2, 0, 7); g.fillStyle = '#111'; g.fill(); e.preventDefault(); });
+  cv.addEventListener('pointermove', e => { if (!down) return; const p = pt(e); g.beginPath(); g.moveTo(last[0], last[1]); g.lineTo(p[0], p[1]); g.stroke(); last = p; dirty = has = true; });
+  const up = () => { down = false; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  return {
+    clear() { g.clearRect(0, 0, cv.width, cv.height); dirty = true; has = false; },
+    changed: () => dirty,
+    get() { if (!has) return ''; const t = document.createElement('canvas'); t.width = cv.width; t.height = cv.height; t.getContext('2d').drawImage(cv, 0, 0);
+      const d = t.getContext('2d').getImageData(0, 0, t.width, t.height).data; let x0 = t.width, y0 = t.height, x1 = 0, y1 = 0;   // taie marginile goale
+      for (let y = 0; y < t.height; y++) for (let x = 0; x < t.width; x++) if (d[(y * t.width + x) * 4 + 3] > 20) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      if (x1 <= x0) return ''; const w = x1 - x0 + 8, h = y1 - y0 + 8, o = document.createElement('canvas'); o.width = w; o.height = h; o.getContext('2d').drawImage(t, x0 - 4, y0 - 4, w, h, 0, 0, w, h); return o.toDataURL('image/png'); }
+  };
 }
 function editCartus() {
   const c = cartGet();
-  dlg('Cartuș (chenarul din colț)',
+  const o = dlg('Cartuș și semnătură',
     '<label>Adresa instalației (Enter = rând nou):<textarea class="ka" rows="3" style="width:100%">' + escH(c.adr) + '</textarea></label>' +
-    '<label>Instalator (un rând pe linie):<textarea class="ki" rows="6" style="width:100%">' + escH(c.inst) + '</textarea></label>' +
+    '<label>Instalator (nume, TVA, date; un rând pe linie):<textarea class="ki" rows="5" style="width:100%">' + escH(c.inst) + '</textarea></label>' +
     '<label>Tensiune / rețea:<input class="kt full" value="' + escA(c.tens) + '"></label>' +
     '<label>Titlu unifilar:<input class="k1 full" value="' + escA(c.t1) + '"></label>' +
     '<label>Titlu plan:<input class="k2 full" value="' + escA(c.t2) + '"></label>' +
-    '<small>Adresa se ține separat pentru fiecare proiect; restul e comun tuturor.</small>',
-    d => {
-      lsSet('cartus', JSON.stringify({ inst: d.querySelector('.ki').value, tens: d.querySelector('.kt').value, t1: d.querySelector('.k1').value, t2: d.querySelector('.k2').value }));
-      lsSet('cartus_adr:' + current, d.querySelector('.ka').value);
-    });
+    '<div class="sgb"><b>✍ Semnătura instalatorului</b><canvas class="sg1" width="480" height="150"></canvas><button type="button" class="sgc1">Șterge semnătura</button></div>' +
+    '<div class="sgb"><b>✍ Semnătura clientului</b> <small>(opțional, doar la acest proiect)</small><canvas class="sg2" width="480" height="150"></canvas><button type="button" class="sgc2">Șterge semnătura</button></div>' +
+    '<label>Email client:<input class="ke full" type="email" value="' + escA(c.email) + '" placeholder="client@exemplu.be"></label>' +
+    '<button type="button" class="kcopy">✉ Copie client – trimite pe email (PDF)</button>' +
+    '<small>Adresa, semnătura clientului și emailul se țin separat pentru fiecare proiect; restul e comun tuturor.</small><span class="nofocus"></span>',
+    d => { collect(d); });
+  const st = document.createElement('style'); st.textContent = '#ov .sgb{margin:10px 0}#ov .sgb canvas{display:block;width:100%;height:120px;border:1.5px dashed #8a97ab;border-radius:10px;background:#fff;margin:6px 0}#ov .sgb button{border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}#ov .kcopy{display:block;width:100%;margin:12px 0 6px;padding:13px;font-size:15px;font-weight:700;border:none;border-radius:12px;background:#1e73d8;color:#fff;cursor:pointer}'; o.appendChild(st);
+  const q = x => o.querySelector(x), p1 = sigPad(q('.sg1'), c.sig), p2 = sigPad(q('.sg2'), c.sigc);
+  q('.sgc1').onclick = () => p1.clear(); q('.sgc2').onclick = () => p2.clear();
+  function collect(d) {
+    lsSet('cartus', JSON.stringify({ inst: q('.ki').value, tens: q('.kt').value, t1: q('.k1').value, t2: q('.k2').value }));
+    lsSet('cartus_adr:' + current, q('.ka').value); lsSet('cartus_email:' + current, q('.ke').value.trim());
+    if (p1.changed()) { const v = p1.get(); if (v) { lsSet('cartus_sig', v); lsSet('cartus_sigd', today()); } else { lsDel('cartus_sig'); lsDel('cartus_sigd'); } }
+    if (p2.changed()) { const v = p2.get(); if (v) lsSet('cartus_sigc:' + current, v); else lsDel('cartus_sigc:' + current); }
+  }
+  q('.kcopy').onclick = () => { collect(); o.remove(); clientCopyDlg(); };
+}
+/* ---------- Copie client: PDF făcut în aplicație și trimis pe email ---------- */
+async function pageToJpeg(el) {
+  const W = 1062, H = 726, xml = new XMLSerializer().serializeToString(el.cloneNode(true));
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><foreignObject width="100%" height="100%">' + xml + '</foreignObject></svg>';
+  const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Nu am putut desena pagina')); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); });
+  const c = document.createElement('canvas'); c.width = W * 2; c.height = H * 2; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+  const b64 = c.toDataURL('image/jpeg', 0.9).split(',')[1], bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return { b: u, w: c.width, h: c.height };
+}
+function makePdf(jp) {                                // PDF minimal: câte o poză JPEG pe pagină (A4 peisaj)
+  const enc = new TextEncoder(), parts = [], off = []; let len = 0; const PW = 796.5, PH = 544.2;
+  const push = x => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, body) => { off[n] = len; push(n + ' 0 obj\n'); body(); push('\nendobj\n'); };
+  push('%PDF-1.4\n'); const N = jp.length;
+  obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => push('<< /Type /Pages /Count ' + N + ' /Kids [' + jp.map((_, i) => (3 + 3 * i) + ' 0 R').join(' ') + '] >>'));
+  jp.forEach((p, i) => { const a = 3 + 3 * i, cs = 'q ' + PW + ' 0 0 ' + PH + ' 0 0 cm /Im0 Do Q';
+    obj(a, () => push('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + PW + ' ' + PH + '] /Resources << /XObject << /Im0 ' + (a + 2) + ' 0 R >> >> /Contents ' + (a + 1) + ' 0 R >>'));
+    obj(a + 1, () => push('<< /Length ' + cs.length + ' >>\nstream\n' + cs + '\nendstream'));
+    obj(a + 2, () => { push('<< /Type /XObject /Subtype /Image /Width ' + p.w + ' /Height ' + p.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + p.b.length + ' >>\nstream\n'); push(p.b); push('\nendstream'); }); });
+  const xr = len, T = 3 + 3 * N; push('xref\n0 ' + T + '\n0000000000 65535 f \n'); for (let n = 1; n < T; n++) push(String(off[n]).padStart(10, '0') + ' 00000 n \n');
+  push('trailer\n<< /Size ' + T + ' /Root 1 0 R >>\nstartxref\n' + xr + '\n%%EOF');
+  const out = new Uint8Array(len); let o = 0; parts.forEach(b => { out.set(b, o); o += b.length; }); return out;
+}
+async function clientPdfB64() {
+  buildPrint(); const pa = document.getElementById('pa'), els = [...pa.querySelectorAll('.pg')];
+  try { if (!els.length) throw new Error('Nu e nimic de trimis: desenează întâi unifilarul sau planul.');
+    await Promise.all([...pa.querySelectorAll('img')].map(i => i.decode().catch(() => {})));
+    const jp = []; for (const e of els) jp.push(await pageToJpeg(e));
+    const pdf = makePdf(jp); let bin = ''; for (let i = 0; i < pdf.length; i += 0x8000) bin += String.fromCharCode.apply(null, pdf.subarray(i, i + 0x8000)); return btoa(bin);
+  } finally { pa.innerHTML = ''; }
+}
+function clientCopyDlg() {
+  const c = cartGet(), who = (c.inst || '').split('\n')[0] || '', adr = (c.adr || current || '').split('\n')[0];
+  const html = '<label>Către (emailul clientului):<input class="mt full" type="email" value="' + escA(c.email) + '" placeholder="client@exemplu.be"></label>' +
+    '<label>Subiect:<input class="ms full" value="' + escA('Installation électrique – ' + adr) + '"></label>' +
+    '<label>Mesaj:<textarea class="mb" rows="6" style="width:100%">' + escH('Bonjour,\n\nVeuillez trouver ci-joint la copie du schéma unifilaire et du plan de l’installation électrique.\n\nCordialement,\n' + who) + '</textarea></label>' +
+    '<small>Se face un PDF cu toate paginile (și semnăturile). Pe Android se deschide aplicația de email cu PDF-ul atașat. Pe calculator se salvează PDF-ul și se deschide emailul; atașezi PDF-ul din folderul deschis.</small>';
+  dlg('✉ Copie client', html, d => {
+    const to = d.querySelector('.mt').value.trim(), sub = d.querySelector('.ms').value, body = d.querySelector('.mb').value;
+    if (to) lsSet('cartus_email:' + current, to);
+    sendClientCopy(to, sub, body); });
+}
+async function sendClientCopy(to, subject, body) {
+  const name = (current || 'proiect').replace(/[\\/:*?"<>|]/g, '_') + ' - copie client.pdf';
+  helpMsg('Se pregătește PDF-ul…');
+  try {
+    const b64 = await clientPdfB64();
+    if (NATIVE && Capacitor.Plugins && Capacitor.Plugins.UpdatePlugin && Capacitor.Plugins.UpdatePlugin.sendMail) { await Capacitor.Plugins.UpdatePlugin.sendMail({ to, subject, text: body, name, data: b64 }); }
+    else if (window.trikkerElectron && window.trikkerElectron.sendMail) { const r = await window.trikkerElectron.sendMail({ to, subject, body, name, data: b64 }); alert('PDF-ul a fost salvat în Descărcări (' + name + ') și s-a deschis emailul. Atașează fișierul din folderul deschis.'); }
+    else {
+      const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); const file = new File([u], name, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], title: subject, text: body });
+      else { saveBlobAs(file, name); setTimeout(() => { location.href = 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body); }, 600); }
+    }
+    helpMsg('Copia pentru client e gata.');
+  } catch (e) { if (!/cancel|abort/i.test(String((e && e.message) || e))) alert('Nu am putut trimite: ' + ((e && e.message) || e)); }
 }
 function buildPrint() {
   const pa = document.getElementById('pa'); pa.innerHTML = '';
@@ -2409,8 +2536,8 @@ function buildPrint() {
     const box = document.createElement('div');
     box.style.cssText = 'position:absolute;right:0;bottom:0;width:190mm;height:31mm;display:flex;border-top:.4mm solid #000;border-left:.4mm solid #000;background:#fff';
     box.innerHTML =
-      '<div style="' + bx + 'width:78mm;border-right:.4mm solid #000">' + hd('Adresse de l’installation électrique') + '\n' + escH(CD.adr) + '</div>' +
-      '<div style="' + bx + 'width:78mm;border-right:.4mm solid #000">' + hd('Installateur') + '\n' + escH(CD.inst) + '</div>' +
+      '<div style="' + bx + 'position:relative;width:78mm;border-right:.4mm solid #000">' + hd('Adresse de l’installation électrique') + '\n' + escH(CD.adr) + (CD.sigc ? '<img src="' + CD.sigc + '" style="position:absolute;right:2mm;bottom:1mm;height:11mm;width:auto"><span style="position:absolute;left:2.5mm;bottom:1mm;font-size:6.5pt;color:#555">Signature client</span>' : '') + '</div>' +
+      '<div style="' + bx + 'position:relative;width:78mm;border-right:.4mm solid #000">' + hd('Installateur') + '\n' + escH(CD.inst) + (CD.sig ? '<img src="' + CD.sig + '" style="position:absolute;right:2mm;bottom:1mm;height:11mm;width:auto"><span style="position:absolute;left:2.5mm;bottom:1mm;font-size:6.5pt;color:#555">Signature' + (CD.sigd ? ' · ' + escH(CD.sigd) : '') + '</span>' : '') + '</div>' +
       '<div style="' + bx + 'width:34mm;padding:0"><div style="padding:1.5mm 2.5mm;border-bottom:.4mm solid #000">' + hd('p. ' + (i + 1) + '/' + N) + '<br>' + hd(title) + '</div>' +
       '<div style="padding:1.5mm 2.5mm">' + escH(CD.tens) + '</div></div>';
     d.appendChild(c); d.appendChild(box); pa.appendChild(d);
@@ -2483,23 +2610,26 @@ const HOUSE = '<svg width="64" height="64" viewBox="0 0 64 64" fill="none" strok
 function fmtDate(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('ro-RO', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' }); } catch (_) { return ''; } }
 function renderHome() {
   const g = document.getElementById('hgrid'); g.innerHTML = '';
+  const q = ((document.getElementById('hsearch') || {}).value || '').trim().toLowerCase();
   const dOf = n => lsGet('proiect_data:' + n) || cloudD[n] || '';
-  projList.slice().sort((a, b) => dOf(b).localeCompare(dOf(a))).forEach(n => {
-    const c = document.createElement('div'); c.className = 'pcard';
+  const list = projList.slice().sort((a, b) => dOf(b).localeCompare(dOf(a))).filter(n => !q || n.toLowerCase().includes(q));
+  list.forEach(n => {
+    const c = document.createElement('div'); c.className = 'pj';
     const th = lsGet('proiect_thumb:' + n);
-    c.innerHTML = '<div class="th">' + (th ? '<img src="' + th + '">' : HOUSE) + '</div><div><div class="nm">' + escH(n) + '</div><div class="dt">' + escH(fmtDate(dOf(n))) + '</div></div><button class="dots">⋯</button>';
+    c.innerHTML = '<div class="pth">' + (th ? '<img src="' + th + '">' : HOUSE) + '</div><div class="pnm">' + escH(n) + '</div><div class="pdt">' + escH(fmtDate(dOf(n))) + '</div><button class="dots" title="Mai multe">⋯</button>';
     c.onclick = () => openProject(n);
     c.querySelector('.dots').onclick = ev => showCMenu(ev, n);
     g.appendChild(c);
   });
-  const add = (big, t, sub, fn) => { const c = document.createElement('div'); c.className = 'pcard'; c.innerHTML = '<div class="th big">' + big + '</div><div><div class="nm">' + t + '</div><div class="dt">' + sub + '</div></div>'; c.onclick = fn; g.appendChild(c); };
-  add('＋', 'Proiect nou', 'Creează un proiect nou', newProject);
-  add('⟳', 'Sincronizează acum', 'Aduce proiectele din Drive', syncAllNow);
-  add('⬇', 'Importă proiect', 'Dintr-un fișier .json', importProject);
-  add('⬇', 'Importă din Trikker', 'Dintr-un fișier .trik', importTrik);
-  if (NATIVE || window.trikkerElectron) add('⟳', 'Caută actualizări', 'Versiunea instalată: ' + (APP_BUILD || 'dev'), () => checkUpdate(true));
+  if (!list.length) g.innerHTML = '<div id="hempty">' + (q ? 'Niciun proiect cu acest nume.' : 'Niciun proiect încă.<br>Apasă <b>Proiect nou</b> sau importă un fișier <b>.trik</b> de la arhitect.') + '</div>';
+  const a = document.getElementById('hact'); a.innerHTML = '';
+  const chip = (ico, t, fn) => { const b = document.createElement('button'); b.innerHTML = ic(ico) + t; b.onclick = fn; a.appendChild(b); };
+  chip('png', 'Importă .trik (Trikker)', importTrik);
+  chip('export', 'Importă fișier .json', importProject);
+  chip('rot', 'Sincronizează acum', syncAllNow);
+  if (NATIVE || window.trikkerElectron) chip('gen', 'Caută actualizări · v' + (APP_BUILD || 'dev'), () => checkUpdate(true));
 }
-function setView(list) { document.getElementById('hgrid').classList.toggle('list', list); document.getElementById('bgrid').classList.toggle('on', !list); document.getElementById('blist').classList.toggle('on', list); }
+function setView() {}
 function showHome() { if (current) { makeThumb(); save(); cloudFlush(); } renderHome(); fillProj(); document.getElementById('home').style.display = 'flex'; }
 function hideHome() { if (current) document.getElementById('home').style.display = 'none'; }
 function closeCMenu() { const m = document.getElementById('cmenu'); if (m) m.remove(); }
@@ -3186,7 +3316,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 05.11 23:50)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 11:30)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3237,7 +3367,7 @@ buildFab2();
 iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 05.11 23:50';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 11:30';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);

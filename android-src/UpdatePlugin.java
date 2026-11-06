@@ -9,6 +9,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
+import android.util.Base64;
+import androidx.core.content.FileProvider;
+import java.io.File;
+import java.io.FileOutputStream;
 
 import androidx.core.content.ContextCompat;
 
@@ -58,6 +62,32 @@ public class UpdatePlugin extends Plugin {
         } catch (Exception e) {
             call.reject(String.valueOf(e.getMessage()));
         }
+    }
+
+    /** Scrie PDF-ul si deschide aplicatia de email cu destinatarul, subiectul, mesajul si PDF-ul atasat. */
+    @PluginMethod
+    public void sendMail(final PluginCall call) {
+        try {
+            Context ctx = getContext();
+            String name = call.getString("name", "copie.pdf").replaceAll("[^A-Za-z0-9._ -]", "_");
+            byte[] data = Base64.decode(call.getString("data", ""), Base64.DEFAULT);
+            File dir = new File(ctx.getCacheDir(), "share"); dir.mkdirs();
+            File f = new File(dir, name);
+            FileOutputStream o = new FileOutputStream(f); o.write(data); o.close();
+            Uri u = FileProvider.getUriForFile(ctx, ctx.getPackageName() + ".vtshare", f);
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("application/pdf");
+            String to = call.getString("to", "");
+            if (to != null && !to.isEmpty()) i.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
+            i.putExtra(Intent.EXTRA_SUBJECT, call.getString("subject", ""));
+            i.putExtra(Intent.EXTRA_TEXT, call.getString("text", ""));
+            i.putExtra(Intent.EXTRA_STREAM, u);
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Intent ch = Intent.createChooser(i, "Trimite copia clientului");
+            ch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            ctx.startActivity(ch);
+            call.resolve();
+        } catch (Exception e) { call.reject(String.valueOf(e.getMessage())); }
     }
 
     private void installNow(Context c, long id) {
