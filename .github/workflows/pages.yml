@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  pages: write
 
 jobs:
   site:
@@ -32,3 +33,7 @@ jobs:
           git add -A
           git commit -q -m "Site web ${{ github.run_number }}"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
+      - name: Porneste publicarea Pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api -X POST repos/${{ github.repository }}/pages/builds
