@@ -2602,7 +2602,7 @@ function makeThumb() {                      // miniatura proiectului (din ce e a
     lsSet('proiect_thumb:' + current, t.toDataURL('image/jpeg', .7));
   } catch (_) {}
 }
-function save() { if (bulkBackup) bulkBackup.touched = true; if (!current || current === cloudPending) return; lsSet(lsKey(current), snap()); lsSet('proiect_data:' + current, new Date().toISOString()); thumbSoon(); cloudSave(); }
+function save() { if (bulkBackup) bulkBackup.touched = true; if (!current || current === cloudPending) return; const sn = snap(), changed = lsGet(lsKey(current)) !== sn; lsSet(lsKey(current), sn); if (!changed) return; lsSet('proiect_data:' + current, new Date().toISOString()); thumbSoon(); cloudSave(); }
 function resetState() { SS = 1; BT = null; pages[1] = []; pages.del = []; plans = [{ name:'Parter', items:[] }]; lvl = 0; startOpts = { brk:true, meter:true, sect:false, diff:true }; cabPlace = ''; circCfg = {}; gc = {}; linkFrom = null; start = null; }
 function applyData(d) {
   if (!d || !d[1]) return;
@@ -3058,6 +3058,7 @@ async function syncNow() {
     if (names.length) await cloudList();
     for (const n of names) {
       if (!projList.includes(n) || n === cloudPending) { setDirty(n, false); continue; }
+      if (goneAsk.has(n)) continue;
       const data = n === current ? snap() : lsGet(lsKey(n)); if (!data) { setDirty(n, false); continue; }
       const rd = cloudD[n], ls = lsGet('proiect_sync:' + n);                       // conflict: Drive are o versiune mai nouă decât ultima sincronizare
       if (rd && (!ls || new Date(rd) - new Date(ls) > 3000)) {
@@ -3097,11 +3098,19 @@ function dropLocal(n) {                      // scoate un proiect doar de pe ace
   projList = projList.filter(x => x !== n);
   if (n === current) { clearTimeout(cloudT); clearTimeout(thumbT); current = ''; cloudPending = ''; resetState(); showProject(); pendingUI(); }
 }
-function askGone(list) {                     // proiecte șterse din Drive de pe alt dispozitiv: întrebăm înainte să le ștergem și de aici
-  if (askingGone || !list.length) return; askingGone = true;
+const goneAsk = new Set();                   // proiecte cu modificări locale, dar șterse din Drive: nu le trimitem înapoi până nu răspunde utilizatorul
+function askGone(list, auto, dirtyList) {    // șterse din Drive de pe alt dispozitiv: fără modificări locale => se scot automat; cu modificări => întrebăm
+  if (auto && list.length) {
+    list.forEach(dropLocal); saveList(); renderHome();
+    setCloud('☁ ' + list.length + (list.length === 1 ? ' proiect șters' : ' proiecte șterse') + ' din altă parte: scoase și de aici');
+  }
+  dirtyList = dirtyList || []; dirtyList.forEach(n => goneAsk.add(n));
+  const ask = auto ? dirtyList : list.concat(dirtyList);
+  if (askingGone || !ask.length) return; askingGone = true;
   setTimeout(() => {
-    const ok = confirm('Aceste proiecte nu mai există în Drive (au fost șterse de pe alt dispozitiv):\n\n• ' + list.join('\n• ') + '\n\nLe șterg și de pe acest dispozitiv?\n\nOK = șterge · Anulare = le păstrez și le trimit din nou în Drive.\n(Dacă ai schimbat adresa Apps Script, apasă Anulare.)');
-    if (ok) list.forEach(dropLocal); else list.forEach(n => { lsDel('proiect_sync:' + n); setDirty(n, true); });
+    const ok = confirm('Aceste proiecte nu mai există în Drive (au fost șterse de pe alt dispozitiv):\n\n• ' + ask.join('\n• ') + '\n\nLe șterg și de pe acest dispozitiv?\n\nOK = șterge · Anulare = le păstrez și le trimit din nou în Drive.\n(Dacă ai schimbat adresa Apps Script, apasă Anulare.)');
+    if (ok) ask.forEach(dropLocal); else ask.forEach(n => { lsDel('proiect_sync:' + n); setDirty(n, true); });
+    ask.forEach(n => goneAsk.delete(n));
     askingGone = false; saveList(); renderHome(); if (!ok) syncNow();
   }, 50);
 }
@@ -3111,11 +3120,14 @@ function cloudList() {
     const pend = new Set(); getQ('cloud_ops', []).forEach(o => { pend.add(o.a); if (o.b) pend.add(o.b); });   // șterse/redenumite aici, dar încă netrimise în Drive: nu le readucem
     const inCloud = new Set();
     (l || []).forEach(x => { const n = typeof x === 'string' ? x : x.n; inCloud.add(n); if (pend.has(n)) return; if (!projList.includes(n)) projList.push(n); if (x && x.d) cloudD[n] = x.d; });
-    const gone = projList.filter(n => !inCloud.has(n) && !pend.has(n) && lsGet('proiect_sync:' + n) && n !== cloudPending && !isDirty(n));
+    const missing = projList.filter(n => !inCloud.has(n) && !pend.has(n) && lsGet('proiect_sync:' + n) && n !== cloudPending);
+    const auto = (l || []).length > 0;          // Drive are alte proiecte => e același Drive, deci proiectele lipsă chiar au fost șterse
+    const gone = missing.filter(n => !isDirty(n)), goneD = missing.filter(n => isDirty(n));
     saveList(); if (document.getElementById('home').style.display === 'flex') renderHome();
-    askGone(gone);
+    askGone(gone, auto, auto ? goneD : []);
   }).catch(() => {});
 }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && HAS_CLOUD() && online() && !cloudBusy) cloudList(); });
 function cloudBoot() {
   if (!HAS_CLOUD()) { if (!GAS) setCloud('📴 doar local – apasă ☁ ca să setezi sincronizarea cu Drive'); return; }
   if (!online()) { setCloud('📴 fără internet – lucrezi local'); return; }
@@ -3311,7 +3323,7 @@ AREI.forEach(regNat);
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (_) {}      // cere să nu fie șterse datele locale
 })();
 let deferredInstall = null;
-const isStandalone = () => { try { return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true; } catch (_) { return false; } };
+const isStandalone = () => { try { if (window.trikkerElectron || (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform())) return true; return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true; } catch (_) { return false; } };
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
 window.addEventListener('appinstalled', () => { deferredInstall = null; document.querySelectorAll('.binst').forEach(b => b.style.display = 'none'); });
 function fullscreenToggle() {
@@ -3335,7 +3347,7 @@ async function installDiag() {             // verifică pe dispozitiv tot ce cer
   info('Mod curent', isStandalone() ? 'aplicație instalată' : 'în browser');
   (location.protocol === 'https:' || location.hostname === 'localhost') ? ok('Conexiune sigură (https)') : bad('Adresa nu e https', 'Chrome instalează doar de pe https');
   const link = document.querySelector('link[rel=manifest]');
-  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 15:00)');
+  if (!link) bad('În pagină lipsește legătura către manifest', 'trikker.html nu este varianta nouă (v 06.11 16:30)');
   else {
     try {
       const m = await get(link.href, true);
@@ -3386,7 +3398,7 @@ buildFab2();
 iconize();
 { const fb = document.getElementById('fsticky'); if (fb) fb.style.background = sticky ? '#f1c40f' : ''; }
 (function () {                             // etichetă de versiune: ca să vezi dacă rulezi fișierul cel mai nou
-  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 15:00';
+  const v = document.createElement('div'); v.id = 'ver'; v.textContent = 'v 06.11 16:30';
   v.style.cssText = 'position:fixed;right:8px;bottom:3px;font:10px Arial;color:#888;z-index:5;pointer-events:none';
   document.body.appendChild(v);
   const st = document.createElement('style'); st.textContent = '@media print{#ver{display:none}}'; document.head.appendChild(st);
