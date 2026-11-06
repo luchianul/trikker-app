@@ -28,7 +28,6 @@ jobs:
         run: |
           mkdir -p www
           cp app/trikker.html www/index.html
-          cp -r app/pdfjs www/pdfjs
           sed -i "s/const APP_BUILD = 0;/const APP_BUILD = ${{ github.run_number }};/" www/index.html
           grep -c "const APP_BUILD = ${{ github.run_number }};" www/index.html
           npm install --no-audit --no-fund --ignore-scripts
@@ -64,7 +63,6 @@ jobs:
         run: |
           mkdir -p www
           cp app/trikker.html www/index.html
-          cp -r app/pdfjs www/pdfjs
           sed -i "s/const APP_BUILD = 0;/const APP_BUILD = ${{ github.run_number }};/" www/index.html
           grep -c "const APP_BUILD = ${{ github.run_number }};" www/index.html
           npm version 1.0.${{ github.run_number }} --no-git-tag-version --allow-same-version
